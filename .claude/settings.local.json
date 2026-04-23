@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(export PATH=\"/c/Users/david/.local/bin:$PATH\")",
+      "Bash(curl -sS https://pypi.org/pypi/__TRACKED_VAR__/json -o /tmp/pkg.json)",
+      "Bash(python -c \"import json; d=json.load\\(open\\('/tmp/pkg.json'\\)\\); info=d.get\\('info',{}\\); print\\('name:', info.get\\('name'\\)\\); print\\('version:', info.get\\('version'\\)\\); print\\('summary:', \\(info.get\\('summary'\\) or ''\\)[:80]\\); print\\('requires_python:', info.get\\('requires_python'\\)\\)\")",
+      "PowerShell($packages = @\\('pysigma','pysigma-backend-kusto','pysigma-backend-splunk','pysigma-backend-elasticsearch','pysigma-backend-crowdstrike','pysigma-pipeline-sysmon','pysigma-pipeline-windows','pysigma-pipeline-crowdstrike','pysigma-pipeline-microsoft365'\\); foreach \\($p in $packages\\) { try { $j = Invoke-RestMethod \"https://pypi.org/pypi/$p/json\" -ErrorAction Stop; \"{0,-40} OK  v{1}  py={2}\" -f $p, $j.info.version, $j.info.requires_python } catch { \"{0,-40} NOT FOUND\" -f $p } })"
+    ]
+  }
+}

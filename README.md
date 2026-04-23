@@ -36,16 +36,27 @@ Then open `http://localhost:8000`.
 
 ### Local (development)
 
-Requires `uv` (install: `curl -LsSf https://astral.sh/uv/install.sh | sh`).
+Requires `uv` (install: `curl -LsSf https://astral.sh/uv/install.sh | sh`, or on Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`).
 
 ```bash
 git clone https://github.com/[org]/intel2sigma
 cd intel2sigma
-uv sync
-uv run uvicorn intel2sigma.web.app:app --reload
+uv sync                                           # install all deps
+uv run pytest                                     # run the test suite
+uv run mypy intel2sigma --strict                  # typecheck
+uv run ruff check && uv run ruff format --check   # lint and format
+uv run uvicorn intel2sigma.web.app:app --reload   # dev server (v1+)
 ```
 
-Python 3.14 is downloaded and managed by `uv` — no system Python install needed. See `CLAUDE.md` for the full development workflow.
+Python 3.14 is downloaded and managed by `uv` — no system Python install needed. `uv.lock` is committed and reproduces the environment exactly.
+
+v0 smoke test (core library only):
+
+```bash
+uv run pytest tests/test_model_smoke.py tests/test_pysigma_integration.py
+```
+
+See `CLAUDE.md` for the full development workflow and architectural rules.
 
 ### Docker
 
