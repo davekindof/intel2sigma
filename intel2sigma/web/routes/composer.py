@@ -20,12 +20,21 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from typing import Annotated, Any
+from urllib.parse import quote
 
 from fastapi import APIRouter, Form, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
-from intel2sigma.core.convert import all_backend_ids, backend_label
+from intel2sigma.core.convert import (
+    ConversionFailedError,
+    UnknownBackendError,
+    all_backend_ids,
+    backend_label,
+    convert,
+    resolve,
+)
+from intel2sigma.core.model import SigmaRule
 from intel2sigma.core.serialize import to_yaml
 from intel2sigma.core.taxonomy import (
     TaxonomyRegistry,
@@ -129,23 +138,25 @@ def _render_stage(request: Request, draft: RuleDraft) -> HTMLResponse:
     preview_html = templates.get_template("partials/preview_pane.html").render(
         request=request, **preview_context
     )
+    tabs_html = templates.get_template("partials/conversion_tabs.html").render(
+        request=request, **preview_context
+    )
     state_html = templates.get_template("partials/state_blob.html").render(
         request=request, draft_json=draft.to_json()
     )
 
-    # Wrap oob targets. htmx reads `hx-swap-oob` on the outer element and
-    # swaps the matching id on the page. For the state blob the element
-    # IS the target (id=rule-state), so it already has hx-swap-oob on it.
-    # For the preview, we wrap the rendered content in a fresh
-    # #preview-pane / #conversion-tab-body outer so the oob swap replaces
-    # the right region.
+    # htmx oob-swap semantics: each wrapper carries hx-swap-oob="true" and its
+    # own id, telling htmx which region on the page to replace. The state
+    # blob template owns its own oob attr; the two preview regions we wrap
+    # here because they render plain content-for-region.
     preview_oob = f'<div id="preview-pane" hx-swap-oob="true">{preview_html}</div>'
+    tabs_oob = f'<div id="conversion-tabs-region" hx-swap-oob="true">{tabs_html}</div>'
 
-    body = f"{composer_html}\n{preview_oob}\n{state_html}"
+    body = f"{composer_html}\n{preview_oob}\n{tabs_oob}\n{state_html}"
     return HTMLResponse(body)
 
 
-def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: TaxonomyRegistry) -> str:
+def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: TaxonomyRegistry) -> str:  # noqa: PLR0911 (one branch per stage reads clearly as a switch)
     """Render the stage partial appropriate for the draft's current stage."""
     templates = _templates(request)
 
@@ -166,6 +177,45 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
             observation_groups=_build_observation_groups(taxonomy),
         )
 
+    if draft.stage == 2:
+        return templates.get_template("composer/stage2_metadata.html").render(
+            request=request,
+            draft=draft,
+            can_advance=draft.can_advance_to_stage(3),
+            attack_tag_suggestions=_ATTACK_TAG_SUGGESTIONS,
+        )
+
+    if draft.stage == 3:
+        rule_or_issues = draft.to_sigma_rule()
+        issues = rule_or_issues if isinstance(rule_or_issues, list) else []
+        rule = rule_or_issues if isinstance(rule_or_issues, SigmaRule) else None
+        return templates.get_template("composer/stage3_review.html").render(
+            request=request,
+            draft=draft,
+            rule=rule,
+            review_issues=_sorted_issues(issues),
+            prose_summary=_prose_summary(rule, draft),
+            can_advance=rule is not None,
+        )
+
+    if draft.stage == 4:
+        rule_or_issues = draft.to_sigma_rule()
+        if not isinstance(rule_or_issues, SigmaRule):
+            # Shouldn't happen — /composer/advance gates this — but fall back
+            # to review rather than silently serving an empty Stage 4.
+            draft.stage = 3
+            return _render_composer_panel(request, draft, taxonomy)
+        rule = rule_or_issues
+        return templates.get_template("composer/stage4_output.html").render(
+            request=request,
+            draft=draft,
+            rule=rule,
+            prose_summary=_prose_summary(rule, draft),
+            rule_state_urlencoded=quote(draft.to_json()),
+            download_filename=_download_filename(rule),
+        )
+
+    # Default: stage 1 — detection editor.
     field_specs_by_name = {f.name: f for f in spec.fields}
     return templates.get_template("composer/stage1_detection.html").render(
         request=request,
@@ -173,28 +223,143 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
         platform_id=draft.platform_id or (spec.platforms[0].id if spec.platforms else ""),
         match_blocks=[b for b in draft.detections if not b.is_filter],
         filter_blocks=[b for b in draft.detections if b.is_filter],
+        match_combinator=draft.match_combinator,
         field_specs_by_name=field_specs_by_name,
         composed_condition=_describe_condition(draft),
+        can_advance=draft.can_advance_to_stage(2),
     )
+
+
+# A small hand-picked set of ATT&CK tactic + technique tags the metadata
+# form uses as a datalist for autocomplete. Full technique picker is
+# deferred to v1.1 per the milestone plan; this covers the common cases
+# for Windows process-creation rules, which is what the MVP demos.
+_ATTACK_TAG_SUGGESTIONS: tuple[str, ...] = (
+    "attack.execution",
+    "attack.persistence",
+    "attack.privilege-escalation",
+    "attack.defense-evasion",
+    "attack.credential-access",
+    "attack.discovery",
+    "attack.lateral-movement",
+    "attack.collection",
+    "attack.command-and-control",
+    "attack.exfiltration",
+    "attack.impact",
+    "attack.initial-access",
+    "attack.t1059",
+    "attack.t1059.001",
+    "attack.t1059.003",
+    "attack.t1190",
+    "attack.t1195.002",
+    "attack.t1203",
+    "attack.t1218",
+    "attack.t1547.001",
+    "attack.t1569.002",
+    "attack.t1055",
+    "attack.t1053.005",
+    "attack.t1003",
+)
+
+
+def _prose_summary(rule: SigmaRule | None, draft: RuleDraft) -> str:  # noqa: PLR0912 (branches correspond to distinct prose shapes)
+    """One- or two-sentence plain-English description of the rule.
+
+    Mirrors what ``_describe_condition`` does for stage 1, but with the
+    observation type and field values woven in. This is also what stage
+    3's "summary" paragraph renders.
+
+    Deterministic template-based prose — no LLM per SPEC invariant I-1.
+    """
+    matches = [b for b in draft.detections if not b.is_filter]
+    if not matches:
+        return "No match conditions defined yet."
+
+    if rule is not None:
+        opening = f"This rule flags {rule.logsource.category or 'events'}"
+        if rule.logsource.product:
+            opening += f" on {rule.logsource.product}"
+    else:
+        opening = f"This rule flags {draft.logsource.category or 'events'}"
+        if draft.logsource.product:
+            opening += f" on {draft.logsource.product}"
+
+    match_phrases: list[str] = []
+    for block in matches:
+        for item in block.items:
+            if not item.field or not item.values:
+                continue
+            modifier_text = f" {item.modifiers[0]}" if item.modifiers else ""
+            value_text = ", ".join(str(v) for v in item.values)
+            match_phrases.append(f"{item.field}{modifier_text} {value_text!r}")
+
+    if match_phrases:
+        if len(match_phrases) == 1:
+            opening += f" where {match_phrases[0]}"
+        elif len(match_phrases) == 2:
+            opening += f" where {match_phrases[0]} and {match_phrases[1]}"
+        else:
+            opening += " where " + ", ".join(match_phrases[:-1]) + f", and {match_phrases[-1]}"
+    opening += "."
+
+    filters = [b for b in draft.detections if b.is_filter]
+    if filters:
+        filter_phrases: list[str] = []
+        for block in filters:
+            names = [item.field for item in block.items if item.field]
+            if names:
+                filter_phrases.append(f"{block.name} ({', '.join(names)})")
+        if filter_phrases:
+            opening += " It excludes events matching " + " or ".join(filter_phrases) + "."
+    return opening
+
+
+def _download_filename(rule: SigmaRule) -> str:
+    """Derive a SigmaHQ-style filename from the rule's title + uuid."""
+    slug = (
+        "".join(c if c.isalnum() or c in "-_" else "_" for c in rule.title.lower().strip())[
+            :60
+        ].strip("_")
+        or "rule"
+    )
+    return f"{slug}.yml"
 
 
 def _describe_condition(draft: RuleDraft) -> str:
     """Plain-English auto-composed condition for the stage-1 footer.
 
     Mirrors what :meth:`RuleDraft._compose_condition` builds so the user
-    sees the same logic the serializer will emit. Kept as prose here
-    rather than the raw Sigma string — that's for the preview pane.
+    sees the same logic the serializer will emit. Reflects both combinators
+    (per-block any-of, and across-match-blocks any-of) so the sentence
+    matches what the preview pane's YAML says.
     """
     matches = [b for b in draft.detections if not b.is_filter]
     filters = [b for b in draft.detections if b.is_filter]
     if not matches:
         return ""
+
+    # Per-block: "any field matches" vs "all fields match" (simplified when
+    # the block has <= 1 item).
+    def _block_phrase(block: Any, label: str) -> str:
+        n = len(block.items)
+        if n == 0:
+            return f"the {label} '{block.name}' is empty"
+        if n == 1:
+            return f"{label} '{block.name}' matches"
+        if block.combinator == "any_of":
+            return f"any field in {label} '{block.name}' matches"
+        return f"all fields in {label} '{block.name}' match"
+
     if len(matches) == 1:
-        match_desc = f"the match block '{matches[0].name}' matches"
+        match_desc = _block_phrase(matches[0], "the match block")
+    elif draft.match_combinator == "any_of":
+        match_desc = "at least one match block matches"
     else:
-        match_desc = "all match blocks match"
+        match_desc = "every match block matches"
+
     if not filters:
         return match_desc
+
     if len(filters) == 1:
         filter_desc = f"the filter '{filters[0].name}' does not"
     else:
@@ -203,21 +368,75 @@ def _describe_condition(draft: RuleDraft) -> str:
 
 
 def _preview_context(draft: RuleDraft) -> dict[str, Any]:
-    """Canonical YAML + any draft-to-rule validation issues for the preview."""
+    """Canonical YAML + any draft-to-rule validation issues for the preview.
+
+    Also includes ``conversion_tabs`` and ``conversion_outputs`` so the
+    tab-bar partial can be rendered consistently across all stages —
+    populated once the draft produces a valid rule.
+    """
+    tabs = [
+        {
+            "backend_id": bid,
+            "label": backend_label(bid),
+            "short": _SHORT_BACKEND_LABEL.get(bid, bid),
+        }
+        for bid in all_backend_ids()
+    ]
     result = draft.to_sigma_rule()
     if isinstance(result, list):
-        # Draft not yet a valid rule — show blank preview + issue list.
         return {
             "preview_yaml": "",
             "preview_yaml_html": "",
             "preview_issues": _sorted_issues(result),
+            "conversion_tabs": tabs,
+            "conversion_outputs": None,
         }
     yaml_text = to_yaml(result)
     return {
         "preview_yaml": yaml_text,
         "preview_yaml_html": yaml_to_html(yaml_text),
         "preview_issues": [],
+        "conversion_tabs": tabs,
+        "conversion_outputs": _convert_all_backends(result),
     }
+
+
+_SHORT_BACKEND_LABEL: dict[str, str] = {
+    "kusto_sentinel": "Sentinel",
+    "kusto_mde": "MDE",
+    "splunk": "Splunk",
+    "elasticsearch": "Elastic",
+    "crowdstrike": "CrowdStrike",
+}
+
+
+def _convert_all_backends(rule: SigmaRule) -> dict[str, dict[str, str]]:
+    """Run ``convert`` against every declared backend, capturing per-backend
+    errors rather than aborting the whole render on a single pipeline failure.
+
+    Returns ``{backend_id: {"query": ..., "pipelines": ..., "error": ...}}``.
+    An entry has either ``query`` or ``error`` set, never both. ``pipelines``
+    is a comma-joined string of the pipeline names used (for the chip in the
+    tab header).
+    """
+    outputs: dict[str, dict[str, str]] = {}
+    for bid in all_backend_ids():
+        try:
+            resolved = resolve(rule.logsource, bid)
+            pipelines_str = ", ".join(resolved.pipelines) if resolved.pipelines else "baseline only"
+            query = convert(rule, bid)
+            outputs[bid] = {"query": query, "pipelines": pipelines_str, "error": ""}
+        except ConversionFailedError as exc:
+            outputs[bid] = {
+                "query": "",
+                "pipelines": "",
+                "error": str(exc),
+            }
+        except UnknownBackendError as exc:
+            # Dependency-pinning issue — shouldn't happen in a tested
+            # release but surface cleanly if it does.
+            outputs[bid] = {"query": "", "pipelines": "", "error": str(exc)}
+    return outputs
 
 
 def _sorted_issues(issues: Iterable[ValidationIssue]) -> list[ValidationIssue]:
@@ -289,7 +508,7 @@ async def composer_update(request: Request) -> HTMLResponse:
     return _render_stage(request, draft)
 
 
-def _apply_action(draft: RuleDraft, action: str, form: Any) -> None:
+def _apply_action(draft: RuleDraft, action: str, form: Any) -> None:  # noqa: PLR0912 (one branch per action verb is the dispatch table)
     """Mutate ``draft`` in place based on the action verb.
 
     Kept as a pure-ish function (no I/O, no template) so tests can drive
@@ -314,6 +533,12 @@ def _apply_action(draft: RuleDraft, action: str, form: Any) -> None:
             _set_item_modifier(draft, form)
         case "set_value":
             _set_item_value(draft, form)
+        case "set_metadata":
+            _set_metadata(draft, form)
+        case "set_block_combinator":
+            _set_block_combinator(draft, form)
+        case "set_match_combinator":
+            _set_match_combinator(draft, form)
         case _:
             # Unknown action — ignore. The stage re-renders as-is.
             pass
@@ -385,6 +610,68 @@ def _set_item_value(draft: RuleDraft, form: Any) -> None:
     item.values = [raw] if raw else []
 
 
+def _set_block_combinator(draft: RuleDraft, form: Any) -> None:
+    """Toggle the per-block AND/OR combinator.
+
+    Unknown values are silently ignored so a stale client POST can't
+    corrupt the draft.
+    """
+    block_name = str(form.get("block_name", ""))
+    value = str(form.get("combinator", "")).strip()
+    if value not in {"all_of", "any_of"}:
+        return
+    for block in draft.detections:
+        if block.name == block_name:
+            block.combinator = value  # type: ignore[assignment]  # narrowed above
+            return
+
+
+def _set_match_combinator(draft: RuleDraft, form: Any) -> None:
+    """Toggle the across-match-blocks combinator.
+
+    Only applies to match blocks; filter blocks are always NOT'd in the
+    auto-composed condition regardless of this field.
+    """
+    value = str(form.get("match_combinator", "")).strip()
+    if value not in {"all_of", "any_of"}:
+        return
+    draft.match_combinator = value  # type: ignore[assignment]  # narrowed above
+
+
+def _set_metadata(draft: RuleDraft, form: Any) -> None:
+    """Pull every ``meta_*`` field out of the form and write to the draft.
+
+    Multi-value fields (tags, references, falsepositives) are parsed from
+    the text input by splitting on newlines (for textareas) or commas (for
+    single-line inputs). Empty lines are dropped.
+    """
+    if "meta_title" in form:
+        draft.title = str(form.get("meta_title", "")).strip()
+    if "meta_description" in form:
+        draft.description = str(form.get("meta_description", "")).strip()
+    if "meta_author" in form:
+        draft.author = str(form.get("meta_author", "")).strip()
+    if "meta_date" in form:
+        draft.date = str(form.get("meta_date", "")).strip()
+    if "meta_level" in form:
+        level = str(form.get("meta_level", "")).strip()
+        if level in {"informational", "low", "medium", "high", "critical"}:
+            draft.level = level  # type: ignore[assignment]
+    if "meta_status" in form:
+        status = str(form.get("meta_status", "")).strip()
+        if status in {"experimental", "test", "stable", "deprecated", "unsupported"}:
+            draft.status = status  # type: ignore[assignment]
+    if "meta_tags" in form:
+        raw = str(form.get("meta_tags", ""))
+        draft.tags = [t.strip() for t in raw.split(",") if t.strip()]
+    if "meta_falsepositives" in form:
+        raw = str(form.get("meta_falsepositives", ""))
+        draft.falsepositives = [line.strip() for line in raw.splitlines() if line.strip()]
+    if "meta_references" in form:
+        raw = str(form.get("meta_references", ""))
+        draft.references = [line.strip() for line in raw.splitlines() if line.strip()]
+
+
 def _resolve_item(draft: RuleDraft, form: Any) -> DetectionItemDraft | None:
     block_name = str(form.get("block_name", ""))
     idx = _int_or_none(str(form.get("item_index", "")))
@@ -401,6 +688,79 @@ def _int_or_none(raw: str) -> int | None:
         return int(raw)
     except ValueError:
         return None
+
+
+# ---------------------------------------------------------------------------
+# Stage-nav routes — advance/back transitions between numbered stages.
+# ---------------------------------------------------------------------------
+
+
+_MAX_STAGE = 4
+
+
+@router.post("/advance", name="composer_advance")
+async def composer_advance(
+    request: Request,
+    rule_state: Annotated[str, Form()] = "",
+) -> HTMLResponse:
+    """Move to the next stage if the draft passes that stage's gate.
+
+    Gate failure is silent — the current stage re-renders. The Next button
+    is disabled when the gate isn't met, so an advance attempt from a
+    valid-UI state should always succeed; silent failure is a safety net
+    for edge cases (race conditions, hand-edited DOM).
+    """
+    draft = RuleDraft.from_json(rule_state)
+    target = min(draft.stage + 1, _MAX_STAGE)
+    if draft.can_advance_to_stage(target):
+        draft.stage = target
+    return _render_stage(request, draft)
+
+
+@router.post("/back", name="composer_back")
+async def composer_back(
+    request: Request,
+    rule_state: Annotated[str, Form()] = "",
+) -> HTMLResponse:
+    """Step back one stage. Below stage 1 is "restart"-equivalent."""
+    draft = RuleDraft.from_json(rule_state)
+    draft.stage = max(draft.stage - 1, 0)
+    if draft.stage == 0:
+        draft.observation_id = ""
+        draft.platform_id = ""
+    return _render_stage(request, draft)
+
+
+# ---------------------------------------------------------------------------
+# Rule download — YAML artifact served with a sensible content-type.
+# Lives as a module-level function so app.py can wire it to /rule/download
+# at the top-level (outside this router's /composer prefix).
+# ---------------------------------------------------------------------------
+
+
+def build_download_response(rule_state: str) -> PlainTextResponse:
+    """Return the canonical Sigma YAML for the given draft.
+
+    If the draft doesn't produce a valid rule we return a 400 with the
+    issue list so the browser's default download handling surfaces the
+    problem rather than saving a corrupt file.
+    """
+    draft = RuleDraft.from_json(rule_state)
+    result = draft.to_sigma_rule()
+    if isinstance(result, list):
+        issue_lines = "\n".join(f"  [{i.code}] {i.message}" for i in result)
+        return PlainTextResponse(
+            content=f"Draft is not a valid rule:\n{issue_lines}\n",
+            status_code=400,
+            media_type="text/plain",
+        )
+    yaml_text = to_yaml(result)
+    filename = _download_filename(result)
+    return PlainTextResponse(
+        content=yaml_text,
+        media_type="application/yaml",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 # ---------------------------------------------------------------------------

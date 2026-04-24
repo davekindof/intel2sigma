@@ -22,6 +22,7 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
 from intel2sigma.core.model import (
+    BlockCombinator,
     ConditionExpression,
     ConditionOp,
     DetectionBlock,
@@ -63,6 +64,9 @@ class DetectionItemDraft(_Model):
 class DetectionBlockDraft(_Model):
     name: str = ""
     is_filter: bool = False
+    # Mirror of ``DetectionBlock.combinator`` — see the core-model docstring
+    # for the semantics and YAML emission shapes.
+    combinator: BlockCombinator = "all_of"
     items: list[DetectionItemDraft] = Field(default_factory=list)
 
 
@@ -101,6 +105,11 @@ class RuleDraft(_Model):
     # Detection
     detections: list[DetectionBlockDraft] = Field(default_factory=list)
     condition_tree: ConditionTreeDraft | None = None
+    # Across-match-blocks combinator used by the auto-composer:
+    #   all_of  → condition: all of match_* (blocks AND'd, current default)
+    #   any_of  → condition: 1 of match_*   (blocks OR'd)
+    # Filter blocks are always NOT'd regardless of this field.
+    match_combinator: BlockCombinator = "all_of"
 
     # Composer-local state — not exported to the rule
     stage: int = 0
@@ -231,6 +240,34 @@ class RuleDraft(_Model):
             return issues
 
     # -------------------------------------------------------------------
+    # Stage-gate predicates — used by composer routes to decide whether the
+    # Next button is enabled and whether /composer/advance will honor a
+    # transition attempt. Symmetric checks so UI and server agree.
+    # -------------------------------------------------------------------
+
+    def can_advance_to_stage(self, target: int) -> bool:
+        """True when the draft meets the prerequisites for ``target`` stage.
+
+        Gates:
+          1: observation selected
+          2: at least one match block with at least one populated item
+          3: title + date set
+          4: draft.to_sigma_rule() returns a strict rule (no issues)
+        """
+        match target:
+            case 1:
+                return bool(self.observation_id)
+            case 2:
+                matches = [b for b in self.detections if not b.is_filter]
+                return any(any(item.field and item.values for item in b.items) for b in matches)
+            case 3:
+                return bool(self.title.strip()) and bool(self.date.strip())
+            case 4:
+                return not isinstance(self.to_sigma_rule(), list)
+            case _:
+                return False
+
+    # -------------------------------------------------------------------
     # Mutation helpers used by composer routes
     # -------------------------------------------------------------------
 
@@ -346,6 +383,7 @@ class RuleDraft(_Model):
             return DetectionBlock(
                 name=draft.name,
                 is_filter=draft.is_filter,
+                combinator=draft.combinator,
                 items=strict_items,
             )
         except ValidationError as exc:
@@ -376,12 +414,15 @@ class RuleDraft(_Model):
         if not matches:
             return None
 
-        # Match side: single block reference, or AND over a glob.
+        # Match side: single block reference, or AND/OR over a glob.
+        # ``match_combinator`` picks between ``all of match_*`` (AND across
+        # match blocks) and ``1 of match_*`` (OR across match blocks).
         if len(matches) == 1:
             match_expr = ConditionExpression(selection=matches[0].name)
         else:
+            op = ConditionOp.ONE_OF if self.match_combinator == "any_of" else ConditionOp.ALL_OF
             match_expr = ConditionExpression(
-                op=ConditionOp.ALL_OF,
+                op=op,
                 children=[ConditionExpression(selection="match_*")],
             )
 

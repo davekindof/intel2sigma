@@ -15,17 +15,15 @@ chrome render and prove the FastAPI + Jinja2 + static wiring is correct.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from intel2sigma import __version__
-from intel2sigma.core.convert import all_backend_ids, backend_label
 from intel2sigma.web.routes import composer as composer_routes
 
 _WEB_DIR = Path(__file__).resolve().parent
@@ -33,37 +31,6 @@ _STATIC_DIR = _WEB_DIR / "static"
 _TEMPLATES_DIR = _WEB_DIR / "templates"
 
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
-
-
-@dataclass(frozen=True)
-class ConversionTab:
-    """One conversion-output tab in the preview pane.
-
-    ``short`` is the chip label (fits in a tab); ``label`` is the tooltip /
-    accessible name. Ordering in the UI follows the order of
-    :func:`all_backend_ids`, which returns sorted ids.
-    """
-
-    backend_id: str
-    short: str
-    label: str
-
-
-_SHORT_LABELS: dict[str, str] = {
-    "kusto_sentinel": "Sentinel",
-    "kusto_mde": "MDE",
-    "splunk": "Splunk",
-    "elasticsearch": "Elastic",
-    "crowdstrike": "CrowdStrike",
-}
-
-
-def _conversion_tabs() -> list[ConversionTab]:
-    tabs: list[ConversionTab] = []
-    for backend_id in all_backend_ids():
-        short = _SHORT_LABELS.get(backend_id, backend_id)
-        tabs.append(ConversionTab(backend_id, short, backend_label(backend_id)))
-    return tabs
 
 
 def create_app() -> FastAPI:
@@ -110,6 +77,15 @@ def create_app() -> FastAPI:
     async def expert_home(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(request, "base.html", _shell_context(request, "expert"))
 
+    @app.get("/rule/download", name="rule_download")
+    async def rule_download(rule_state: str = "") -> PlainTextResponse:
+        """Top-level download endpoint. Stage 4's download button links here.
+
+        Kept outside the /composer router because downloading isn't a
+        composer state transition; it's a terminal artifact fetch.
+        """
+        return composer_routes.build_download_response(rule_state)
+
     return app
 
 
@@ -121,9 +97,12 @@ def _shell_context(request: Request, mode: str) -> dict[str, Any]:
     return {
         "mode": mode,
         "version": __version__,
-        "conversion_tabs": _conversion_tabs(),
         "initial_composer_html": initial["initial_composer_html"],
         "initial_state_json": initial["initial_state_json"],
+        # Spread preview context (conversion_tabs, conversion_outputs,
+        # preview_yaml, preview_yaml_html, preview_issues) so the base
+        # template's included partials render the same way the oob swap
+        # path does.
         **initial["initial_preview_context"],
     }
 

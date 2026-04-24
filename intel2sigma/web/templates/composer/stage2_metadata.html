@@ -1,0 +1,136 @@
+{# Stage 2 — metadata.
+
+All fields here are scalars or flat lists; no nesting. Every input posts
+to ``/composer/update`` with ``action=set_metadata`` + the specific field
+name; the server reads the per-field form value and writes it into the
+RuleDraft. Multi-value fields (tags, references, falsepositives) are
+comma-separated in the input; the route splits them.
+
+``date`` defaults to today on first render so the user can advance
+without typing it — the usual case. They can still edit it.
+#}
+
+<div class="stage-header">
+    <div class="stage-header-row">
+        <h2 class="stage-title">Stage 2 — Metadata</h2>
+        <div class="stage-header-buttons">
+            <button type="button"
+                    class="button-secondary"
+                    hx-post="{{ url_for('composer_back') }}"
+                    hx-include="#rule-state"
+                    hx-target="#composer-panel"
+                    hx-swap="innerHTML">
+                ← Back
+            </button>
+        </div>
+    </div>
+    <p class="stage-subtitle">
+        Title, description, ATT&amp;CK tags, and the other metadata a shareable
+        Sigma rule needs.
+    </p>
+</div>
+
+<form id="metadata-form"
+      hx-post="{{ url_for('composer_update') }}"
+      hx-include="#rule-state"
+      hx-target="#composer-panel"
+      hx-swap="innerHTML"
+      hx-trigger="change delay:200ms from:input, change delay:200ms from:textarea, change delay:200ms from:select"
+      hx-vals='{"action": "set_metadata"}'
+      onsubmit="return false">
+
+    <div class="metadata-grid">
+        <label class="metadata-field metadata-field-wide">
+            <span class="metadata-label">Title <span class="metadata-required">*</span></span>
+            <input type="text"
+                   name="meta_title"
+                   value="{{ draft.title }}"
+                   placeholder="Encoded PowerShell spawned outside SYSTEM"
+                   required>
+        </label>
+
+        <label class="metadata-field metadata-field-wide">
+            <span class="metadata-label">Description</span>
+            <textarea name="meta_description"
+                      rows="3"
+                      placeholder="One or two sentences describing what this rule is detecting and why it matters."
+                      >{{ draft.description }}</textarea>
+        </label>
+
+        <label class="metadata-field">
+            <span class="metadata-label">Severity level</span>
+            <select name="meta_level">
+                {% for lvl in ["informational", "low", "medium", "high", "critical"] %}
+                <option value="{{ lvl }}" {% if draft.level == lvl %}selected{% endif %}>{{ lvl }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label class="metadata-field">
+            <span class="metadata-label">Rule status</span>
+            <select name="meta_status">
+                {% for st in ["experimental", "test", "stable", "deprecated", "unsupported"] %}
+                <option value="{{ st }}" {% if draft.status == st %}selected{% endif %}>{{ st }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label class="metadata-field">
+            <span class="metadata-label">Author</span>
+            <input type="text"
+                   name="meta_author"
+                   value="{{ draft.author }}"
+                   placeholder="Your name / team">
+        </label>
+
+        <label class="metadata-field">
+            <span class="metadata-label">Date <span class="metadata-required">*</span></span>
+            <input type="date"
+                   name="meta_date"
+                   value="{{ draft.date }}"
+                   required>
+        </label>
+
+        <label class="metadata-field metadata-field-wide">
+            <span class="metadata-label">ATT&amp;CK tags <span class="metadata-hint">(comma-separated, lowercase)</span></span>
+            <input type="text"
+                   name="meta_tags"
+                   value="{{ draft.tags | join(', ') }}"
+                   placeholder="attack.execution, attack.t1059.001"
+                   list="attack-tags-suggestions">
+            <datalist id="attack-tags-suggestions">
+                {% for tag in attack_tag_suggestions %}
+                <option value="{{ tag }}"></option>
+                {% endfor %}
+            </datalist>
+        </label>
+
+        <label class="metadata-field metadata-field-wide">
+            <span class="metadata-label">False positives <span class="metadata-hint">(one per line)</span></span>
+            <textarea name="meta_falsepositives"
+                      rows="2"
+                      placeholder="Administrative scripts&#10;Legitimate IT automation"
+                      >{{ draft.falsepositives | join('\n') }}</textarea>
+        </label>
+
+        <label class="metadata-field metadata-field-wide">
+            <span class="metadata-label">References <span class="metadata-hint">(one URL per line)</span></span>
+            <textarea name="meta_references"
+                      rows="2"
+                      placeholder="https://example.com/advisory"
+                      >{{ draft.references | join('\n') }}</textarea>
+        </label>
+    </div>
+
+    <div class="stage-nav">
+        <button type="button"
+                class="button-primary"
+                {% if not can_advance %}disabled title="Fill in at least title and date to continue"{% endif %}
+                hx-post="{{ url_for('composer_advance') }}"
+                hx-include="#rule-state"
+                hx-target="#composer-panel"
+                hx-swap="innerHTML">
+            Next: Review →
+        </button>
+    </div>
+</form>

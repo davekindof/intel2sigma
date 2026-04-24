@@ -1,0 +1,63 @@
+{# Preview-pane conversion tab bar + currently-active tab body.
+
+Populated only when the draft produces a valid SigmaRule. Each tab holds
+a pre-converted query from ``core.convert.convert``; conversion failures
+per backend surface inline with the failing tab rather than poisoning
+the others.
+
+Rendered twice: once in the initial shell with placeholder content, once
+as an out-of-band swap from composer routes when the draft is complete.
+The ``conversion_tabs`` list is always present; ``conversion_outputs``
+maps backend_id → {query | error}.
+#}
+
+<div class="preview-pane-tabs" role="tablist" aria-label="Conversion targets">
+    {% for tab in conversion_tabs %}
+    <button class="preview-tab {% if loop.first %}active{% endif %}"
+            type="button" role="tab"
+            data-backend="{{ tab.backend_id }}"
+            onclick="window.__intel2sigma_switch_tab(this, '{{ tab.backend_id }}')"
+            title="{{ tab.label }}">
+        {{ tab.short }}
+        {% if conversion_outputs and conversion_outputs[tab.backend_id] %}
+            {% set pipeline_used = conversion_outputs[tab.backend_id].pipelines %}
+            <span class="pipeline-indicator">{{ pipeline_used or '—' }}</span>
+        {% else %}
+            <span class="pipeline-indicator">—</span>
+        {% endif %}
+    </button>
+    {% endfor %}
+</div>
+
+<div class="preview-tab-body" role="tabpanel" id="conversion-tab-body">
+    {% if not conversion_outputs %}
+    <div class="placeholder">
+        Converted SIEM queries appear here once the draft is a valid rule.
+    </div>
+    {% else %}
+        {% for tab in conversion_tabs %}
+        {% set output = conversion_outputs[tab.backend_id] %}
+        <div class="conversion-output" data-backend="{{ tab.backend_id }}"
+             {% if not loop.first %}hidden{% endif %}>
+            {% if output.error %}
+            <p class="field-error-message">{{ output.error }}</p>
+            {% else %}
+            <pre class="conversion-query"><code>{{ output.query }}</code></pre>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% endif %}
+</div>
+
+<script>
+    // Swap visible conversion tab body. Lives once per conversion_tabs
+    // render — idempotent declaration, safe against oob re-injection.
+    window.__intel2sigma_switch_tab = function (clicked, backendId) {
+        document.querySelectorAll(".preview-tab").forEach((el) => {
+            el.classList.toggle("active", el === clicked);
+        });
+        document.querySelectorAll(".conversion-output").forEach((el) => {
+            el.hidden = el.dataset.backend !== backendId;
+        });
+    };
+</script>

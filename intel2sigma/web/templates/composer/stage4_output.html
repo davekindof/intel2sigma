@@ -1,0 +1,79 @@
+{# Stage 4 — output.
+
+The conversion outputs live in the preview pane's tabs (populated via
+oob swap in ``_render_stage``). This composer-panel partial focuses on
+the primary actions: download the YAML, copy to clipboard, or start a
+new rule. The tab bodies render live KQL / SPL / ES|QL / LogScale /
+CrowdStrike queries from the core.convert engine.
+#}
+
+<div class="stage-header">
+    <div class="stage-header-row">
+        <h2 class="stage-title">Stage 4 — Output</h2>
+        <div class="stage-header-buttons">
+            <button type="button"
+                    class="button-secondary"
+                    hx-post="{{ url_for('composer_back') }}"
+                    hx-include="#rule-state"
+                    hx-target="#composer-panel"
+                    hx-swap="innerHTML">
+                ← Back
+            </button>
+        </div>
+    </div>
+    <p class="stage-subtitle">
+        Your rule is ready. Download the canonical Sigma YAML or copy a
+        SIEM query from the tabs on the right.
+    </p>
+</div>
+
+<section class="output-actions">
+    <a class="button-primary"
+       href="{{ url_for('rule_download') }}?rule_state={{ rule_state_urlencoded }}"
+       download="{{ download_filename }}">
+        Download {{ download_filename }}
+    </a>
+
+    <button type="button"
+            class="button-secondary"
+            onclick="window.__intel2sigma_copy_yaml()">
+        Copy YAML
+    </button>
+
+    <a class="button-secondary"
+       hx-post="{{ url_for('composer_restart') }}"
+       hx-include="#rule-state"
+       hx-target="#composer-panel"
+       hx-swap="innerHTML">
+        Build another rule
+    </a>
+</section>
+
+<section class="output-summary">
+    <h3 class="review-section-title">{{ rule.title }}</h3>
+    <p class="review-prose">{{ prose_summary }}</p>
+
+    <dl class="output-metadata">
+        <dt>Level</dt><dd>{{ rule.level }}</dd>
+        <dt>Status</dt><dd>{{ rule.status }}</dd>
+        <dt>ATT&amp;CK</dt><dd>{{ rule.tags | join(', ') if rule.tags else '—' }}</dd>
+        <dt>Author</dt><dd>{{ rule.author or '—' }}</dd>
+        <dt>Date</dt><dd>{{ rule.date.isoformat() }}</dd>
+        <dt>UUID</dt><dd><code>{{ rule.id }}</code></dd>
+    </dl>
+</section>
+
+<script>
+    // Copy the canonical YAML from the preview pane to the clipboard.
+    // Uses the text in the Pygments <pre> rather than re-fetching so
+    // we don't hit the server just to read something already on-screen.
+    window.__intel2sigma_copy_yaml = async function () {
+        const el = document.querySelector("#preview-pane pre");
+        if (!el) return;
+        try {
+            await navigator.clipboard.writeText(el.innerText);
+        } catch (e) {
+            console.warn("Clipboard API unavailable; copy manually.", e);
+        }
+    };
+</script>

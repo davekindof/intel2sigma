@@ -1,0 +1,62 @@
+{# Stage 3 — review.
+
+Read-only rendering of the rule in prose + the canonical YAML + any
+remaining validation issues. This is the "look before you ship" stage —
+conversion output comes in stage 4.
+#}
+
+<div class="stage-header">
+    <div class="stage-header-row">
+        <h2 class="stage-title">Stage 3 — Review</h2>
+        <div class="stage-header-buttons">
+            <button type="button"
+                    class="button-secondary"
+                    hx-post="{{ url_for('composer_back') }}"
+                    hx-include="#rule-state"
+                    hx-target="#composer-panel"
+                    hx-swap="innerHTML">
+                ← Back
+            </button>
+        </div>
+    </div>
+    <p class="stage-subtitle">
+        Final look before conversion. If something isn't right, step back
+        through earlier stages to fix it.
+    </p>
+</div>
+
+<section class="review-summary">
+    <h3 class="review-section-title">Summary</h3>
+    <p class="review-prose">{{ prose_summary }}</p>
+</section>
+
+{% if review_issues %}
+<section class="review-issues">
+    <h3 class="review-section-title review-section-title-warn">Outstanding issues</h3>
+    <ul>
+        {% for issue in review_issues %}
+        <li>
+            <span class="health-issue-id">{{ issue.code }}</span>
+            {{ issue.message }}
+            {% if issue.location %}<span class="review-issue-loc">{{ issue.location }}</span>{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% else %}
+<section class="review-clean">
+    <h3 class="review-section-title review-section-title-ok">✓ Rule passes tier-1 + tier-2 validation</h3>
+</section>
+{% endif %}
+
+<div class="stage-nav">
+    <button type="button"
+            class="button-primary"
+            {% if not can_advance %}disabled title="Resolve outstanding issues to continue"{% endif %}
+            hx-post="{{ url_for('composer_advance') }}"
+            hx-include="#rule-state"
+            hx-target="#composer-panel"
+            hx-swap="innerHTML">
+        Next: Output →
+    </button>
+</div>

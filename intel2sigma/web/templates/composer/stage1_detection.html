@@ -45,15 +45,43 @@ offer them.
     <section class="block-region block-region-match">
         <div class="block-region-header">
             <h3>Match blocks <span class="block-region-hint">— the behavior to detect</span></h3>
-            <button type="button"
-                    class="button-secondary block-add-button"
-                    hx-post="{{ url_for('composer_update') }}"
-                    hx-include="#rule-state"
-                    hx-vals='{"action": "add_match"}'
-                    hx-target="#composer-panel"
-                    hx-swap="innerHTML">
-                + Add match block
-            </button>
+            <div class="block-region-controls">
+                {% if match_blocks | length > 1 %}
+                <div class="combinator-toggle combinator-toggle-region"
+                     role="group"
+                     aria-label="Match-blocks combinator">
+                    <button type="button"
+                            class="combinator-option {% if match_combinator == 'all_of' %}active{% endif %}"
+                            hx-post="{{ url_for('composer_update') }}"
+                            hx-include="#rule-state"
+                            hx-vals='{"action": "set_match_combinator", "match_combinator": "all_of"}'
+                            hx-target="#composer-panel"
+                            hx-swap="innerHTML"
+                            title="Every match block must match (AND across blocks)">
+                        all of match_*
+                    </button>
+                    <button type="button"
+                            class="combinator-option {% if match_combinator == 'any_of' %}active{% endif %}"
+                            hx-post="{{ url_for('composer_update') }}"
+                            hx-include="#rule-state"
+                            hx-vals='{"action": "set_match_combinator", "match_combinator": "any_of"}'
+                            hx-target="#composer-panel"
+                            hx-swap="innerHTML"
+                            title="At least one match block must match (OR across blocks)">
+                        1 of match_*
+                    </button>
+                </div>
+                {% endif %}
+                <button type="button"
+                        class="button-secondary block-add-button"
+                        hx-post="{{ url_for('composer_update') }}"
+                        hx-include="#rule-state"
+                        hx-vals='{"action": "add_match"}'
+                        hx-target="#composer-panel"
+                        hx-swap="innerHTML">
+                    + Add match block
+                </button>
+            </div>
         </div>
         {% for block in match_blocks %}
         {% include "composer/_block.html" %}
@@ -96,8 +124,11 @@ offer them.
     <div class="stage-nav">
         <button type="button"
                 class="button-primary"
-                disabled
-                title="Stage 2 (metadata) lands in M1.4">
+                {% if not can_advance %}disabled title="Add at least one match block with a populated field to continue"{% endif %}
+                hx-post="{{ url_for('composer_advance') }}"
+                hx-include="#rule-state"
+                hx-target="#composer-panel"
+                hx-swap="innerHTML">
             Next: Metadata →
         </button>
     </div>

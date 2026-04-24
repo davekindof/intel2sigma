@@ -538,6 +538,42 @@ input[type="text"]:focus, textarea:focus, select:focus {
     margin-bottom: var(--space-3);
 }
 
+/* AND/OR combinator toggle (per-block + per-region). Same styling as the
+   header mode-toggle so the affordance is visually consistent. */
+.combinator-toggle {
+    display: inline-flex;
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 2px;
+    gap: 2px;
+}
+.combinator-option {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+}
+.combinator-option:hover { color: var(--color-text); }
+.combinator-option.active {
+    background: var(--color-accent-muted);
+    color: var(--color-accent);
+}
+
+.combinator-toggle-region {
+    margin-right: var(--space-2);
+}
+
+.block-region-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
 .block-name-input {
     font-family: var(--font-mono);
     font-size: 13px;
@@ -621,6 +657,154 @@ input[type="text"]:focus, textarea:focus, select:focus {
 .preview-issues li {
     padding: var(--space-2) 0;
     border-bottom: 1px solid var(--color-border-muted);
+}
+
+/* ---- stage 2 metadata form --------------------------------------- */
+
+.metadata-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.metadata-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+.metadata-field-wide {
+    grid-column: 1 / -1;
+}
+
+.metadata-label {
+    font-size: 13px;
+    color: var(--color-text-muted);
+}
+.metadata-hint {
+    color: var(--color-text-dim);
+    font-size: 12px;
+    font-weight: 400;
+}
+.metadata-required {
+    color: var(--color-accent);
+    margin-left: 2px;
+}
+
+.metadata-field input[type="date"],
+.metadata-field input[type="text"],
+.metadata-field textarea,
+.metadata-field select {
+    width: 100%;
+    font-family: inherit;
+}
+
+.stage-header-buttons {
+    display: flex;
+    gap: var(--space-2);
+}
+
+/* ---- stage 3 review ---------------------------------------------- */
+
+.review-summary,
+.review-issues,
+.review-clean {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.review-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-3);
+}
+.review-section-title-warn { color: var(--color-warn); }
+.review-section-title-ok { color: var(--color-success); }
+
+.review-prose {
+    margin: 0;
+    color: var(--color-text);
+    line-height: 1.55;
+}
+
+.review-issues ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.review-issues li {
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border-muted);
+    font-size: 13px;
+}
+.review-issues li:last-child {
+    border-bottom: none;
+}
+
+.review-issue-loc {
+    font-family: var(--font-mono);
+    color: var(--color-text-dim);
+    margin-left: var(--space-2);
+    font-size: 11px;
+}
+
+/* ---- stage 4 output ---------------------------------------------- */
+
+.output-actions {
+    display: flex;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+    flex-wrap: wrap;
+}
+
+.output-summary {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+}
+
+.output-metadata {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: var(--space-4);
+    row-gap: var(--space-2);
+    margin-top: var(--space-3);
+    font-size: 13px;
+}
+.output-metadata dt {
+    color: var(--color-text-muted);
+    font-weight: 500;
+}
+.output-metadata dd {
+    margin: 0;
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+}
+
+/* ---- conversion tab body ---------------------------------------- */
+
+.conversion-output { min-height: 120px; }
+.conversion-output[hidden] { display: none; }
+
+.conversion-query {
+    background: var(--color-code-bg);
+    border: 1px solid var(--color-code-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin: 0;
 }
 
 /* ---- Pygments YAML highlighting --------------------------------------

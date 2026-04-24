@@ -139,16 +139,45 @@ class DetectionItem(_Model):
         return value
 
 
+BlockCombinator = Literal["all_of", "any_of"]
+
+
 class DetectionBlock(_Model):
     """A named Sigma selection.
 
     Marked as either a *match* block (contributes positively to the rule firing)
     or a *filter* block (an except-when clause). This marking lets the composer
     auto-assemble the condition.
+
+    The ``combinator`` field controls the emission shape:
+
+      * ``all_of`` (default) → mapping form, fields AND'd together:
+
+        .. code-block:: yaml
+
+            match_1:
+              Image|endswith: \\foo.exe
+              CommandLine|contains: -bar
+
+      * ``any_of`` → list-of-mappings form, fields OR'd:
+
+        .. code-block:: yaml
+
+            match_1:
+              - Image|endswith: \\foo.exe
+              - CommandLine|contains: -bar
+
+    For arbitrarily nested shapes ((A AND B) OR (C AND D) within one block),
+    users are expected to split into multiple blocks and combine across them
+    via the rule-level match combinator. Multi-field sub-groups within a
+    single list entry are not modeled here; the narrow-scope ``from_yaml``
+    loader flattens them, which may lose fidelity on hand-written rules that
+    use that shape. The composer itself never emits multi-field sub-groups.
     """
 
     name: str = Field(min_length=1)
     is_filter: bool = False
+    combinator: BlockCombinator = "all_of"
     items: list[DetectionItem] = Field(default_factory=list)
 
     @field_validator("name")

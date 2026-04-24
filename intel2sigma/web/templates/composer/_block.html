@@ -17,6 +17,30 @@ Included from stage1_detection.html per match/filter block. Expects:
                hx-target="#composer-panel"
                hx-swap="innerHTML"
                hx-trigger="change">
+        <div class="combinator-toggle"
+             role="group"
+             aria-label="Field combinator">
+            <button type="button"
+                    class="combinator-option {% if block.combinator == 'all_of' %}active{% endif %}"
+                    hx-post="{{ url_for('composer_update') }}"
+                    hx-include="#rule-state"
+                    hx-vals='{"action": "set_block_combinator", "block_name": "{{ block.name }}", "combinator": "all_of"}'
+                    hx-target="#composer-panel"
+                    hx-swap="innerHTML"
+                    title="All fields must match (AND)">
+                all of
+            </button>
+            <button type="button"
+                    class="combinator-option {% if block.combinator == 'any_of' %}active{% endif %}"
+                    hx-post="{{ url_for('composer_update') }}"
+                    hx-include="#rule-state"
+                    hx-vals='{"action": "set_block_combinator", "block_name": "{{ block.name }}", "combinator": "any_of"}'
+                    hx-target="#composer-panel"
+                    hx-swap="innerHTML"
+                    title="At least one field must match (OR)">
+                any of
+            </button>
+        </div>
         <button type="button"
                 class="block-delete-button"
                 title="Delete this block"

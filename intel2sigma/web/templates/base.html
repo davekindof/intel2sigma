@@ -48,22 +48,8 @@
                     {% include "partials/preview_pane.html" %}
                 </div>
 
-                <div class="preview-pane-tabs" role="tablist"
-                     aria-label="Conversion targets">
-                    {% for tab in conversion_tabs %}
-                        <button class="preview-tab {% if loop.first %}active{% endif %}"
-                                type="button" role="tab"
-                                title="{{ tab.label }}">
-                            {{ tab.short }}
-                            <span class="pipeline-indicator">Pipeline: —</span>
-                        </button>
-                    {% endfor %}
-                </div>
-                <div class="preview-tab-body" role="tabpanel"
-                     id="conversion-tab-body">
-                    <div class="placeholder">
-                        Converted SIEM queries appear here once a rule is ready.
-                    </div>
+                <div id="conversion-tabs-region">
+                    {% include "partials/conversion_tabs.html" %}
                 </div>
             </section>
         </main>

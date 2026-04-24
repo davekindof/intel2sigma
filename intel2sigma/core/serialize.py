@@ -147,12 +147,23 @@ def _values_to_yaml(values: list[str | int | bool]) -> Any:
 
 
 def _detections_to_map(blocks: list[DetectionBlock]) -> CommentedMap:
+    """Build the `detection` block body.
+
+    Mapping form for ``combinator == "all_of"`` (fields AND'd), list-of-mappings
+    form for ``any_of`` (fields OR'd). See :class:`DetectionBlock` for the
+    semantics and a YAML example.
+    """
     out = CommentedMap()
     for block in blocks:
-        block_map = CommentedMap()
-        for item in block.items:
-            block_map[_detection_item_key(item)] = _values_to_yaml(item.values)
-        out[block.name] = block_map
+        if block.combinator == "any_of":
+            out[block.name] = [
+                {_detection_item_key(item): _values_to_yaml(item.values)} for item in block.items
+            ]
+        else:
+            block_map = CommentedMap()
+            for item in block.items:
+                block_map[_detection_item_key(item)] = _values_to_yaml(item.values)
+            out[block.name] = block_map
     return out
 
 
@@ -268,23 +279,48 @@ def from_yaml(text: str) -> SigmaRule:
     )
 
 
+def _detection_item_from_yaml(key: Any, raw_value: Any) -> DetectionItem:
+    """Build a :class:`DetectionItem` from a single YAML key/value pair.
+
+    Handles both the scalar and list value shapes, and splits the ``|``-
+    delimited modifier chain out of the key.
+    """
+    field, *modifiers = str(key).split("|")
+    values = raw_value if isinstance(raw_value, list) else [raw_value]
+    return DetectionItem(
+        field=field,
+        # Pydantic validates modifier strings against the ValueModifier
+        # Literal at construction time; mypy can't see that narrowing.
+        modifiers=list(modifiers),  # type: ignore[arg-type]
+        values=list(values),
+    )
+
+
 def _parse_detection_block(name: str, body: Any) -> DetectionBlock:
-    if not isinstance(body, dict):
-        raise TypeError(f"Detection block '{name}' must be a mapping")
+    """Parse either the mapping or list-of-mappings form.
+
+    Mapping form → ``combinator="all_of"``. List-of-mappings form →
+    ``combinator="any_of"``. Multi-field entries in the list form (which
+    would represent an AND-subgroup inside an OR) flatten into individual
+    items — see the class docstring on :class:`DetectionBlock` for why
+    this is an accepted fidelity loss in v1.
+    """
     is_filter = name.startswith("filter")
     items: list[DetectionItem] = []
+
+    if isinstance(body, list):
+        for entry in body:
+            if not isinstance(entry, dict):
+                raise TypeError(f"Detection block '{name}': list entries must be mappings")
+            for key, raw_value in entry.items():
+                items.append(_detection_item_from_yaml(key, raw_value))
+        return DetectionBlock(name=name, is_filter=is_filter, combinator="any_of", items=items)
+
+    if not isinstance(body, dict):
+        raise TypeError(f"Detection block '{name}' must be a mapping or a list of mappings")
+
     for key, raw_value in body.items():
-        field, *modifiers = str(key).split("|")
-        values = raw_value if isinstance(raw_value, list) else [raw_value]
-        items.append(
-            DetectionItem(
-                field=field,
-                # Pydantic validates modifier strings against the ValueModifier
-                # Literal at construction time; mypy can't see that narrowing.
-                modifiers=list(modifiers),  # type: ignore[arg-type]
-                values=list(values),
-            )
-        )
+        items.append(_detection_item_from_yaml(key, raw_value))
     return DetectionBlock(name=name, is_filter=is_filter, items=items)
 
 
