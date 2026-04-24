@@ -1,0 +1,79 @@
+# Pipeline matrix.
+#
+# Shape and resolution algorithm specified in docs/pipeline-matrix.md.
+#
+# Pipeline short names (microsoft_xdr, splunk_windows, sysmon, ecs_windows,
+# crowdstrike_fdr, microsoft_365_defender) resolve through pySigma's
+# InstalledSigmaPlugins registry. Backend names (kusto, splunk, lucene,
+# log_scale) are pySigma's own backend identifiers from the same registry.
+# Our intel2sigma backend ids (kusto_sentinel, kusto_mde, splunk,
+# elasticsearch, crowdstrike) are the user-facing wrappers.
+
+backends:
+    kusto_sentinel:
+        sigma_backend: kusto
+        format: default
+        baseline_pipelines: [microsoft_xdr]
+        label: "Microsoft Sentinel (KQL)"
+
+    kusto_mde:
+        sigma_backend: kusto
+        format: default
+        baseline_pipelines: [microsoft_365_defender]
+        label: "Microsoft Defender for Endpoint (KQL)"
+
+    splunk:
+        sigma_backend: splunk
+        format: default
+        baseline_pipelines: []
+        label: "Splunk (SPL)"
+
+    elasticsearch:
+        sigma_backend: lucene
+        format: default
+        baseline_pipelines: [ecs_windows]
+        label: "Elastic (Lucene DSL)"
+
+    crowdstrike:
+        sigma_backend: log_scale
+        format: default
+        baseline_pipelines: [crowdstrike_fdr]
+        label: "CrowdStrike Falcon (LogScale)"
+
+# Per-logsource pipeline additions. Baseline pipelines above + these combined
+# in listed order (baseline first). First match wins; entries should be
+# ordered most-specific first.
+logsource_matrix:
+    # Windows Sysmon-sourced observations. Splunk needs the Windows field-mapping
+    # pipeline plus the Sysmon event-normalizer; Kusto/Elastic/CrowdStrike
+    # backends handle these categories via their baseline pipelines.
+    - match: { product: windows, category: process_creation }
+      backends:
+          splunk: [splunk_windows, sysmon]
+    - match: { product: windows, category: file_event }
+      backends:
+          splunk: [splunk_windows, sysmon]
+    - match: { product: windows, category: image_load }
+      backends:
+          splunk: [splunk_windows, sysmon]
+    - match: { product: windows, category: registry_set }
+      backends:
+          splunk: [splunk_windows, sysmon]
+    - match: { product: windows, category: network_connection }
+      backends:
+          splunk: [splunk_windows, sysmon]
+    - match: { product: windows, category: dns_query }
+      backends:
+          splunk: [splunk_windows, sysmon]
+    - match: { product: windows, category: pipe_created }
+      backends:
+          splunk: [splunk_windows, sysmon]
+    - match: { product: windows, category: create_remote_thread }
+      backends:
+          splunk: [splunk_windows, sysmon]
+    - match: { product: windows, category: raw_access_thread }
+      backends:
+          splunk: [splunk_windows, sysmon]
+    - match: { product: windows, category: driver_load }
+      backends:
+          splunk: [splunk_windows, sysmon]

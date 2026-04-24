@@ -30,13 +30,17 @@ Backend identifier → class resolution lives in `data/pipelines.yml` under a `b
 
 Our backend ids are user-facing — they appear in the UI's conversion-tab chips, CLI flags (`--backend kusto_sentinel`), and URL paths. The pySigma ecosystem names its pipelines differently. This table is the bridge; future sessions reading pySigma docs can map the vocabulary in either direction:
 
-| intel2sigma id | pySigma pipeline(s) | pySigma package |
-|---|---|---|
-| `kusto_sentinel` | `microsoft_xdr` | pysigma-backend-kusto (bundled) |
-| `kusto_mde` | `microsoft_defender_for_endpoint` | pysigma-backend-kusto (bundled) |
-| `splunk` | `splunk_windows`, `sysmon` (per logsource) | pysigma-pipeline-sysmon, pysigma-pipeline-windows |
-| `elasticsearch` | `ecs_windows` | pysigma-backend-elasticsearch (bundled) |
-| `crowdstrike` | `crowdstrike_falcon` | pysigma-pipeline-crowdstrike |
+Confirmed against `InstalledSigmaPlugins.autodiscover()` — these are the actual pipeline short names pySigma's plugin registry exposes.
+
+| intel2sigma id | pySigma backend | pySigma pipeline(s) | pySigma package(s) |
+|---|---|---|---|
+| `kusto_sentinel` | `kusto` | `microsoft_xdr` | pysigma-backend-kusto (bundled) |
+| `kusto_mde` | `kusto` | `microsoft_365_defender` | pysigma-backend-kusto (bundled) |
+| `splunk` | `splunk` | `splunk_windows`, `sysmon` (per logsource) | pysigma-pipeline-sysmon, pysigma-pipeline-windows |
+| `elasticsearch` | `lucene` | `ecs_windows` | pysigma-backend-elasticsearch (bundled) |
+| `crowdstrike` | `log_scale` | `crowdstrike_fdr` | pysigma-pipeline-crowdstrike, pysigma-backend-crowdstrike |
+
+CrowdStrike is a small surprise: pysigma-backend-crowdstrike exposes a `log_scale` backend (CrowdStrike uses LogScale / Humio as its query engine), paired with the `crowdstrike_fdr` pipeline for field normalization.
 
 "Bundled" means the pipeline ships inside the backend package itself, not as a standalone `pysigma-pipeline-*` dist. pysigma-backend-kusto and pysigma-backend-elasticsearch bundle; the others pull from separate packages we pin in `pyproject.toml`.
 
