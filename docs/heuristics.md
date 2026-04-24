@@ -71,86 +71,92 @@ Default calibration is conservative. `critical` is reserved for things that are 
 
 Heuristic IDs use category-based numbering with gaps to allow insertion within a category without renumbering.
 
+The **Status** column is the load-bearing backlog tracker. Every heuristic in the catalog has one of: `shipped`, `v1.0`, `v1.1`, `deferred`. An entry disappearing from the table is a red flag in code review. v1.0 targets ≥25 heuristics spanning all eight categories; the remaining ~16 ship at v1.1 per [docs/heuristic-calibration.md](heuristic-calibration.md). Calibration of the initial severities happens after a corpus-wide run of `scripts/analyze_heuristics.py` per that doc.
+
 ### IOC vs. behavior
 
-| ID | Default | Description |
-|---|---|---|
-| h-001 | warn | IOC-only rule (no behavioral context) |
-| h-002 | info | Hash field without behavioral context |
-| h-003 | info | IP/domain-only rule |
+| ID | Default | Status | Description |
+|---|---|---|---|
+| h-001 | warn | v1.0 | IOC-only rule (no behavioral context) |
+| h-002 | info | v1.0 | Hash field without behavioral context |
+| h-003 | info | v1.0 | IP/domain-only rule |
 
 ### Overbroad selection
 
-| ID | Default | Description |
-|---|---|---|
-| h-010 | warn | Single-field selection on high-cardinality field |
-| h-011 | warn | Single common keyword (e.g., `CommandLine|contains: powershell` alone) |
-| h-012 | warn | `Image|endswith` with value <5 characters |
-| h-013 | warn | `User|contains` with fragment <3 characters |
-| h-014 | info | Selection matches >50% of a sampled corpus (when corpus available) |
+| ID | Default | Status | Description |
+|---|---|---|---|
+| h-010 | warn | v1.0 | Single-field selection on high-cardinality field |
+| h-011 | warn | v1.0 | Single common keyword (e.g., `CommandLine|contains: powershell` alone) |
+| h-012 | warn | v1.0 | `Image|endswith` with value <5 characters |
+| h-013 | warn | v1.1 | `User|contains` with fragment <3 characters |
+| h-014 | info | v1.1 | Selection matches >50% of a sampled corpus (when corpus available) |
 
 ### Lab artifacts
 
-| ID | Default | Description |
-|---|---|---|
-| h-020 | warn | Path contains apparent researcher handle or username |
-| h-021 | warn | Value contains RFC1918 IP address |
-| h-022 | warn | Hostname matches sandbox patterns (`DESKTOP-`, `WIN-`, VM prefixes) |
-| h-023 | warn | Hash matches known-benign corpus (when corpus available) |
-| h-024 | info | Path references common researcher-lab paths (`\tools\`, `\analysis\`) |
+| ID | Default | Status | Description |
+|---|---|---|---|
+| h-020 | warn | v1.1 | Path contains apparent researcher handle or username |
+| h-021 | warn | v1.0 | Value contains RFC1918 IP address |
+| h-022 | warn | v1.0 | Hostname matches sandbox patterns (`DESKTOP-`, `WIN-`, VM prefixes) |
+| h-023 | warn | v1.1 | Hash matches known-benign corpus (when corpus available) |
+| h-024 | info | v1.1 | Path references common researcher-lab paths (`\tools\`, `\analysis\`) |
 
 ### Path specificity
 
-| ID | Default | Description |
-|---|---|---|
-| h-030 | warn | User-profile path without wildcard (`C:\Users\name\` vs `C:\Users\*\`) |
-| h-031 | info | Program Files path without architecture wildcard |
-| h-032 | warn | Drive letter other than `C:` hardcoded (portability concern) |
-| h-033 | info | Absolute path where env-var expansion would be more portable |
+| ID | Default | Status | Description |
+|---|---|---|---|
+| h-030 | warn | v1.0 | User-profile path without wildcard (`C:\Users\name\` vs `C:\Users\*\`) |
+| h-031 | info | v1.1 | Program Files path without architecture wildcard |
+| h-032 | warn | v1.0 | Drive letter other than `C:` hardcoded (portability concern) |
+| h-033 | info | v1.1 | Absolute path where env-var expansion would be more portable |
 
 ### Known FP-prone patterns
 
-| ID | Default | Description |
-|---|---|---|
-| h-040 | info | PowerShell target without common-admin / SCCM / MDT exclusions |
-| h-041 | info | rundll32 target without signed-DLL exclusions |
-| h-042 | info | wmic target without monitoring-tool exclusions |
-| h-043 | info | schtasks target without Windows Update / Microsoft exclusions |
-| h-044 | info | cmd.exe target without script-host exclusions |
-| h-045 | info | regsvr32 target without signed-binary exclusions |
+| ID | Default | Status | Description |
+|---|---|---|---|
+| h-040 | info | v1.0 | PowerShell target without common-admin / SCCM / MDT exclusions |
+| h-041 | info | v1.0 | rundll32 target without signed-DLL exclusions |
+| h-042 | info | v1.1 | wmic target without monitoring-tool exclusions |
+| h-043 | info | v1.1 | schtasks target without Windows Update / Microsoft exclusions |
+| h-044 | info | v1.0 | cmd.exe target without script-host exclusions |
+| h-045 | info | v1.1 | regsvr32 target without signed-binary exclusions |
 
 ### Condition integrity
 
-| ID | Default | Description |
-|---|---|---|
-| h-050 | critical | Condition references undefined selection |
-| h-051 | warn | Selection block defined but not referenced in condition |
-| h-052 | warn | Condition is just `selection` with no filters, rule level is high/critical |
-| h-053 | warn | Negation of broad selection (`not selection` where selection is overbroad) |
+| ID | Default | Status | Description |
+|---|---|---|---|
+| h-050 | critical | v1.0 | Condition references undefined selection |
+| h-051 | warn | v1.0 | Selection block defined but not referenced in condition |
+| h-052 | warn | v1.0 | Condition is just `selection` with no filters, rule level is high/critical |
+| h-053 | warn | v1.0 | Negation of broad selection (`not selection` where selection is overbroad) |
 
 ### Metadata completeness
 
-| ID | Default | Description |
-|---|---|---|
-| h-060 | warn | Title <10 or >100 characters |
-| h-061 | warn | Description <30 characters |
-| h-062 | warn | No ATT&CK technique tags |
-| h-063 | info | `falsepositives` missing or only "unknown"/"none" |
-| h-064 | warn | `level` missing |
-| h-065 | info | `status: experimental` for polished rules (suggest `status: test`) |
-| h-066 | warn | Title starts with "Detects" (SigmaHQ convention violation) |
-| h-067 | info | No `references` despite the rule describing a known technique |
-| h-068 | info | `author` is empty or placeholder |
+| ID | Default | Status | Description |
+|---|---|---|---|
+| h-060 | warn | v1.0 | Title <10 or >100 characters |
+| h-061 | warn | v1.0 | Description <30 characters |
+| h-062 | warn | v1.0 | No ATT&CK technique tags |
+| h-063 | info | v1.0 | `falsepositives` missing or only "unknown"/"none" |
+| h-064 | warn | v1.0 | `level` missing |
+| h-065 | info | v1.1 | `status: experimental` for polished rules (suggest `status: test`) |
+| h-066 | warn | v1.0 | Title starts with "Detects" (SigmaHQ convention violation) |
+| h-067 | info | v1.1 | No `references` despite the rule describing a known technique |
+| h-068 | info | v1.1 | `author` is empty or placeholder |
 
 ### Value quality
 
-| ID | Default | Description |
-|---|---|---|
-| h-070 | warn | CommandLine contains apparent PID or TID |
-| h-071 | warn | Value contains specific timestamp |
-| h-072 | info | Bare filename without path context |
-| h-073 | warn | Value appears to be specific to a single sample (GUID, random string) |
-| h-074 | info | Value contains likely lab-specific hostname |
+| ID | Default | Status | Description |
+|---|---|---|---|
+| h-070 | warn | v1.0 | CommandLine contains apparent PID or TID |
+| h-071 | warn | v1.1 | Value contains specific timestamp |
+| h-072 | info | v1.1 | Bare filename without path context |
+| h-073 | warn | v1.0 | Value appears to be specific to a single sample (GUID, random string) |
+| h-074 | info | v1.1 | Value contains likely lab-specific hostname |
+
+### v1.0 tally
+
+25 heuristics ship at v1.0: **h-001 h-002 h-003 h-010 h-011 h-012 h-021 h-022 h-030 h-032 h-040 h-041 h-044 h-050 h-051 h-052 h-053 h-060 h-061 h-062 h-063 h-064 h-066 h-070 h-073** — spanning all eight categories. Remaining 16 ship at v1.1.
 
 ## Calibration methodology
 
