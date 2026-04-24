@@ -1,0 +1,112 @@
+{# One detection block — a named selection containing field|modifier|value rows.
+
+Included from stage1_detection.html per match/filter block. Expects:
+  block            — DetectionBlockDraft
+  observation_spec — ObservationTypeSpec (for field dropdown)
+#}
+<div class="detection-block" data-block="{{ block.name }}">
+    <div class="detection-block-header">
+        <input type="text"
+               class="block-name-input"
+               name="block_name::{{ block.name }}"
+               value="{{ block.name }}"
+               aria-label="Block name"
+               hx-post="{{ url_for('composer_update') }}"
+               hx-include="#rule-state"
+               hx-vals='{"action": "rename_block", "old_name": "{{ block.name }}"}'
+               hx-target="#composer-panel"
+               hx-swap="innerHTML"
+               hx-trigger="change">
+        <button type="button"
+                class="block-delete-button"
+                title="Delete this block"
+                hx-post="{{ url_for('composer_update') }}"
+                hx-include="#rule-state"
+                hx-vals='{"action": "delete_block", "block_name": "{{ block.name }}"}'
+                hx-target="#composer-panel"
+                hx-swap="innerHTML">
+            ✕
+        </button>
+    </div>
+
+    {% if block.items %}
+    <div class="detection-items">
+        {% for item in block.items %}
+        <div class="detection-item" data-item-index="{{ loop.index0 }}">
+            <select class="item-field"
+                    name="field::{{ block.name }}::{{ loop.index0 }}"
+                    aria-label="Field"
+                    hx-post="{{ url_for('composer_update') }}"
+                    hx-include="#rule-state"
+                    hx-vals='{"action": "set_field", "block_name": "{{ block.name }}", "item_index": "{{ loop.index0 }}"}'
+                    hx-target="#composer-panel"
+                    hx-swap="innerHTML">
+                <option value="" {% if not item.field %}selected{% endif %}>-- select field --</option>
+                {% for field_spec in observation_spec.fields %}
+                <option value="{{ field_spec.name }}"
+                        {% if item.field == field_spec.name %}selected{% endif %}>
+                    {{ field_spec.label }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <select class="item-modifier"
+                    name="modifier::{{ block.name }}::{{ loop.index0 }}"
+                    aria-label="Modifier"
+                    {% if not item.field %}disabled{% endif %}
+                    hx-post="{{ url_for('composer_update') }}"
+                    hx-include="#rule-state"
+                    hx-vals='{"action": "set_modifier", "block_name": "{{ block.name }}", "item_index": "{{ loop.index0 }}"}'
+                    hx-target="#composer-panel"
+                    hx-swap="innerHTML">
+                {% if item.field %}
+                {% set field_spec = field_specs_by_name[item.field] %}
+                {% for mod in field_spec.allowed_modifiers %}
+                <option value="{{ mod }}"
+                        {% if item.modifiers and item.modifiers[0] == mod %}selected{% endif %}>
+                    {{ mod }}
+                </option>
+                {% endfor %}
+                {% else %}
+                <option value="">—</option>
+                {% endif %}
+            </select>
+
+            <input type="text"
+                   class="item-value"
+                   name="value::{{ block.name }}::{{ loop.index0 }}"
+                   value="{{ item.values[0] if item.values else '' }}"
+                   placeholder="value"
+                   aria-label="Value"
+                   hx-post="{{ url_for('composer_update') }}"
+                   hx-include="#rule-state"
+                   hx-vals='{"action": "set_value", "block_name": "{{ block.name }}", "item_index": "{{ loop.index0 }}"}'
+                   hx-target="#composer-panel"
+                   hx-swap="innerHTML"
+                   hx-trigger="change, keyup delay:300ms">
+
+            <button type="button"
+                    class="item-delete-button"
+                    title="Remove this item"
+                    hx-post="{{ url_for('composer_update') }}"
+                    hx-include="#rule-state"
+                    hx-vals='{"action": "delete_item", "block_name": "{{ block.name }}", "item_index": "{{ loop.index0 }}"}'
+                    hx-target="#composer-panel"
+                    hx-swap="innerHTML">
+                ✕
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <button type="button"
+            class="item-add-button"
+            hx-post="{{ url_for('composer_update') }}"
+            hx-include="#rule-state"
+            hx-vals='{"action": "add_item", "block_name": "{{ block.name }}"}'
+            hx-target="#composer-panel"
+            hx-swap="innerHTML">
+        + Add field
+    </button>
+</div>

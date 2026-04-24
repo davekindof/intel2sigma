@@ -1,0 +1,29 @@
+{# Preview pane contents — canonical YAML + conversion tabs.
+
+Rendered both inside ``base.html`` (for the initial shell) and as an
+out-of-band swap from composer routes (so stage mutations update the
+preview live without a composer-panel re-render).
+
+The outer elements ``<div id="preview-pane">`` and
+``<div id="conversion-tab-body">`` are defined in ``base.html``; this
+partial renders their contents. For oob swaps, routes wrap it with an
+outer element carrying ``hx-swap-oob="true"``.
+#}
+{% if preview_yaml %}
+<pre class="highlight"><code>{{ preview_yaml_html | safe }}</code></pre>
+{% else %}
+<div class="placeholder">
+    Canonical Sigma YAML appears here as the composer produces it.
+</div>
+{% endif %}
+
+{% if preview_issues %}
+<ul class="preview-issues">
+    {% for issue in preview_issues %}
+    <li class="field-error-message">
+        <span class="health-issue-id">{{ issue.code }}</span>
+        {{ issue.message }}
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}

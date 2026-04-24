@@ -1,0 +1,104 @@
+{# Stage 1 — detection block editor.
+
+Match blocks and filter blocks stacked in two regions. Each block holds
+one or more field|modifier|value rows drawn from the selected observation
+type's field catalog.
+
+State flow: every input change POSTs the whole composer form (which
+includes the hidden rule-state textarea via hx-include) back to
+``/composer/update`` with an action verb in ``hx-vals``. Server
+deserializes RuleDraft, applies the mutation, returns this stage partial
++ the updated state blob + the updated preview pane via oob swap.
+
+Field/modifier dropdowns are populated from the taxonomy registry passed
+in as ``observation_spec``. Values beyond the selected observation's
+declared field set are rejected by tier-1 validation; the UI just doesn't
+offer them.
+#}
+
+<div class="stage-header">
+    <div class="stage-header-row">
+        <h2 class="stage-title">Stage 1 — Compose detection</h2>
+        <a class="button-secondary"
+           hx-post="{{ url_for('composer_restart') }}"
+           hx-include="#rule-state"
+           hx-target="#composer-panel"
+           hx-swap="innerHTML">
+            ← Back to observation
+        </a>
+    </div>
+    <p class="stage-subtitle">
+        {{ observation_spec.label }} ·
+        <span class="stage-subtitle-muted">{{ platform_id }}</span>
+    </p>
+</div>
+
+<form id="composer-form"
+      hx-post="{{ url_for('composer_update') }}"
+      hx-include="#rule-state"
+      hx-target="#composer-panel"
+      hx-swap="innerHTML"
+      hx-trigger="change delay:200ms from:input, change delay:200ms from:select"
+      onsubmit="return false">
+
+    {# ---- Match blocks ---- #}
+    <section class="block-region block-region-match">
+        <div class="block-region-header">
+            <h3>Match blocks <span class="block-region-hint">— the behavior to detect</span></h3>
+            <button type="button"
+                    class="button-secondary block-add-button"
+                    hx-post="{{ url_for('composer_update') }}"
+                    hx-include="#rule-state"
+                    hx-vals='{"action": "add_match"}'
+                    hx-target="#composer-panel"
+                    hx-swap="innerHTML">
+                + Add match block
+            </button>
+        </div>
+        {% for block in match_blocks %}
+        {% include "composer/_block.html" %}
+        {% endfor %}
+        {% if not match_blocks %}
+        <p class="placeholder placeholder-inline">
+            No match blocks yet. Add one to describe the core behavior.
+        </p>
+        {% endif %}
+    </section>
+
+    {# ---- Filter blocks ---- #}
+    <section class="block-region block-region-filter">
+        <div class="block-region-header">
+            <h3>Filter blocks <span class="block-region-hint">— except when …</span></h3>
+            <button type="button"
+                    class="button-secondary block-add-button"
+                    hx-post="{{ url_for('composer_update') }}"
+                    hx-include="#rule-state"
+                    hx-vals='{"action": "add_filter"}'
+                    hx-target="#composer-panel"
+                    hx-swap="innerHTML">
+                + Add filter block
+            </button>
+        </div>
+        {% for block in filter_blocks %}
+        {% include "composer/_block.html" %}
+        {% endfor %}
+    </section>
+
+    {# ---- Auto-composed condition preview ---- #}
+    {% if composed_condition %}
+    <div class="condition-preview">
+        <span class="condition-preview-label">Rule fires when:</span>
+        <code class="condition-preview-text">{{ composed_condition }}</code>
+    </div>
+    {% endif %}
+
+    {# ---- Stage nav ---- #}
+    <div class="stage-nav">
+        <button type="button"
+                class="button-primary"
+                disabled
+                title="Stage 2 (metadata) lands in M1.4">
+            Next: Metadata →
+        </button>
+    </div>
+</form>

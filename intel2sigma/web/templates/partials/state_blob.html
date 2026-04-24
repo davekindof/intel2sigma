@@ -1,0 +1,13 @@
+{# Hidden JSON blob carrying the RuleDraft between requests.
+
+Rendered at every stage — htmx-driven POSTs include it via
+``hx-include="#rule-state"`` on the triggering element. When a route
+mutates state it returns this element with ``hx-swap-oob="true"`` so the
+updated blob replaces the old one without a full-page swap.
+
+See docs/web-state-model.md for the overall contract.
+#}
+<textarea id="rule-state"
+          name="rule_state"
+          hidden
+          hx-swap-oob="true">{{ draft_json }}</textarea>

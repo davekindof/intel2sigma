@@ -26,6 +26,7 @@ from fastapi.templating import Jinja2Templates
 
 from intel2sigma import __version__
 from intel2sigma.core.convert import all_backend_ids, backend_label
+from intel2sigma.web.routes import composer as composer_routes
 
 _WEB_DIR = Path(__file__).resolve().parent
 _STATIC_DIR = _WEB_DIR / "static"
@@ -81,6 +82,12 @@ def create_app() -> FastAPI:
         name="static",
     )
 
+    # Shared objects route modules reach through ``request.app.state``:
+    app.state.templates = templates
+    app.state.taxonomy = composer_routes.prime_taxonomy()
+
+    app.include_router(composer_routes.router)
+
     @app.get("/healthz")
     async def healthz() -> JSONResponse:
         """Liveness probe. Container platforms hit this to know we're up."""
@@ -97,23 +104,27 @@ def create_app() -> FastAPI:
 
     @app.get("/mode/guided", response_class=HTMLResponse, name="guided_home")
     async def guided_home(request: Request) -> HTMLResponse:
-        return templates.TemplateResponse(request, "base.html", _shell_context("guided"))
+        return templates.TemplateResponse(request, "base.html", _shell_context(request, "guided"))
 
     @app.get("/mode/expert", response_class=HTMLResponse, name="expert_home")
     async def expert_home(request: Request) -> HTMLResponse:
-        return templates.TemplateResponse(request, "base.html", _shell_context("expert"))
+        return templates.TemplateResponse(request, "base.html", _shell_context(request, "expert"))
 
     return app
 
 
-def _shell_context(mode: str) -> dict[str, Any]:
+def _shell_context(request: Request, mode: str) -> dict[str, Any]:
     """Variables passed to every shell render. Kept in one place so stage
     partials that inherit from ``base.html`` get the same defaults.
     """
+    initial = composer_routes.initial_composer_context(request, request.app.state.taxonomy)
     return {
         "mode": mode,
         "version": __version__,
         "conversion_tabs": _conversion_tabs(),
+        "initial_composer_html": initial["initial_composer_html"],
+        "initial_state_json": initial["initial_state_json"],
+        **initial["initial_preview_context"],
     }
 
 

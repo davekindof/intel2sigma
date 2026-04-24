@@ -40,20 +40,12 @@
         <main class="app-main">
             <section class="composer-panel" id="composer-panel"
                      aria-label="Composer">
-                {% block composer %}
-                    <div class="placeholder">
-                        Composer panel — stages 0 through 4 land in M1.3 and M1.4.
-                    </div>
-                {% endblock %}
+                {{ initial_composer_html | safe }}
             </section>
 
             <section class="preview-panel" aria-label="Preview">
                 <div class="preview-pane-primary" id="preview-pane">
-                    {% block preview %}
-                        <div class="placeholder">
-                            Canonical Sigma YAML appears here as the composer produces it.
-                        </div>
-                    {% endblock %}
+                    {% include "partials/preview_pane.html" %}
                 </div>
 
                 <div class="preview-pane-tabs" role="tablist"
@@ -85,6 +77,11 @@
             {% endblock %}
         </aside>
     </div>
+
+    {# Hidden JSON rule draft; every htmx mutation includes this via
+       hx-include and routes swap it back in via hx-swap-oob.
+       See docs/web-state-model.md. #}
+    <textarea id="rule-state" name="rule_state" hidden>{{ initial_state_json }}</textarea>
 
     {% block body_extra %}{% endblock %}
 </body>

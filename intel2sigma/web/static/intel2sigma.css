@@ -401,13 +401,226 @@ input[type="text"]:focus, textarea:focus, select:focus {
     margin-left: -8px;
 }
 
-/* ---- placeholder content (M1.2 only; removed in M1.3+) --------------- */
+/* ---- placeholder content ---- */
 
 .placeholder {
     color: var(--color-text-dim);
     text-align: center;
     padding: var(--space-12) var(--space-4);
     font-style: italic;
+}
+
+.placeholder-inline {
+    padding: var(--space-4);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+/* ---- composer stage chrome ------------------------------------------- */
+
+.stage-header {
+    margin-bottom: var(--space-6);
+}
+
+.stage-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.stage-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: var(--color-text);
+}
+
+.stage-subtitle {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin: var(--space-2) 0 0;
+}
+.stage-subtitle-muted { color: var(--color-text-dim); }
+
+.stage-nav {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--color-border-muted);
+}
+
+/* ---- stage 0: observation picker ------------------------------------- */
+
+.observation-search {
+    width: 100%;
+    max-width: 480px;
+    margin-bottom: var(--space-6);
+    font-size: 14px;
+    padding: 8px 12px;
+}
+
+.observation-group {
+    margin-bottom: var(--space-6);
+}
+.observation-group[hidden] { display: none; }
+
+.observation-group-title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-text-muted);
+    margin: 0 0 var(--space-3);
+}
+
+.observation-card-label {
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: 4px;
+}
+.observation-card-desc {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-2);
+}
+.observation-card-platforms {
+    display: flex;
+    gap: 4px;
+}
+
+.platform-chip {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-dim);
+    background: var(--color-surface-alt);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+}
+
+/* ---- stage 1: detection editor --------------------------------------- */
+
+.block-region {
+    margin-bottom: var(--space-6);
+}
+
+.block-region-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-3);
+}
+.block-region-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text);
+}
+.block-region-hint {
+    color: var(--color-text-dim);
+    font-weight: 400;
+    font-size: 13px;
+}
+
+.detection-block {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.detection-block-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+}
+
+.block-name-input {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-accent-hover);
+    background: var(--color-code-bg);
+    padding: 4px 8px;
+    flex: 1;
+}
+
+.block-delete-button,
+.item-delete-button {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+}
+.block-delete-button:hover,
+.item-delete-button:hover {
+    border-color: var(--color-critical);
+    color: var(--color-critical);
+}
+
+.detection-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+}
+
+.detection-item {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 2fr auto;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.item-field,
+.item-modifier,
+.item-value {
+    font-size: 13px;
+}
+
+.item-add-button {
+    background: transparent;
+    border: 1px dashed var(--color-border);
+    color: var(--color-text-muted);
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    width: 100%;
+}
+.item-add-button:hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+.condition-preview {
+    background: var(--color-surface-alt);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-4);
+    font-size: 13px;
+}
+.condition-preview-label {
+    color: var(--color-text-muted);
+    margin-right: var(--space-2);
+}
+.condition-preview-text {
+    color: var(--color-text);
+}
+
+/* ---- preview-pane issues list ---- */
+
+.preview-issues {
+    list-style: none;
+    padding: 0;
+    margin: var(--space-3) 0 0;
+}
+.preview-issues li {
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border-muted);
 }
 
 /* ---- Pygments YAML highlighting --------------------------------------

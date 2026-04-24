@@ -1,0 +1,70 @@
+{# Stage 0 — observation picker.
+
+Card grid grouped by the five UI groups from docs/ui.md. Clicking a card
+fires ``POST /composer/select-observation`` which transitions the
+composer to Stage 1.
+
+Search input filters visible cards client-side via htmx-free vanilla
+input — a small script at the bottom. No custom JS outside this file;
+everything stays inline for I-6 compliance (no vendored helper).
+#}
+
+<div class="stage-header">
+    <h2 class="stage-title">Stage 0 — Pick an observation</h2>
+    <p class="stage-subtitle">
+        Choose the kind of behavior you observed. The composer tailors the next
+        stage to the fields that category supports.
+    </p>
+</div>
+
+<input type="search"
+       id="observation-search"
+       class="observation-search"
+       placeholder="Search observations (e.g. 'process launched')"
+       oninput="window.__intel2sigma_filter_observations(this.value)">
+
+{% for group_id, group_label, entries in observation_groups %}
+<section class="observation-group" data-group="{{ group_id }}">
+    <h3 class="observation-group-title">{{ group_label }}</h3>
+    <div class="card-grid">
+        {% for entry in entries %}
+        <button type="button"
+                class="observation-card"
+                data-search-text="{{ entry.search_text }}"
+                hx-post="{{ url_for('select_observation') }}"
+                hx-include="#rule-state"
+                hx-vals='{"observation_id": "{{ entry.id }}"}'
+                hx-target="#composer-panel"
+                hx-swap="innerHTML">
+            <div class="observation-card-label">{{ entry.label }}</div>
+            <div class="observation-card-desc">{{ entry.description }}</div>
+            <div class="observation-card-platforms">
+                {% for platform in entry.platforms %}
+                <span class="platform-chip">{{ platform }}</span>
+                {% endfor %}
+            </div>
+        </button>
+        {% endfor %}
+    </div>
+</section>
+{% endfor %}
+
+<script>
+    // Client-side card filter. Runs without htmx; no round-trip needed for
+    // pure presentation. If/when we add server-side synonym search we'd
+    // swap this for ``hx-post`` + debounce, but keyword match on a fixed
+    // 15-card catalog is fine on the client.
+    window.__intel2sigma_filter_observations = function (query) {
+        const q = query.toLowerCase().trim();
+        document.querySelectorAll(".observation-card").forEach((el) => {
+            const text = (el.dataset.searchText || "").toLowerCase();
+            el.hidden = q !== "" && !text.includes(q);
+        });
+        document.querySelectorAll(".observation-group").forEach((group) => {
+            const anyVisible = Array.from(
+                group.querySelectorAll(".observation-card"),
+            ).some((c) => !c.hidden);
+            group.hidden = !anyVisible;
+        });
+    };
+</script>
