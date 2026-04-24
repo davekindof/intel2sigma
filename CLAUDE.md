@@ -86,7 +86,7 @@ Rationale: Testability, determinism, and the ability to run the same logic ident
 - **Docstrings** on all public classes, functions, and modules. Google-style or reST, consistent across the project. One-liners are fine for obvious cases.
 - **Comments explain *why*, not *what*.** Self-documenting code first; comments as supplement. Link external specs or issues where relevant.
 - **Prefer composition over inheritance.** Abstract base classes only when there are already ≥2 implementations. Avoid deep class hierarchies.
-- **`async def` for I/O-bound handlers and pySigma conversions.** Sync for pure computation. Do not mix styles within a single module without clear reason.
+- **`async def` for I/O-bound handlers. Sync for pure computation, including pySigma conversions.** pySigma conversion is CPU-bound (~100ms cold, effectively free on cache hit per SPEC.md), so `core/convert/` is sync. Web handlers that call into it are `async def` themselves and invoke the sync converter directly. If concurrent-conversion load ever becomes a problem, wrap the call in `asyncio.to_thread` at the handler boundary — don't contaminate `core/` with async. Do not mix styles within a single module without clear reason.
 - **No star imports.** `from x import *` is banned. Explicit names only.
 - **Exceptions are typed.** Use specific exception classes (`InvalidRuleError`, `UnknownBackendError`, etc.), not bare `Exception` or `ValueError` for domain errors.
 

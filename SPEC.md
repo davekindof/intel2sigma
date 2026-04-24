@@ -83,9 +83,13 @@ The model is extensible for correlation rules (v2) without breaking v1 consumers
 
 ## Serialization
 
-`ruamel.yaml` with explicit key order: `title, id, status, description, references, author, date, modified, tags, logsource, detection, condition, falsepositives, level`.
+`ruamel.yaml` with explicit top-level key order: `title, id, status, description, references, author, date, modified, tags, logsource, detection, falsepositives, level`.
+
+The Sigma condition is emitted as a string *inside* the `detection` block (the shape pySigma expects), not as a top-level key. The in-memory model carries a `ConditionExpression` that the serializer renders to that nested string.
 
 **Round-trip guarantee**: parsing a canonical rule and re-serializing produces byte-identical output (modulo normalization of user-provided whitespace).
+
+The `from_yaml` loader is intentionally narrow: it parses only the condition-string shapes the composer itself emits (leaf, `not`, flat `and`/`or`, `all of <glob>`, `1 of <glob>`, one-level parenthesized groupings). Hand-written Sigma rules with arbitrary condition grammar should enter through pySigma's own loader, not this round-trip path.
 
 ## Validation tiers
 
@@ -227,3 +231,7 @@ Append-only log of significant decisions not otherwise captured in this spec. Fo
 - 2026-04-23: No npm, no node, no JS build step. Vendored htmx with SHA-256 hashes. Hand-written CSS with custom properties. Pygments for server-side syntax highlighting.
 - 2026-04-23: Dual-mode presentation (Guided / Expert), Guided as default.
 - 2026-04-23: Green-forward color palette (GitHub-dark-inspired) as placeholder; replaceable via CSS custom properties when davidsharp.io palette is finalized.
+- 2026-04-23: v0 foundations scaffolded. Python 3.14 via `uv`; pinned `pysigma>=0.11,<1.0`, `pysigma-backend-{kusto,splunk,elasticsearch,crowdstrike}`, `pysigma-pipeline-{sysmon,windows,crowdstrike}`. Microsoft XDR / Sentinel / MDE pipelines ship bundled inside `pysigma-backend-kusto`, not as standalone dists.
+- 2026-04-23: Sigma `condition` is serialized *inside* the `detection` block, not as a top-level key. Prior SPEC wording listed `condition` in top-level key order; corrected to match canonical Sigma and pySigma expectations. The in-memory model still carries `SigmaRule.condition: ConditionExpression`.
+- 2026-04-23: `core/serialize.from_yaml` parses only the condition-string shapes `to_yaml` emits. Hand-written rules with arbitrary condition grammar are a pySigma-loader concern, not an intel2sigma round-trip concern. Recorded as an explicit non-goal.
+- 2026-04-23: Modifier set is dual-sourced. The in-memory `ValueModifier` Literal in `core/model.py` enumerates the Sigma modifier grammar primitives the system can represent (closed set, ~20 names). The per-field subset offered to users lives in `data/taxonomy/*.yml` as each field's `allowed_modifiers`. Rationale: the modifier alphabet is language grammar (code); the per-field policy is catalog (data).

@@ -75,13 +75,16 @@ web/routes/composer.py
 
 core.convert
     → pysigma
-    → pysigma_backend_kusto
+    → pysigma_backend_kusto          (bundles the Microsoft XDR / Sentinel / MDE
+                                       pipelines internally — no separate dist)
     → pysigma_backend_splunk
     → pysigma_backend_elasticsearch
     → pysigma_backend_crowdstrike
     → pysigma_pipeline_sysmon
-    → pysigma_pipeline_microsoft_xdr
-    (plus others per data/pipelines.yml)
+    → pysigma_pipeline_windows
+    → pysigma_pipeline_crowdstrike
+    (plus others per data/pipelines.yml; some pipelines ship inside their
+     backend's package rather than as a standalone `pysigma-pipeline-*` dist)
 
 core.heuristics
     → core.model              (no external deps)
