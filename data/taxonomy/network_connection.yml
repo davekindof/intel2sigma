@@ -1,0 +1,110 @@
+# Network-connection observation catalog (Windows, Sysmon EventID 3).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6. 61 rules combined.
+# Process-context fields (Image, Initiated) are more common than raw network
+# fields (DestinationIp, DestinationPort) — analysts typically qualify
+# network activity by which process was responsible, then filter on the
+# destination.
+
+id: network_connection
+label: "A process made a network connection"
+description: "Use when malware or suspicious activity initiated a network connection."
+category_group: network
+logsource:
+    category: network_connection
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "outbound connection"
+    - "process connected"
+    - "network socket opened"
+
+fields:
+    - name: Image
+      label: "Connecting process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\powershell.exe'
+
+    - name: Initiated
+      label: "Outbound connection?"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: ["true", "false"]
+      note: "'true' = process initiated an outbound connection; 'false' = inbound."
+
+    - name: DestinationHostname
+      label: "Destination hostname"
+      type: string
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, exact, re]
+      example: "c2.evil.invalid"
+
+    - name: DestinationIp
+      label: "Destination IP"
+      type: ip
+      default_modifier: cidr
+      allowed_modifiers: [cidr, exact]
+      example: "10.0.0.0/8"
+      note: "Use 'cidr' for ranges; 'exact' for single addresses."
+
+    - name: DestinationPort
+      label: "Destination port"
+      type: int
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      example: "4444"
+
+    - name: CommandLine
+      label: "Connecting process command line"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, endswith, startswith, re, exact]
+
+    - name: SourcePort
+      label: "Source port"
+      type: int
+      default_modifier: exact
+      allowed_modifiers: [exact]
+
+    - name: SourceIp
+      label: "Source IP"
+      type: ip
+      default_modifier: cidr
+      allowed_modifiers: [cidr, exact]
+
+    - name: Protocol
+      label: "Protocol"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: ["tcp", "udp", "icmp"]
+
+    - name: ParentImage
+      label: "Parent of connecting process"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, exact]
+
+    - name: User
+      label: "User account"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, exact, endswith, startswith]
+
+    - name: DestinationIsIpv6
+      label: "IPv6 destination?"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: ["true", "false"]
+
+    - name: SourceHostname
+      label: "Source hostname"
+      type: string
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, exact]

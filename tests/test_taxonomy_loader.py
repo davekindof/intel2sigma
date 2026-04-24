@@ -298,3 +298,75 @@ def test_bad_observation_id_pattern_raises(tmp_path: Path) -> None:
     _write(tmp_path / "Process-Creation.yml", bad)
     with pytest.raises(TaxonomyLoadError, match="id"):
         load_taxonomy(tmp_path)
+
+
+# ---------------------------------------------------------------------------
+# Integration: the bundled data/taxonomy/ directory loads end-to-end.
+# ---------------------------------------------------------------------------
+
+
+EXPECTED_IDS = frozenset(
+    {
+        "process_creation",
+        "image_load",
+        "create_remote_thread",
+        "raw_access_thread",
+        "pipe_created",
+        "file_event",
+        "file_event_linux",
+        "registry_set",
+        "network_connection",
+        "dns_query",
+        "create_task",
+        "wmi_event",
+        "driver_load",
+        "ps_script",
+        "ps_module",
+    }
+)
+
+
+def test_bundled_catalog_loads() -> None:
+    """Every bundled observation file must load without any schema errors.
+
+    Uses the default (bundled) data directory so the whole pipeline is
+    exercised end-to-end — failure here means a file in ``data/taxonomy/``
+    drifted from the schema and caught CI rather than production.
+    """
+    registry = load_taxonomy()
+    assert set(registry.all_ids()) == EXPECTED_IDS
+
+
+def test_bundled_catalog_has_five_ui_groups() -> None:
+    registry = load_taxonomy()
+    groups = registry.by_group()
+    assert set(groups) == {
+        "process_and_execution",
+        "file_and_registry",
+        "network",
+        "scheduled_and_system",
+        "powershell_and_scripting",
+    }
+    # Every group must have at least one observation; empty groups suggest
+    # a broken category_group on one of the files.
+    for group_members in groups.values():
+        assert group_members
+
+
+def test_bundled_catalog_fields_are_internally_consistent() -> None:
+    """Every field in the bundled catalog satisfies its own invariants.
+
+    Pydantic enforces these on load, but running them here gives a single
+    clear failure per file instead of a stack trace buried in the loader.
+    """
+    registry = load_taxonomy()
+    for obs_id in registry.all_ids():
+        spec = registry.get(obs_id)
+        assert spec.fields, f"{obs_id}: no fields declared"
+        for f in spec.fields:
+            assert f.default_modifier in f.allowed_modifiers, (
+                f"{obs_id}.{f.name}: default_modifier {f.default_modifier!r} "
+                f"not in allowed_modifiers {f.allowed_modifiers!r}"
+            )
+            if f.type.value == "enum":
+                assert f.values, f"{obs_id}.{f.name}: enum field missing values"

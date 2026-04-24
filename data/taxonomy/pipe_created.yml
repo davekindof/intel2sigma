@@ -1,0 +1,35 @@
+# Named-pipe-created observation catalog (Windows, Sysmon EventID 17/18).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6. 19 rules combined.
+# PipeName is near-universal and usually matched with regex because C2
+# frameworks generate names with a predictable pattern plus random suffix.
+
+id: pipe_created
+label: "A named pipe was created"
+description: "Use when malware created a named pipe — a common C2 or inter-process-injection artifact."
+category_group: process_and_execution
+logsource:
+    category: pipe_created
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "named pipe created"
+    - "pipe opened"
+    - "ipc pipe"
+
+fields:
+    - name: PipeName
+      label: "Pipe name"
+      type: string
+      default_modifier: re
+      allowed_modifiers: [re, startswith, contains, endswith, exact]
+      example: '\\msagent_[0-9a-f]{2}'
+      note: "C2 frameworks (Cobalt Strike, Brute Ratel) often generate pipe names with a fixed prefix and random suffix — regex captures both."
+
+    - name: Image
+      label: "Creating process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]

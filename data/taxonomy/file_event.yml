@@ -1,0 +1,67 @@
+# File-event observation catalog (Windows).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6. See docs/taxonomy.md
+# for methodology. Windows-only — Linux auditd rules live in
+# file_event_linux.yml.
+#
+# TargetFilename is essentially universal in this category (99% of rules),
+# followed by Image at ~50%. Everything beyond is a long tail of process-
+# context fields used in a small minority of rules.
+
+id: file_event
+label: "A file was created or modified"
+description: "Use when malware or suspicious activity wrote, renamed, or modified a file on disk."
+category_group: file_and_registry
+logsource:
+    category: file_event
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "file created"
+    - "file written"
+    - "file modified"
+    - "file dropped"
+
+fields:
+    - name: TargetFilename
+      label: "Target file path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, all, re, exact]
+      example: '\AppData\Local\Temp\payload.exe'
+      note: "Path suffix with a leading backslash matches filename regardless of directory."
+
+    - name: Image
+      label: "Writing process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\cscript.exe'
+      note: "The executable that performed the write, not the file that was written."
+
+    - name: CommandLine
+      label: "Writing process command line"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, startswith, endswith, all, re, exact]
+
+    - name: ParentImage
+      label: "Parent of writing process"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+
+    - name: User
+      label: "User account"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, endswith, startswith]
+
+    - name: CreationUtcTime
+      label: "File creation time"
+      type: string
+      default_modifier: startswith
+      allowed_modifiers: [startswith, contains, exact]
+      note: "Sysmon records this as an ISO-like timestamp. Use for timestomping detection."

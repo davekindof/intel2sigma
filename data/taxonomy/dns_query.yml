@@ -1,0 +1,35 @@
+# DNS-query observation catalog (Windows, Sysmon EventID 22).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6. 27 rules across strata.
+# Two primary fields — the name queried and the process doing the querying.
+
+id: dns_query
+label: "A process resolved a DNS name"
+description: "Use when malware or suspicious activity queried a DNS name."
+category_group: network
+logsource:
+    category: dns_query
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "dns lookup"
+    - "domain resolved"
+    - "dns request"
+
+fields:
+    - name: QueryName
+      label: "Queried domain name"
+      type: string
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, exact, re]
+      example: ".evil.invalid"
+      note: "For a TLD/SLD suffix match, include the leading dot."
+
+    - name: Image
+      label: "Querying process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\powershell.exe'

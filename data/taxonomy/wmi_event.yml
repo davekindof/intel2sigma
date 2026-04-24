@@ -1,0 +1,74 @@
+# WMI-event observation catalog (Sysmon EventIDs 19/20/21).
+#
+# Low corpus signal at SigmaHQ commit 03412947a2d6 (3 vetted rules).
+# Field set follows Sigma spec for Sysmon WmiEventFilter /
+# WmiEventConsumer / WmiEventConsumerToFilter events, used to detect
+# persistence via WMI event subscription. Revisit when the quarterly
+# recalibration produces more usage data.
+
+id: wmi_event
+label: "A WMI event subscription was registered"
+description: "Use to detect persistence via WMI event filters or consumers (classic 'WMI subscription' malware persistence)."
+category_group: scheduled_and_system
+logsource:
+    category: wmi_event
+    product: windows
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "wmi subscription"
+    - "wmi persistence"
+    - "wmi filter"
+    - "wmi consumer"
+    - "wmieventfilter"
+
+fields:
+    - name: Operation
+      label: "Operation"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: [Created, Modified, Deleted]
+
+    - name: EventType
+      label: "WMI event type"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: [WmiFilterEvent, WmiConsumerEvent, WmiBindingEvent]
+      note: "Filter = query-side registration; Consumer = action on trigger; Binding = ties the two together."
+
+    - name: Name
+      label: "Filter or consumer name"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, endswith, startswith, exact, re]
+
+    - name: Query
+      label: "WQL query"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, re, endswith, startswith, exact]
+      note: "Only present on filter events. WMI Query Language expression that triggers the consumer."
+
+    - name: Destination
+      label: "Consumer destination"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, endswith, startswith, exact, re]
+      note: "For ActiveScriptEventConsumer / CommandLineEventConsumer: the script or command line that runs on trigger."
+
+    - name: Type
+      label: "Consumer type"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: [ActiveScriptEventConsumer, CommandLineEventConsumer, LogFileEventConsumer, SMTPEventConsumer, NTEventLogEventConsumer]
+
+    - name: User
+      label: "Registering user account"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, endswith, startswith]

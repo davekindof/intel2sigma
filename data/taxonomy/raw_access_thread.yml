@@ -1,0 +1,38 @@
+# Raw-access-read observation catalog (Windows, Sysmon EventID 9).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — only 1 rule in the
+# corpus, so the field set here is taken from Sigma spec rather than
+# corpus weights. Use this observation to detect direct volume or
+# physical-disk reads that bypass the file-system API (classic SAM/SYSTEM
+# hive extraction, boot-sector reads).
+
+id: raw_access_thread
+label: "A process performed a raw disk read"
+description: "Use to detect direct reads of a physical drive or volume, bypassing the file system."
+category_group: process_and_execution
+logsource:
+    category: raw_access_thread
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "raw disk read"
+    - "volume access"
+    - "physical drive read"
+    - "rawaccessread"
+
+fields:
+    - name: Image
+      label: "Reading process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+
+    - name: Device
+      label: "Device path"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, endswith, startswith, exact]
+      example: '\Device\HarddiskVolume2'
+      note: "Device-object path as Windows presents it to Sysmon. Use 'contains' for volume-agnostic matches."

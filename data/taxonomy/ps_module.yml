@@ -1,0 +1,40 @@
+# PowerShell module/pipeline logging observation catalog (EventID 4103).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6. 34 rules combined.
+# The EventID 4103 channel logs pipeline execution details — noisier than
+# script-block logging, but useful for catching reflective .NET loads and
+# downloadstring-style behavior from Windows PowerShell v2 compatibility
+# abuses.
+
+id: ps_module
+label: "A PowerShell module or pipeline executed"
+description: "Use when PowerShell pipeline/module execution was logged via EventID 4103 (module logging)."
+category_group: powershell_and_scripting
+logsource:
+    product: windows
+    category: ps_module
+    service: powershell
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "powershell module"
+    - "eventid 4103"
+    - "ps module logging"
+    - "powershell pipeline"
+
+fields:
+    - name: Payload
+      label: "Pipeline payload"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, re, endswith, startswith, exact]
+      note: "Arguments and output captured by the module-logging channel."
+
+    - name: ContextInfo
+      label: "Invocation context"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, endswith, startswith, exact]
+      note: "Host, user, command-name, and other execution-context metadata."

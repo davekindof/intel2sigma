@@ -1,0 +1,58 @@
+# Driver-load observation catalog (Windows, Sysmon EventID 6).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6. 10 rules in the
+# corpus — low signal, so signature-status fields are included based on
+# Sigma spec rather than weighted frequency. Driver-load detection is
+# especially valuable for BYOVD (Bring Your Own Vulnerable Driver)
+# attacks, where signature metadata is the primary discriminator.
+
+id: driver_load
+label: "A driver was loaded"
+description: "Use to detect kernel-mode driver loads, including BYOVD-style vulnerable-driver abuse."
+category_group: scheduled_and_system
+logsource:
+    category: driver_load
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "kernel driver loaded"
+    - "driver installed"
+    - "byovd"
+
+fields:
+    - name: ImageLoaded
+      label: "Driver path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\dbutil_2_3.sys'
+
+    - name: Hashes
+      label: "Driver hashes"
+      type: hash
+      default_modifier: contains
+      allowed_modifiers: [contains, exact]
+      note: "Sigma expects a comma-separated string with algorithm prefixes (MD5=..., SHA256=...). Hash match is the standard BYOVD detection mechanic."
+
+    - name: Signed
+      label: "Driver is code-signed?"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: ["true", "false"]
+
+    - name: SignatureStatus
+      label: "Signature status"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact, contains]
+      example: "Valid"
+      note: "'Valid', 'Expired', 'Revoked', etc. Flag 'Expired' or 'Revoked' on kernel drivers — BYOVD uses leaked-cert drivers."
+
+    - name: Signature
+      label: "Signer name"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact, contains, startswith]

@@ -1,0 +1,46 @@
+# Registry-value-set observation catalog (Windows, Sysmon EventID 13).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6. 204 vetted rules make
+# this the dominant registry shape in the corpus — 6x more common than the
+# generic ``registry_event`` category. TargetObject and Details cover almost
+# every rule; Image is a minority process-context field.
+
+id: registry_set
+label: "A registry value was set"
+description: "Use when malware or suspicious activity wrote to the Windows Registry."
+category_group: file_and_registry
+logsource:
+    category: registry_set
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "registry written"
+    - "registry value changed"
+    - "registry modified"
+    - "autorun set"
+
+fields:
+    - name: TargetObject
+      label: "Registry path"
+      type: path
+      default_modifier: contains
+      allowed_modifiers: [contains, endswith, startswith, all, re, exact]
+      example: '\CurrentVersion\Run'
+      note: "Full registry path including hive. 'contains' matches any position; 'endswith' anchors to the value name."
+
+    - name: Details
+      label: "Value data"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact, contains, endswith, startswith, re]
+      example: 'C:\Users\Public\evil.exe'
+      note: "The data written to the registry value. Sysmon stringifies binary types."
+
+    - name: Image
+      label: "Writing process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, exact]
+      note: "The process that performed the registry write."

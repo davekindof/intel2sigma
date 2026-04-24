@@ -1,0 +1,61 @@
+# Scheduled-task-creation observation catalog.
+#
+# Low corpus signal at SigmaHQ commit 03412947a2d6 (3 vetted, 1 emerging —
+# rules for this concept live across several logsources in the corpus).
+# The field set here follows the Sigma spec for EventID 4698 (Security
+# channel, "A scheduled task was created") rather than weighted frequency.
+# Revisit when the quarterly recalibration produces more usage data.
+
+id: create_task
+label: "A scheduled task was created"
+description: "Use when malware or suspicious activity created a Windows scheduled task for persistence or lateral execution."
+category_group: scheduled_and_system
+logsource:
+    product: windows
+    service: taskscheduler
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "scheduled task created"
+    - "schtasks"
+    - "eventid 4698"
+    - "task scheduler"
+
+fields:
+    - name: TaskName
+      label: "Task name"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, endswith, startswith, exact, re]
+      example: "\\Microsoft\\Windows\\Setup\\"
+      note: "Full task path including Task Scheduler folder structure."
+
+    - name: TaskContent
+      label: "Task XML content"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, re, endswith, startswith]
+      note: "Full XML definition of the scheduled task, including the Actions element that specifies what runs."
+
+    - name: Path
+      label: "Task executable path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, exact]
+      note: "Extracted from the task's Exec/Command element."
+
+    - name: User
+      label: "Creating user account"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, endswith, startswith]
+
+    - name: EventID
+      label: "Event ID"
+      type: int
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      example: "4698"
+      note: "4698 = task created, 4702 = task updated, 4699 = task deleted."

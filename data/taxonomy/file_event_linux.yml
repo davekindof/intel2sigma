@@ -1,0 +1,38 @@
+# Linux file-event observation catalog.
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 (15 rules combined across
+# the vetted and emerging strata). Linux file_event rules in the corpus rely
+# on pipeline-mapped Sigma-standard fields (TargetFilename, Image) rather
+# than native auditd names (path, syscall, comm) — matching that convention
+# here keeps the rules portable.
+
+id: file_event_linux
+label: "A Linux file was created or modified"
+description: "Use when suspicious activity wrote or modified a file on a Linux host."
+category_group: file_and_registry
+logsource:
+    category: file_event
+platforms:
+    - id: linux
+      product: linux
+      tier: primary
+synonyms:
+    - "linux file created"
+    - "file written on linux"
+    - "auditd file event"
+
+fields:
+    - name: TargetFilename
+      label: "Target file path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, all, re, exact]
+      example: "/etc/cron.hourly/malicious"
+      note: "Full POSIX path or suffix. Unlike Windows rules, leading slash semantics differ — use 'startswith' for absolute-path anchoring."
+
+    - name: Image
+      label: "Writing process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: "/usr/bin/curl"

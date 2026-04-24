@@ -1,0 +1,43 @@
+# PowerShell script-block logging observation catalog (EventID 4104).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6. 178 rules combined —
+# one of the largest observation types in the corpus. Essentially every
+# rule matches on ScriptBlockText; the field dominance is extreme (100%
+# across all strata).
+#
+# This observation uses ``service: powershell`` because the EventID 4104
+# channel is a specific PowerShell logging service, not a generic category.
+
+id: ps_script
+label: "A PowerShell script block was executed"
+description: "Use when PowerShell execution was logged via script-block logging (EventID 4104)."
+category_group: powershell_and_scripting
+logsource:
+    product: windows
+    category: ps_script
+    service: powershell
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "powershell script"
+    - "scriptblock"
+    - "eventid 4104"
+    - "ps script block"
+
+fields:
+    - name: ScriptBlockText
+      label: "Script content"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, re, endswith, startswith, exact]
+      example: "FromBase64String"
+      note: "Full text of the executed script block. 'contains' with 'all' to require multiple strings. 're' for regex patterns — backend support varies."
+
+    - name: Path
+      label: "Script file path"
+      type: path
+      default_modifier: startswith
+      allowed_modifiers: [startswith, endswith, contains, exact]
+      note: "Path of the script file on disk, if the script was loaded from a file rather than inline."

@@ -1,0 +1,73 @@
+# Create-remote-thread observation catalog (Windows, Sysmon EventID 8).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6. 15 rules combined —
+# low corpus signal but the category is structurally important for
+# injection detection. Core fields (SourceImage, TargetImage) are taken
+# from Sigma spec; the tail (StartModule, StartAddress, StartFunction) is
+# present in a few real rules and useful for specific cases like
+# GetProcAddress hooking.
+
+id: create_remote_thread
+label: "A process created a thread in another process"
+description: "Use to detect process injection via CreateRemoteThread or equivalent APIs."
+category_group: process_and_execution
+logsource:
+    category: create_remote_thread
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "remote thread"
+    - "thread injection"
+    - "createremotethread"
+    - "process injection"
+
+fields:
+    - name: TargetImage
+      label: "Injected-into process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, exact]
+      example: '\lsass.exe'
+      note: "The victim process receiving the injected thread."
+
+    - name: SourceImage
+      label: "Injecting process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, exact]
+      note: "The process that called CreateRemoteThread."
+
+    - name: StartModule
+      label: "Start module"
+      type: path
+      default_modifier: exact
+      allowed_modifiers: [exact, endswith, contains]
+      note: "The DLL containing the thread start address, if known."
+
+    - name: StartFunction
+      label: "Start function name"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact, contains]
+      example: "LoadLibraryA"
+
+    - name: StartAddress
+      label: "Start address"
+      type: string
+      default_modifier: endswith
+      allowed_modifiers: [endswith, exact, contains]
+      note: "Low-order bytes of the virtual address. Rarely useful unless a specific shellcode pattern is known."
+
+    - name: SourceParentImage
+      label: "Parent of injecting process"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, all, exact]
+
+    - name: SourceCommandLine
+      label: "Injecting process command line"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, endswith, startswith, re, exact]
