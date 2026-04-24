@@ -18,7 +18,6 @@ from intel2sigma.core.taxonomy.loader import (
 )
 from intel2sigma.core.taxonomy.schema import (
     CategoryGroup,
-    FieldTier,
     FieldType,
     ObservationTypeSpec,
     PlatformTier,
@@ -28,7 +27,6 @@ from intel2sigma.core.taxonomy.schema import (
 
 __all__ = [
     "CategoryGroup",
-    "FieldTier",
     "FieldType",
     "ObservationTypeSpec",
     "PlatformTier",

@@ -1,0 +1,134 @@
+# Process-creation observation catalog.
+#
+# Field order reflects real-world usage calibrated against the SigmaHQ rule
+# corpus at commit 03412947a2d6 (2026-04-23). The composer UI consumes this
+# ordering to decide which fields to surface prominently (e.g. top-N in the
+# default dropdown in Guided mode) and which to show in a secondary list.
+# Methodology and strata are documented in docs/taxonomy.md. Report lives at
+# reports/taxonomy_frequencies.json (regenerate via scripts/fetch_sigmahq.py
+# + scripts/analyze_taxonomy.py).
+#
+# Primary sort: frequency in the ``rules/`` (vetted) stratum. Small
+# ordering nudges where a lower-frequency field is strictly more useful for
+# behavioral detection than an adjacent PE-metadata field — ParentCommandLine
+# is surfaced above Description for this reason.
+#
+# Scope: Windows only for v0. Linux and macOS process_creation rules in the
+# corpus use a proper subset of the Windows field set (Image, CommandLine,
+# ParentImage, CurrentDirectory), but Windows-specific fields like
+# IntegrityLevel, OriginalFileName, and the PE-metadata fields (Product,
+# Description, Company) don't apply on those platforms. Supporting them
+# cleanly is a follow-up catalog file, not a per-field override here.
+
+id: process_creation
+label: "A process was started"
+description: "Use when malware or suspicious activity created a new process."
+category_group: process_and_execution
+logsource:
+    category: process_creation
+    # product is set at rule-composition time from the platform the user picks.
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "process launched"
+    - "executable ran"
+    - "new process"
+    - "process started"
+    - "process spawned"
+
+fields:
+    - name: Image
+      label: "Executable path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\powershell.exe'
+      note: "Path suffix with leading backslash matches the executable regardless of directory."
+
+    - name: CommandLine
+      label: "Command line"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, startswith, endswith, all, windash, re, exact]
+      example: "-encodedcommand"
+      note: "Pair 'contains' with 'all' to require multiple substrings. Use 'windash' to match flag variants (-, /, \u2013)."
+
+    - name: OriginalFileName
+      label: "Original filename (PE metadata)"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact, contains, endswith, startswith]
+      example: "powershell.exe"
+      note: "The filename baked into the PE VERSIONINFO at compile time. Survives renaming the executable on disk."
+
+    - name: ParentImage
+      label: "Parent process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\explorer.exe'
+
+    - name: ParentCommandLine
+      label: "Parent command line"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, startswith, endswith, all, windash, re, exact]
+
+    - name: Description
+      label: "File description (PE metadata)"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact, contains, startswith]
+      example: "Windows PowerShell"
+      note: "The human-readable File Description from the PE VERSIONINFO resource."
+
+    - name: Product
+      label: "Product name (PE metadata)"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact, contains, endswith, startswith]
+      example: "Microsoft® Windows® Operating System"
+
+    - name: Hashes
+      label: "File hashes"
+      type: hash
+      default_modifier: contains
+      allowed_modifiers: [contains, exact]
+      note: "Sigma expects a comma-separated string with algorithm prefixes, e.g. 'MD5=..., SHA256=...'."
+
+    - name: IntegrityLevel
+      label: "Process integrity level"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: [Low, Medium, High, System]
+
+    - name: Company
+      label: "Company name (PE metadata)"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact, contains, endswith, startswith]
+      example: "Microsoft Corporation"
+
+    - name: User
+      label: "User account"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, endswith, startswith]
+      example: "NT AUTHORITY\\SYSTEM"
+
+    - name: CurrentDirectory
+      label: "Working directory"
+      type: path
+      default_modifier: contains
+      allowed_modifiers: [contains, startswith, endswith, exact]
+      example: 'C:\Users\Public\'
+
+    - name: LogonId
+      label: "Logon session id"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      note: "Hex string identifying the logon session. Useful for chaining process events to a specific logon."

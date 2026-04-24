@@ -13,7 +13,7 @@ data/taxonomy/
 ├── process_creation.yml
 ├── file_event.yml
 ├── file_event_linux.yml       # auditd schema
-├── registry_event.yml
+├── registry_set.yml           # dominant registry category in the corpus
 ├── network_connection.yml
 ├── dns_query.yml
 ├── image_load.yml
@@ -52,10 +52,12 @@ synonyms:
   - "executable ran"
   - "new process"
 fields:
+  # Fields are listed in real-world frequency order (most common first, least common last)
+  # so the composer can surface the top-N as the default dropdown and keep the tail in a
+  # secondary list without a binary core/advanced classification.
   - name: Image
     label: "Executable path"
     type: path
-    tier: core
     default_modifier: endswith
     allowed_modifiers: [endswith, startswith, contains, re, exact]
     example: "\\evil.exe"
@@ -63,62 +65,53 @@ fields:
   - name: CommandLine
     label: "Command line"
     type: string
-    tier: core
     default_modifier: contains
     allowed_modifiers: [contains, startswith, endswith, re, all, exact]
     example: "-encodedcommand"
   - name: ParentImage
     label: "Parent process path"
     type: path
-    tier: core
     default_modifier: endswith
     allowed_modifiers: [endswith, startswith, contains, re, exact]
   - name: ParentCommandLine
     label: "Parent command line"
     type: string
-    tier: core
     default_modifier: contains
     allowed_modifiers: [contains, startswith, endswith, re, all, exact]
+  - name: OriginalFileName
+    label: "Original filename (PE metadata)"
+    type: string
+    default_modifier: exact
+    allowed_modifiers: [exact, contains, endswith]
   - name: User
     label: "User account"
     type: string
-    tier: core
     default_modifier: contains
     allowed_modifiers: [contains, exact, endswith, startswith]
   - name: IntegrityLevel
     label: "Integrity level"
     type: enum
-    tier: core
     values: [Low, Medium, High, System]
     default_modifier: exact
     allowed_modifiers: [exact]
-  - name: OriginalFileName
-    label: "Original filename (PE metadata)"
-    type: string
-    tier: advanced
-    default_modifier: exact
-    allowed_modifiers: [exact, contains, endswith]
   - name: Hashes
     label: "File hashes"
     type: hash
-    tier: advanced
     default_modifier: contains
     allowed_modifiers: [contains, exact]
     note: "Sigma uses comma-separated hash type prefixes (MD5=..., SHA256=...)."
   - name: CurrentDirectory
     label: "Working directory"
     type: path
-    tier: advanced
     default_modifier: startswith
     allowed_modifiers: [startswith, endswith, contains, exact]
 ```
 
 ## Field attributes
 
-### `tier`
+### Field ordering
 
-- `core`: shown by default in the composer
-- `advanced`: behind an "advanced fields" expander
+Fields within an observation type are listed in real-world frequency order, derived from the SigmaHQ corpus via `scripts/analyze_taxonomy.py`. The composer consumes this ordering to decide which fields to surface prominently — Guided mode will typically show the top few fields above an expander, Expert mode will show all fields in a searchable picker. The catalog doesn't commit to a binary tier classification; the UI decides its own threshold.
 
 ### `type`
 
@@ -167,15 +160,15 @@ Modifier availability per field is determined by `allowed_modifiers` in the taxo
 
 ### v0 bootstrap
 
-1. Load the SigmaHQ `sigma-specification` taxonomy as the authoritative field list per logsource category.
-2. Analyze the SigmaHQ `sigma` rule corpus for field usage frequency per logsource.
-3. Fields appearing in ≥5% of rules for that category → `tier: core`.
-4. Fields appearing in ≥1% → `tier: advanced`.
-5. Fields appearing in <1% → excluded unless a detection engineer explicitly justifies inclusion.
+1. Fetch the SigmaHQ `sigma` corpus at a pinned commit via `scripts/fetch_sigmahq.py`.
+2. Run `scripts/analyze_taxonomy.py` — stratified per-field frequency and modifier-distribution analysis. Excludes `rules-placeholder/`, `deprecated/`, and `unsupported/`; weights `rules/` (vetted) as the primary calibration stratum, with `rules-emerging-threats/` and `rules-threat-hunting/` as secondary signal.
+3. Include fields that appear in ≥1% of rules for the observation type in any stratum. Fields below 1% are excluded unless a detection engineer explicitly justifies inclusion.
+4. Order fields within each file by frequency in the vetted `rules/` stratum, with small ordering nudges where a lower-frequency field is strictly more useful for behavioral detection than an adjacent PE-metadata field.
+5. Pick `default_modifier` = dominant modifier chain's leading token in the `rules/` stratum. Pick `allowed_modifiers` = modifiers that appear in ≥1% of rules for that field in any stratum, plus a type-appropriate baseline (`exact` always; `re` for string/path; `cidr` for IP).
 
 ### Ongoing
 
-- Re-run frequency analysis quarterly against the latest SigmaHQ corpus.
+- Re-run frequency analysis quarterly against the latest SigmaHQ corpus. Bumping `PINNED_COMMIT` in `scripts/fetch_sigmahq.py` is a commit that records when the catalog was last calibrated.
 - New field inclusion requires a justification comment at the top of the YAML file.
 - Labels and examples must be reviewed by a human detection engineer — no auto-generation.
 

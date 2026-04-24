@@ -41,15 +41,6 @@ class FieldType(StrEnum):
     REGEX = "regex"
 
 
-class FieldTier(StrEnum):
-    """Whether a field is shown by default in the composer or hidden behind
-    the ``Show advanced fields`` expander.
-    """
-
-    CORE = "core"
-    ADVANCED = "advanced"
-
-
 class PlatformTier(StrEnum):
     """Relative prominence of a platform variant in the Stage 0 card.
 
@@ -114,6 +105,13 @@ class PlatformVariant(_Model):
 class TaxonomyField(_Model):
     """One catalog entry describing a Sigma detection field.
 
+    Fields within an :class:`ObservationTypeSpec` are intentionally ordered:
+    the declaration order is the real-world-frequency ranking for that
+    observation type. The composer UI consumes that ordering to decide which
+    fields to surface prominently (e.g. top-N in the default dropdown) and
+    which to leave in a secondary list, so the catalog doesn't have to commit
+    to a binary core/advanced split at data-authoring time.
+
     Invariants enforced on construction:
       * ``default_modifier`` must appear in ``allowed_modifiers``
       * ``type == ENUM`` requires a non-empty ``values`` list
@@ -123,7 +121,6 @@ class TaxonomyField(_Model):
     name: str = Field(min_length=1)
     label: str = Field(min_length=1)
     type: FieldType
-    tier: FieldTier
     default_modifier: ValueModifier
     allowed_modifiers: list[ValueModifier] = Field(min_length=1)
     example: str | None = None

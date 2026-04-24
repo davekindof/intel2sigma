@@ -41,14 +41,12 @@ fields:
     - name: Image
       label: "Executable path"
       type: path
-      tier: core
       default_modifier: endswith
       allowed_modifiers: [endswith, startswith, contains, re, exact]
       example: "\\\\evil.exe"
     - name: CommandLine
       label: "Command line"
       type: string
-      tier: core
       default_modifier: contains
       allowed_modifiers: [contains, startswith, endswith, re, all, exact]
 """
@@ -69,7 +67,6 @@ fields:
     - name: TargetFilename
       label: "File path"
       type: path
-      tier: core
       default_modifier: endswith
       allowed_modifiers: [endswith, contains, startswith, exact, re]
 """
@@ -175,14 +172,12 @@ def test_enum_without_values_raises(tmp_path: Path) -> None:
         """    - name: CommandLine
       label: "Command line"
       type: string
-      tier: core
       default_modifier: contains
       allowed_modifiers: [contains, startswith, endswith, re, all, exact]
 """,
         """    - name: IntegrityLevel
       label: "Integrity level"
       type: enum
-      tier: core
       default_modifier: exact
       allowed_modifiers: [exact]
 """,
@@ -197,14 +192,12 @@ def test_values_on_non_enum_raises(tmp_path: Path) -> None:
         """    - name: CommandLine
       label: "Command line"
       type: string
-      tier: core
       default_modifier: contains
       allowed_modifiers: [contains, startswith, endswith, re, all, exact]
 """,
         """    - name: CommandLine
       label: "Command line"
       type: string
-      tier: core
       default_modifier: contains
       allowed_modifiers: [contains, startswith, endswith, re, all, exact]
       values: [a, b]
@@ -275,14 +268,12 @@ def test_duplicate_field_names_raises(tmp_path: Path) -> None:
         """    - name: CommandLine
       label: "Command line"
       type: string
-      tier: core
       default_modifier: contains
       allowed_modifiers: [contains, startswith, endswith, re, all, exact]
 """,
         """    - name: Image
       label: "Duplicate"
       type: path
-      tier: advanced
       default_modifier: exact
       allowed_modifiers: [exact]
 """,
