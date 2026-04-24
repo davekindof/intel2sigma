@@ -47,28 +47,112 @@ Rejected: violates I-3.
 
 One `<textarea hidden name="rule_state">` element in the shell, containing a JSON-serialized draft of the rule. Every htmx request that can mutate state uses `hx-include="#rule-state"` to attach it. Every response is a partial that re-renders both the targeted region *and* the textarea, so state flows forward after each mutation.
 
-We do **not** carry a fully-validated `SigmaRule` in the blob. The blob is a **draft**:
+We do **not** carry a fully-validated `SigmaRule` in the blob. The blob is a **draft**.
+
+The draft models mirror the `core/model.py` shape but with everything permissive — blank strings, empty lists, and `None` are allowed intermediate states. The composer mutates the draft; conversion to a real `SigmaRule` only happens at stage transitions or when the preview pane needs to render.
 
 ```python
-class RuleDraft(BaseModel):
-    """Permissive intermediate used by composer routes.
+# intel2sigma/web/draft.py (lives in web/, not core/)
 
-    Unlike SigmaRule, every field is optional and defaults are sensible
-    for a mid-composition state. Convert to SigmaRule via .to_sigma_rule()
-    at stage transitions or when the preview pane is rendered (wrapping
-    Pydantic validation errors into the stage's error display).
-    """
+from __future__ import annotations
+from uuid import UUID
+from pydantic import BaseModel, ConfigDict, Field
+
+from intel2sigma.core.model import (
+    ConditionOp,
+    ValueModifier,
+    RuleLevel,
+    RuleStatus,
+)
+from intel2sigma.core.validate.issues import ValidationIssue
+
+
+class LogSourceDraft(BaseModel):
     model_config = ConfigDict(extra="forbid")
+    category: str | None = None
+    product: str | None = None
+    service: str | None = None
+
+
+class DetectionItemDraft(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    field: str = ""
+    modifiers: list[ValueModifier] = Field(default_factory=list)
+    values: list[str] = Field(default_factory=list)  # drafts hold raw strings;
+                                                     # coercion to int/bool is
+                                                     # core.model's concern
+
+
+class DetectionBlockDraft(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: str = ""
+    is_filter: bool = False
+    items: list[DetectionItemDraft] = Field(default_factory=list)
+
+
+# Composer-owned condition representation. A node is either a leaf (selection
+# name or glob) or an internal node (op + children). Serialized as nested
+# dicts so it round-trips through the JSON blob without Pydantic gymnastics.
+#
+#   {"selection": "match_1"}
+#   {"op": "and", "children": [{"selection": "match_1"}, {"op": "not",
+#                              "children": [{"selection": "filter_1"}]}]}
+#   {"op": "all_of", "children": [{"selection": "selection_*"}]}
+#
+# Validation into a core.model.ConditionExpression happens at .to_sigma_rule()
+# time, not during composer mutation.
+ConditionTreeDraft = dict
+
+
+class RuleDraft(BaseModel):
+    """Permissive intermediate carried in the hidden JSON blob.
+
+    Every field is optional or has a harmless default so an in-progress rule
+    at stage 0 (no metadata yet, no detection blocks) is still
+    representable. The one thing we do validate strictly: the observation
+    type id, if set, must match a catalogued taxonomy entry — that's how the
+    composer knows which fields to offer.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    # Metadata
     title: str = ""
     id: UUID | None = None
     status: RuleStatus = "experimental"
-    # ... etc, all optional with sensible defaults
+    description: str = ""
+    references: list[str] = Field(default_factory=list)
+    author: str = ""
+    date: str = ""           # stored as ISO string in the draft to survive
+                             # round-trips through JSON without date parsing
+    modified: str = ""
+    tags: list[str] = Field(default_factory=list)
+    level: RuleLevel = "medium"
+    falsepositives: list[str] = Field(default_factory=list)
+
+    # Observation + logsource
+    observation_id: str = ""     # taxonomy key, e.g. "process_creation"
+    platform_id: str = ""         # "windows" / "linux" / "macos"
     logsource: LogSourceDraft = Field(default_factory=LogSourceDraft)
+
+    # Detection
     detections: list[DetectionBlockDraft] = Field(default_factory=list)
-    condition_tree: dict | None = None  # composer tree; not a Sigma string
+    condition_tree: ConditionTreeDraft | None = None
+
+    # Stage the composer is currently on — convenience for routing
+    stage: int = 0
+
+    def to_sigma_rule(self) -> "SigmaRule | list[ValidationIssue]":
+        """Attempt conversion to a strict ``core.model.SigmaRule``.
+
+        Returns the validated rule on success, or a list of
+        ``ValidationIssue`` describing every reason it can't be built.
+        Both preview rendering and stage transitions call this.
+        """
+        ...
 ```
 
-`RuleDraft` owns a `.to_sigma_rule() -> SigmaRule | list[ValidationIssue]` method that either returns a fully-validated rule or a list of issues explaining why not. Preview-render calls this; if it returns issues, the preview shows the in-progress YAML with the invalid sections flagged. If it returns a rule, the preview shows canonical YAML and conversion tabs populate.
+`condition_tree` is stored as nested dicts rather than a Pydantic model because its shape is recursive and would force `model_rebuild()` gymnastics every time the draft JSON round-trips. The validation into `ConditionExpression` happens at `to_sigma_rule()` time, along with all the other strict-model coercion (UUIDs, dates, empty-string-to-None).
 
 ## Lifecycle of a request
 

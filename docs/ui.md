@@ -78,6 +78,21 @@ Zero issues: shows `✓ Rule is clean` in accent color.
 
 Toggle by clicking the bar or the expand/collapse button. `` Ctrl+` `` keybind added in v1.1.
 
+### Inline error decoration (IDE-esque)
+
+The health drawer is the aggregate view; in addition, validation errors decorate the **specific field** they blame in the composer. The presentation is "squiggle equivalent" — an IDE-style inline signal users recognize without having to read documentation:
+
+- **Field-level error ring**: when a tier-1 issue has a `location` pointing at a specific input (e.g. `detections[0].items[2]`), that input renders with a 2px accent-red outline (`--color-critical`) instead of the default focus ring. The outline persists until the field is edited.
+- **Inline error message**: a one-line `--color-critical` text block appears immediately below the offending field — short, specific, actionable ("Field 'Image' uses modifier 'cidr' which isn't valid for paths"). Clicking it expands the full `ValidationIssue.message`.
+- **Tier-1 vs. tier-2 distinction**: tier-1 errors decorate the specific input; tier-2 errors (pySigma-level, often about the rule as a whole) decorate the preview pane's YAML line with a red gutter mark and a tooltip on hover.
+- **Heuristic warnings** (tier-3 + heuristics, non-blocking) use `--color-warn` for the outline and message — visually subordinate to errors.
+- **Hover tooltip**: hovering the decorated input shows the full error message plus the error code (e.g. `T1_MODIFIER_NOT_ALLOWED`) in a small tooltip. This mirrors IDE diagnostic tooltips.
+- **Health drawer is still canonical**: the drawer's "Show where" link still scrolls + highlights the field with the 2-second glow; inline decoration and drawer entries are views of the same underlying issue list.
+
+Server side, the errors arrive with the htmx response as part of the state blob (see [docs/web-state-model.md](web-state-model.md)). Each partial that renders a potentially-errored field looks up its own location in the issue list and applies the decoration.
+
+**No squiggly-underline rendering** — that requires either SVG overlays or a CSS trick that doesn't degrade well without JS. The solid red outline + inline text carries the same information without the implementation tax.
+
 ## Stage partials
 
 Each stage is a Jinja2 partial template loaded via htmx. The `web/templates/composer/` directory holds them:

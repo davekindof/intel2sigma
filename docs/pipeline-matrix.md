@@ -26,6 +26,20 @@ Backends mapping to the same pySigma class (Sentinel and MDE both on Kusto) are 
 
 Backend identifier → class resolution lives in `data/pipelines.yml` under a `backends:` block. Adding a new backend to the project is a data-only change if the pySigma package is already pinned as a dep.
 
+### intel2sigma backend id → pySigma pipeline name translation
+
+Our backend ids are user-facing — they appear in the UI's conversion-tab chips, CLI flags (`--backend kusto_sentinel`), and URL paths. The pySigma ecosystem names its pipelines differently. This table is the bridge; future sessions reading pySigma docs can map the vocabulary in either direction:
+
+| intel2sigma id | pySigma pipeline(s) | pySigma package |
+|---|---|---|
+| `kusto_sentinel` | `microsoft_xdr` | pysigma-backend-kusto (bundled) |
+| `kusto_mde` | `microsoft_defender_for_endpoint` | pysigma-backend-kusto (bundled) |
+| `splunk` | `splunk_windows`, `sysmon` (per logsource) | pysigma-pipeline-sysmon, pysigma-pipeline-windows |
+| `elasticsearch` | `ecs_windows` | pysigma-backend-elasticsearch (bundled) |
+| `crowdstrike` | `crowdstrike_falcon` | pysigma-pipeline-crowdstrike |
+
+"Bundled" means the pipeline ships inside the backend package itself, not as a standalone `pysigma-pipeline-*` dist. pysigma-backend-kusto and pysigma-backend-elasticsearch bundle; the others pull from separate packages we pin in `pyproject.toml`.
+
 ## Logsource-to-pipeline matrix
 
 The second layer: given the rule's logsource, which additional pipelines does the backend need?
