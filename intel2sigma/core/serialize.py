@@ -279,6 +279,8 @@ def _parse_detection_block(name: str, body: Any) -> DetectionBlock:
         items.append(
             DetectionItem(
                 field=field,
+                # Pydantic validates modifier strings against the ValueModifier
+                # Literal at construction time; mypy can't see that narrowing.
                 modifiers=list(modifiers),  # type: ignore[arg-type]
                 values=list(values),
             )
@@ -296,6 +298,13 @@ def _parse_condition_string(text: str, block_names: set[str]) -> ConditionExpres
       - ``<a> or <b> [or ...]``
       - ``all of <glob>`` / ``1 of <glob>``
       - ``(<expr>) and not (<expr>)`` and similar one-level combinations
+      - mixed forms where a quantifier clause joins a direct selection via
+        ``and``/``or``, e.g. ``1 of selection_parent_* and selection_child``
+
+    Precedence (lowest first): ``and``/``or`` → ``not`` → quantifier prefix →
+    selection name. Top-level boolean splits are evaluated before prefix
+    matching so a quantifier clause can appear as one conjunct/disjunct without
+    greedily consuming the rest of the expression.
 
     Hand-written rules with arbitrary precedence are not round-trippable
     through this loader by design.
@@ -304,7 +313,27 @@ def _parse_condition_string(text: str, block_names: set[str]) -> ConditionExpres
     if not stripped:
         raise ValueError("Empty condition string")
 
-    # Selection-glob forms.
+    # Top-level AND / OR split (lowest precedence) respecting paren depth.
+    # Must run before prefix matching so inputs like
+    # "1 of selection_* and other" are not greedily consumed by the
+    # quantifier branch.
+    for op_token, op in (("and", ConditionOp.AND), ("or", ConditionOp.OR)):
+        parts = _split_top_level(stripped, op_token)
+        if len(parts) > 1:
+            return ConditionExpression(
+                op=op,
+                children=[_parse_condition_string(p, block_names) for p in parts],
+            )
+
+    # NOT prefix binds to whatever follows.
+    if stripped.startswith("not "):
+        inner = stripped.removeprefix("not ").strip()
+        return ConditionExpression(
+            op=ConditionOp.NOT,
+            children=[_parse_condition_string(inner, block_names)],
+        )
+
+    # Selection-glob quantifiers.
     if stripped.startswith("all of "):
         glob = stripped.removeprefix("all of ").strip()
         return ConditionExpression(
@@ -318,24 +347,7 @@ def _parse_condition_string(text: str, block_names: set[str]) -> ConditionExpres
             children=[ConditionExpression(selection=glob)],
         )
 
-    # Top-level AND / OR split on whole-word boundaries, respecting parens.
-    for op_token, op in (("and", ConditionOp.AND), ("or", ConditionOp.OR)):
-        parts = _split_top_level(stripped, op_token)
-        if len(parts) > 1:
-            return ConditionExpression(
-                op=op,
-                children=[_parse_condition_string(p, block_names) for p in parts],
-            )
-
-    # NOT prefix.
-    if stripped.startswith("not "):
-        inner = stripped.removeprefix("not ").strip()
-        return ConditionExpression(
-            op=ConditionOp.NOT,
-            children=[_parse_condition_string(inner, block_names)],
-        )
-
-    # Stripped parens.
+    # Stripped parens around a bare selection: ``(selection_a)``.
     if stripped.startswith("(") and stripped.endswith(")"):
         return _parse_condition_string(stripped[1:-1], block_names)
 
