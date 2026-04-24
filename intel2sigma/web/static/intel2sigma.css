@@ -1,0 +1,435 @@
+/* intel2sigma palette + layout.
+ *
+ * Green-forward GitHub-dark-inspired palette per docs/ui.md. All colors live
+ * as CSS custom properties in :root so swapping the palette is a single-file
+ * edit. The `davidsharp.io` final palette, when it lands, drops in here.
+ *
+ * Structure:
+ *   :root        — custom properties (palette, typography, spacing, radii)
+ *   reset        — minimal opinionated normalize
+ *   app chrome   — header, three-region layout, health drawer
+ *   components   — buttons, inputs, cards, chips
+ *   preview pane — YAML + conversion tabs
+ *   error states — IDE-esque inline decoration (tier-1 + tier-2 + heuristics)
+ *   Pygments     — syntax highlighting classes (server-side rendered)
+ *
+ * See docs/ui.md for the spec this file implements. Changes to the palette
+ * should stay inside :root; changes to layout go under the region headers.
+ */
+
+:root {
+    /* ---- palette ---- */
+    --color-bg:           #0d1117;
+    --color-surface:      #161b22;
+    --color-surface-alt:  #1f2630;
+    --color-border:       #2d333b;
+    --color-border-muted: #21262d;
+
+    --color-text:         #e6edf3;
+    --color-text-muted:   #8b949e;
+    --color-text-dim:     #6e7681;
+
+    --color-accent:        #3fb950;
+    --color-accent-hover:  #56d364;
+    --color-accent-active: #2ea043;
+    --color-accent-muted:  #1a3a1e;
+
+    --color-critical:     #f85149;
+    --color-critical-muted: #3c1c1c;
+    --color-warn:         #d29922;
+    --color-warn-muted:   #3a2d15;
+    --color-info:         #58a6ff;
+    --color-success:      #3fb950;
+
+    --color-code-bg:      #0d1117;
+    --color-code-border:  #30363d;
+
+    /* ---- typography ---- */
+    --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Consolas, monospace;
+
+    /* ---- spacing (multiples of 4) ---- */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-12: 48px;
+
+    /* ---- radii ---- */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+
+    /* ---- shadows ---- */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+
+    /* ---- chrome heights ---- */
+    --height-header: 48px;
+    --height-drawer-collapsed: 32px;
+    --height-drawer-expanded: 240px;
+}
+
+/* ---- reset ------------------------------------------------------------ */
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;                /* app fills viewport; panels scroll */
+    height: 100vh;
+}
+
+a {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+a:hover { color: var(--color-accent-hover); }
+
+code, pre {
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+
+button {
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+}
+
+:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+}
+
+/* ---- app chrome ------------------------------------------------------- */
+
+.app {
+    display: grid;
+    grid-template-rows: var(--height-header) 1fr auto;
+    grid-template-columns: 1fr;
+    height: 100vh;
+}
+
+.app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 var(--space-4);
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+    grid-row: 1;
+}
+
+.app-header-left,
+.app-header-center,
+.app-header-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.wordmark {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--color-text);
+    letter-spacing: -0.01em;
+}
+.wordmark-accent { color: var(--color-accent); }
+
+.version-tag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-dim);
+    padding: 2px 6px;
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+}
+
+.mode-toggle {
+    display: inline-flex;
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 2px;
+    gap: 2px;
+}
+.mode-toggle-option {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+}
+.mode-toggle-option.active {
+    background: var(--color-accent-muted);
+    color: var(--color-accent);
+}
+
+.header-button {
+    background: transparent;
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+}
+.header-button:hover {
+    background: var(--color-surface-alt);
+    border-color: var(--color-accent);
+}
+
+/* ---- main three-region layout ---------------------------------------- */
+
+.app-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-row: 2;
+    overflow: hidden;
+}
+
+.composer-panel {
+    padding: var(--space-6);
+    overflow-y: auto;
+    border-right: 1px solid var(--color-border);
+}
+
+.preview-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--color-surface);
+}
+
+.preview-pane-primary {
+    flex: 1;
+    padding: var(--space-4);
+    overflow: auto;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.preview-pane-tabs {
+    display: flex;
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+}
+.preview-tab {
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    padding: 8px 14px;
+    border-bottom: 2px solid transparent;
+    font-size: 13px;
+}
+.preview-tab.active {
+    color: var(--color-text);
+    border-bottom-color: var(--color-accent);
+}
+
+.preview-tab-body {
+    padding: var(--space-4);
+    overflow: auto;
+}
+
+.pipeline-indicator {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-dim);
+    padding: 2px 6px;
+    margin-left: var(--space-2);
+    background: var(--color-surface-alt);
+    border-radius: var(--radius-sm);
+}
+
+/* ---- health drawer --------------------------------------------------- */
+
+.health-drawer {
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    grid-row: 3;
+}
+.health-drawer.collapsed {
+    height: var(--height-drawer-collapsed);
+    display: flex;
+    align-items: center;
+    padding: 0 var(--space-4);
+    justify-content: space-between;
+}
+.health-drawer.expanded {
+    height: var(--height-drawer-expanded);
+    overflow-y: auto;
+}
+
+.health-counts {
+    display: flex;
+    gap: var(--space-4);
+    font-size: 12px;
+    color: var(--color-text-muted);
+}
+.health-count-critical { color: var(--color-critical); }
+.health-count-warn { color: var(--color-warn); }
+.health-count-info { color: var(--color-info); }
+.health-count-clean { color: var(--color-success); }
+
+.health-issue {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-4);
+    align-items: center;
+    border-bottom: 1px solid var(--color-border-muted);
+    font-size: 13px;
+}
+.health-issue-severity { font-weight: 600; }
+.health-issue-id {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-dim);
+}
+
+/* ---- components ------------------------------------------------------ */
+
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-3);
+}
+
+.card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--space-3);
+}
+
+.observation-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    text-align: left;
+    color: var(--color-text);
+    transition: border-color 150ms, background 150ms;
+}
+.observation-card:hover {
+    border-color: var(--color-accent);
+    background: var(--color-surface-alt);
+}
+
+.button-primary {
+    background: var(--color-accent);
+    color: var(--color-bg);
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+}
+.button-primary:hover { background: var(--color-accent-hover); }
+.button-primary:active { background: var(--color-accent-active); }
+.button-primary:disabled {
+    background: var(--color-surface-alt);
+    color: var(--color-text-dim);
+    cursor: not-allowed;
+}
+
+.button-secondary {
+    background: transparent;
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+}
+.button-secondary:hover { border-color: var(--color-accent); }
+
+input[type="text"], textarea, select {
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 6px 10px;
+    font-size: 14px;
+}
+input[type="text"]:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+}
+
+/* ---- IDE-esque error decoration (docs/ui.md) ------------------------- */
+
+.field-error {
+    outline: 2px solid var(--color-critical) !important;
+    outline-offset: 1px;
+}
+.field-warn {
+    outline: 2px solid var(--color-warn) !important;
+    outline-offset: 1px;
+}
+
+.field-error-message {
+    color: var(--color-critical);
+    font-size: 12px;
+    margin-top: var(--space-1);
+}
+.field-warn-message {
+    color: var(--color-warn);
+    font-size: 12px;
+    margin-top: var(--space-1);
+}
+
+.field-error[title], .field-warn[title] {
+    cursor: help;
+}
+
+/* Preview-pane line-level error decoration for tier-2 issues. */
+.yaml-line-error {
+    background: var(--color-critical-muted);
+    border-left: 3px solid var(--color-critical);
+    padding-left: 5px;
+    margin-left: -8px;
+}
+
+/* ---- placeholder content (M1.2 only; removed in M1.3+) --------------- */
+
+.placeholder {
+    color: var(--color-text-dim);
+    text-align: center;
+    padding: var(--space-12) var(--space-4);
+    font-style: italic;
+}
+
+/* ---- Pygments YAML highlighting --------------------------------------
+ * Minimal class coverage — enough to look intentional in the preview pane.
+ * Generated via: pygments.formatters.HtmlFormatter().get_style_defs('.highlight')
+ * and then hand-tuned against our palette. The generator's output uses
+ * `#cccccc`-style absolute colors; we replace those with --color-* tokens
+ * so theme changes stay single-file.
+ */
+
+.highlight { background: transparent; color: var(--color-text); }
+.highlight .c,  /* comment */
+.highlight .c1,
+.highlight .cm { color: var(--color-text-dim); font-style: italic; }
+.highlight .k,  /* keyword */
+.highlight .kn,
+.highlight .kr { color: var(--color-accent); font-weight: 500; }
+.highlight .s,  /* string */
+.highlight .s1,
+.highlight .s2,
+.highlight .se { color: var(--color-info); }
+.highlight .nt { color: var(--color-accent-hover); }  /* yaml tag/key */
+.highlight .p { color: var(--color-text-muted); }     /* punctuation */
+.highlight .nv { color: var(--color-text); }          /* name variable */
+.highlight .mi, .highlight .mf { color: var(--color-warn); } /* numbers */

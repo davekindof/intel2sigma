@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" data-mode="{{ mode }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>intel2sigma{% block title_suffix %}{% endblock %}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', path='intel2sigma.css') }}">
+    <!-- htmx is vendored per CLAUDE.md I-6; SHA-256 recorded in
+         static/vendor/HASHES.md and enforced by tests/test_vendor_hashes.py. -->
+    <script src="{{ url_for('static', path='vendor/htmx.min.js') }}" defer></script>
+
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <div class="app">
+        <header class="app-header">
+            <div class="app-header-left">
+                <span class="wordmark">intel2<span class="wordmark-accent">sigma</span></span>
+                <span class="version-tag">v{{ version }}</span>
+            </div>
+
+            <div class="app-header-center">
+                {% block header_center %}{% endblock %}
+            </div>
+
+            <div class="app-header-right">
+                <div class="mode-toggle" role="group" aria-label="Composer mode">
+                    <a class="mode-toggle-option {% if mode == 'guided' %}active{% endif %}"
+                       href="{{ url_for('guided_home') }}">Guided</a>
+                    <a class="mode-toggle-option {% if mode == 'expert' %}active{% endif %}"
+                       href="{{ url_for('expert_home') }}">Expert</a>
+                </div>
+                <button class="header-button" type="button" disabled
+                        title="New rule (available once composer ships in M1.3)">New rule</button>
+                <a class="header-button" href="https://github.com/davidsharp-io/intel2sigma" target="_blank" rel="noopener">Help</a>
+            </div>
+        </header>
+
+        <main class="app-main">
+            <section class="composer-panel" id="composer-panel"
+                     aria-label="Composer">
+                {% block composer %}
+                    <div class="placeholder">
+                        Composer panel — stages 0 through 4 land in M1.3 and M1.4.
+                    </div>
+                {% endblock %}
+            </section>
+
+            <section class="preview-panel" aria-label="Preview">
+                <div class="preview-pane-primary" id="preview-pane">
+                    {% block preview %}
+                        <div class="placeholder">
+                            Canonical Sigma YAML appears here as the composer produces it.
+                        </div>
+                    {% endblock %}
+                </div>
+
+                <div class="preview-pane-tabs" role="tablist"
+                     aria-label="Conversion targets">
+                    {% for tab in conversion_tabs %}
+                        <button class="preview-tab {% if loop.first %}active{% endif %}"
+                                type="button" role="tab"
+                                title="{{ tab.label }}">
+                            {{ tab.short }}
+                            <span class="pipeline-indicator">Pipeline: —</span>
+                        </button>
+                    {% endfor %}
+                </div>
+                <div class="preview-tab-body" role="tabpanel"
+                     id="conversion-tab-body">
+                    <div class="placeholder">
+                        Converted SIEM queries appear here once a rule is ready.
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <aside class="health-drawer collapsed" id="health-drawer"
+               aria-label="Rule health">
+            {% block health %}
+                <div class="health-counts">
+                    <span class="health-count-clean">✓ Rule health checks land in M2.1</span>
+                </div>
+            {% endblock %}
+        </aside>
+    </div>
+
+    {% block body_extra %}{% endblock %}
+</body>
+</html>

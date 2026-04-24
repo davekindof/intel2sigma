@@ -5,10 +5,10 @@ Subcommands shipped so far:
 * ``convert`` — read a Sigma YAML file, run it through pySigma for the
   chosen backend, print the resulting SIEM query.
 * ``backends`` — list declared backend ids for use with ``convert``.
+* ``serve`` — start the FastAPI web app via uvicorn. Hot-reload optional.
 
-Web server (``serve``) subcommand lands with M1.5 when the FastAPI app
-exists. Validation (``validate``) subcommand lands alongside as a
-non-web library entry point.
+Validation (``validate``) subcommand lands alongside the Guided composer
+in M1.3 so both share the same issue-rendering code path.
 """
 
 from __future__ import annotations
@@ -91,6 +91,36 @@ def cmd_convert(
         raise typer.Exit(code=4) from exc
 
     typer.echo(query)
+
+
+@app.command(name="serve")
+def cmd_serve(
+    host: Annotated[
+        str,
+        typer.Option("--host", help="Interface to bind. Use 0.0.0.0 in Docker."),
+    ] = "127.0.0.1",
+    port: Annotated[int, typer.Option("--port", "-p", help="TCP port.")] = 8000,
+    reload: Annotated[
+        bool,
+        typer.Option("--reload/--no-reload", help="Auto-reload on source changes."),
+    ] = False,
+) -> None:
+    """Start the FastAPI web app via uvicorn.
+
+    Equivalent to ``uv run uvicorn intel2sigma.web.app:app --host ... --port ...``
+    but bundled as a subcommand so ``intel2sigma serve`` is the one-liner
+    for anyone who installed via ``pip install intel2sigma``.
+    """
+    # Imported lazily so the CLI stays importable on boxes without uvicorn
+    # (e.g. a future slim `intel2sigma-core` wheel with no web deps).
+    import uvicorn  # noqa: PLC0415 (lazy import is intentional)
+
+    uvicorn.run(
+        "intel2sigma.web.app:app",
+        host=host,
+        port=port,
+        reload=reload,
+    )
 
 
 def main() -> None:

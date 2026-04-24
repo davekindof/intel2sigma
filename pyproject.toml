@@ -49,6 +49,9 @@ dev = [
     "pytest-cov>=5.0,<7.0",
     "mypy>=1.11,<2.0",
     "ruff>=0.6,<1.0",
+    # TestClient (starlette/fastapi) requires httpx at import time. Dev-only
+    # because it's a test dependency, not runtime.
+    "httpx>=0.27,<1.0",
 ]
 
 [build-system]
@@ -111,10 +114,13 @@ show_error_codes = true
 pretty = true
 
 [[tool.mypy.overrides]]
-# pySigma ships without a py.typed marker for some backends.
+# Upstream libraries without full type stubs. We depend on their runtime
+# behavior, not their type surface; narrow ignores per import site would
+# be noisier than the module-level allow-list.
 module = [
     "sigma.*",
     "ruamel.*",
+    "pygments.*",
 ]
 ignore_missing_imports = true
 
