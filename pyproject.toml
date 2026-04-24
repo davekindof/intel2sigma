@@ -122,11 +122,14 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-addopts = "-ra --strict-markers --strict-config"
+# Default run excludes the SigmaHQ corpus integration tests so the inner
+# dev loop stays fast (<1s). Opt in explicitly with `uv run pytest -m slow`
+# or `uv run pytest -m ""` for everything.
+addopts = "-ra --strict-markers --strict-config -m 'not slow'"
 testpaths = ["tests"]
 asyncio_mode = "auto"
 markers = [
-    "slow: marks tests as slow (e.g. SigmaHQ corpus parse); deselect with -m 'not slow'",
+    "slow: marks tests as slow (e.g. SigmaHQ corpus parse); included via -m slow",
 ]
 
 # --- Coverage -------------------------------------------------------------
