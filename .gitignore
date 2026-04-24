@@ -43,3 +43,6 @@ Thumbs.db
 
 # SigmaHQ corpus (fetched, not vendored)
 sigmahq-rules/
+
+# Derived artifacts (frequency reports etc.) — regenerable from the corpus
+reports/
