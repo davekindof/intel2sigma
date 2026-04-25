@@ -24,7 +24,11 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from intel2sigma import __version__
+from intel2sigma._version import version_payload
+from intel2sigma.web.logging import configure_logging, request_logging_middleware
 from intel2sigma.web.routes import composer as composer_routes
+
+configure_logging()
 
 _WEB_DIR = Path(__file__).resolve().parent
 _STATIC_DIR = _WEB_DIR / "static"
@@ -43,6 +47,7 @@ def create_app() -> FastAPI:
         docs_url=None,  # no Swagger UI; this isn't an API surface
         redoc_url=None,
     )
+    app.middleware("http")(request_logging_middleware)
     app.mount(
         "/static",
         StaticFiles(directory=str(_STATIC_DIR)),
@@ -59,6 +64,16 @@ def create_app() -> FastAPI:
     async def healthz() -> JSONResponse:
         """Liveness probe. Container platforms hit this to know we're up."""
         return JSONResponse({"status": "ok", "version": __version__})
+
+    @app.get("/version")
+    async def version() -> JSONResponse:
+        """Build provenance — package version, git SHA, pinned data versions.
+
+        For ops visibility ("which build is live, what data ships with it")
+        and bug reports ("the MITRE picker showed me X — which version?").
+        Constant payload, computed at import time.
+        """
+        return JSONResponse(version_payload())
 
     @app.get("/", response_class=HTMLResponse)
     async def root(request: Request) -> RedirectResponse:

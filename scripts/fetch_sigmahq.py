@@ -29,9 +29,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Updated 2026-04-23 from sigmahq/sigma master HEAD. Bumped quarterly per the
-# recalibration cadence documented in docs/taxonomy.md.
-PINNED_COMMIT = "03412947a2d653ca1398db62a51d2de9da96b361"
+# Source of truth for the pinned commit lives in intel2sigma._version so the
+# /version HTTP endpoint can surface the same value the corpus fetch uses.
+# Bumped quarterly per the recalibration cadence documented in docs/taxonomy.md.
+from intel2sigma._version import SIGMAHQ_PINNED_COMMIT as PINNED_COMMIT
 
 REPO_URL = "https://github.com/SigmaHQ/sigma.git"
 CLONE_DIR = Path(__file__).resolve().parent.parent / "sigmahq-rules"
