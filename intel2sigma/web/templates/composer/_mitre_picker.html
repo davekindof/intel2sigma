@@ -32,6 +32,7 @@ Context:
             <summary class="mitre-tactic-summary">
                 <span class="mitre-tactic-id">{{ tactic.id }}</span>
                 <span class="mitre-tactic-name">{{ tactic.name }}</span>
+                <span class="mitre-resolved-tag" aria-hidden="true">→ {{ tactic.tag }}</span>
                 <button type="button"
                         class="mitre-add-tag {% if tactic.tag in selected_attack_tags %}selected{% endif %}"
                         data-attack-tag="{{ tactic.tag }}"
@@ -47,6 +48,7 @@ Context:
                     <summary class="mitre-technique-summary">
                         <span class="mitre-technique-id">{{ tech.id }}</span>
                         <span class="mitre-technique-name">{{ tech.name }}</span>
+                        <span class="mitre-resolved-tag" aria-hidden="true">→ {{ tech.tag }}</span>
                         <button type="button"
                                 class="mitre-add-tag {% if tech.tag in selected_attack_tags %}selected{% endif %}"
                                 data-attack-tag="{{ tech.tag }}"
@@ -59,6 +61,7 @@ Context:
                         <li class="mitre-subtechnique">
                             <span class="mitre-subtechnique-id">{{ sub.id }}</span>
                             <span class="mitre-subtechnique-name">{{ sub.name }}</span>
+                            <span class="mitre-resolved-tag" aria-hidden="true">→ {{ sub.tag }}</span>
                             <button type="button"
                                     class="mitre-add-tag {% if sub.tag in selected_attack_tags %}selected{% endif %}"
                                     data-attack-tag="{{ sub.tag }}"
