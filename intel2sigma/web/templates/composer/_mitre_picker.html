@@ -76,6 +76,7 @@ Context:
                 <div class="mitre-technique mitre-technique-leaf">
                     <span class="mitre-technique-id">{{ tech.id }}</span>
                     <span class="mitre-technique-name">{{ tech.name }}</span>
+                    <span class="mitre-resolved-tag" aria-hidden="true">→ {{ tech.tag }}</span>
                     <button type="button"
                             class="mitre-add-tag {% if tech.tag in selected_attack_tags %}selected{% endif %}"
                             data-attack-tag="{{ tech.tag }}"
