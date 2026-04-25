@@ -103,24 +103,32 @@ Violation of this graph (e.g., `core/` importing from `web/`) is an architectura
 
 ## Deployment topology
 
-Single container, single process.
+Single container, single process. Hosted runs on **Azure Container Apps fronted by Cloudflare**; local runs the same image directly.
 
 ```
-┌──────────────────────────────────────┐
-│ Docker container                     │
-│  ┌────────────────────────────────┐  │
-│  │ uvicorn                        │  │
-│  │  └─ FastAPI (intel2sigma.web)  │  │
-│  │       └─ core modules          │  │
-│  │       └─ pySigma + backends    │  │
-│  └────────────────────────────────┘  │
-└──────────────────────────────────────┘
-     ↑ HTTP (port 8000)
-     │
-  [Fly.io / Cloud Run / local / reverse proxy]
+                        ┌─────────────────────────┐
+   user browser ──────► │ Cloudflare              │
+                        │  - TLS termination      │
+                        │  - WAF / rate limiting  │
+                        │  - DDoS protection      │
+                        └────────────┬────────────┘
+                                     │ HTTPS to origin
+                                     ▼
+                        ┌─────────────────────────┐
+                        │ Azure Container Apps    │
+                        │  ┌───────────────────┐  │
+                        │  │ Docker container  │  │
+                        │  │  uvicorn          │  │
+                        │  │   └─ FastAPI      │  │
+                        │  │       └─ core     │  │
+                        │  │       └─ pySigma  │  │
+                        │  └───────────────────┘  │
+                        │  port 8000              │
+                        │  scale-to-zero          │
+                        └─────────────────────────┘
 ```
 
-Scale horizontally by running N replicas. No shared state, no coordination. Scale-to-zero on Cloud Run and Fly.io is supported by default because startup is fast (cold start <5s) and nothing needs to warm up.
+Scale horizontally by raising the Container Apps replica ceiling. No shared state, no coordination. Scale-to-zero is supported by default because startup is fast (cold start <5s) and nothing needs to warm up. For local and CLI use the Cloudflare layer is absent and the container talks directly to the user (`docker run -p 8000:8000`); the application is identical in both topologies.
 
 ## Local and CLI modes
 
@@ -142,7 +150,7 @@ No external cache (Redis etc.). If horizontal scale produces cache-miss pressure
 - **Tier 1/2 validation failures**: returned as structured errors to the template, rendered inline next to the offending field.
 - **Conversion failures** (pySigma error): surfaced in the affected conversion tab with the raw pySigma error message and a "this rule cannot currently be converted to [backend] with the detected logsource" explanation.
 - **Unexpected exceptions**: logged with stack trace, user sees a generic "something went wrong" message. No stack traces exposed to users.
-- **Rate limits / abuse**: handled at the edge (reverse proxy, Fly.io's built-in limits, or Cloud Run's request limits). Not in application code.
+- **Rate limits / abuse**: handled at the Cloudflare edge (rate-limiting rules + WAF), not in application code.
 
 ## Observability
 
