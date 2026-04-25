@@ -23,11 +23,12 @@ from pydantic import ValidationError
 from ruamel.yaml import YAML
 from ruamel.yaml.error import YAMLError
 
+from intel2sigma._data import data_path
 from intel2sigma.core.taxonomy.schema import CategoryGroup, ObservationTypeSpec
 
 # Default bundled taxonomy location, resolved relative to the installed package
 # so this works whether intel2sigma is imported from source or from a wheel.
-_DEFAULT_DATA_DIR = Path(__file__).resolve().parents[3] / "data" / "taxonomy"
+_DEFAULT_DATA_DIR = data_path("taxonomy")
 
 
 class TaxonomyLoadError(Exception):

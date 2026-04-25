@@ -64,6 +64,14 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["intel2sigma"]
 
+# Bundle the runtime data directory (taxonomy YAMLs, pipeline matrix, MITRE
+# ATT&CK tree, curated examples) inside the wheel so ``pip install
+# intel2sigma`` ships everything the package needs to start. The helper
+# ``intel2sigma._data.data_path`` looks here first; falls back to the
+# repo-root ``data/`` directory for in-repo development.
+[tool.hatch.build.targets.wheel.force-include]
+"data" = "intel2sigma/data"
+
 # --- Ruff -----------------------------------------------------------------
 
 [tool.ruff]

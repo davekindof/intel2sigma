@@ -13,10 +13,11 @@ from __future__ import annotations
 
 import json
 from functools import cache
-from pathlib import Path
 from typing import Any
 
-_TREE_PATH = Path(__file__).resolve().parents[2] / "data" / "mitre_attack.json"
+from intel2sigma._data import data_path
+
+_TREE_PATH = data_path("mitre_attack.json")
 
 # Bound to a name to avoid ruff 0.15.x's auto-removal of the parentheses
 # in ``except (X, Y):``. The bare comma form Python 3.14 accepts looks

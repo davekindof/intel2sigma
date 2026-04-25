@@ -25,6 +25,7 @@ from sigma.exceptions import SigmaError
 from sigma.rule import SigmaDetection, SigmaDetectionItem
 from sigma.rule import SigmaRule as PySigmaRule
 
+from intel2sigma._data import data_path
 from intel2sigma.core.validate.issues import ValidationIssue
 from intel2sigma.web.draft import (
     DetectionBlockDraft,
@@ -35,7 +36,7 @@ from intel2sigma.web.draft import (
 
 # Bundled examples directory (shipped under data/examples/; curated via
 # scripts/curate_examples.py from the SigmaHQ corpus).
-_EXAMPLES_DIR = Path(__file__).resolve().parents[2] / "data" / "examples"
+_EXAMPLES_DIR = data_path("examples")
 
 
 # Code prefix for all translator-surfaced issues so the UI can group them

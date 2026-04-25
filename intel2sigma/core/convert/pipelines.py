@@ -18,6 +18,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from ruamel.yaml import YAML
 from ruamel.yaml.error import YAMLError
 
+from intel2sigma._data import data_path
 from intel2sigma.core.model import LogSource
 
 # ---------------------------------------------------------------------------
@@ -93,7 +94,7 @@ class PipelineMatrix(_Model):
 # Loader
 # ---------------------------------------------------------------------------
 
-_DEFAULT_PATH = Path(__file__).resolve().parents[3] / "data" / "pipelines.yml"
+_DEFAULT_PATH = data_path("pipelines.yml")
 
 
 @cache
