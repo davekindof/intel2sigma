@@ -15,22 +15,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from intel2sigma.web.app import app
-
-_STATE_BLOB_RE = re.compile(r'<textarea id="rule-state"[^>]*>([^<]*)</textarea>', re.DOTALL)
-
-
-def _extract_state(html: str) -> dict:
-    match = _STATE_BLOB_RE.search(html)
-    assert match, f"Response did not include a #rule-state textarea:\n{html[:500]}"
-    raw = match.group(1)
-    decoded = (
-        raw.replace("&#34;", '"')
-        .replace("&#39;", "'")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-        .replace("&amp;", "&")
-    )
-    return json.loads(decoded)
+from tests._state_blob import extract_state as _extract_state
 
 
 @pytest.fixture

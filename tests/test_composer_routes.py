@@ -9,41 +9,18 @@ exercised as a side effect.
 from __future__ import annotations
 
 import json
-import re
 
 import pytest
 from fastapi.testclient import TestClient
 
 from intel2sigma.web.app import app
+from tests._state_blob import STATE_BLOB_RE as _STATE_BLOB_RE
+from tests._state_blob import extract_state as _extract_state
 
 
 @pytest.fixture
 def client() -> TestClient:
     return TestClient(app)
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-_STATE_BLOB_RE = re.compile(r'<textarea id="rule-state"[^>]*>([^<]*)</textarea>', re.DOTALL)
-
-
-def _extract_state(html: str) -> dict:
-    """Pull the RuleDraft JSON back out of the response."""
-    match = _STATE_BLOB_RE.search(html)
-    assert match, f"Response did not include a #rule-state textarea:\n{html[:500]}"
-    raw = match.group(1)
-    # FastAPI's Jinja escapes &#34; for quotes when emitting HTML — unescape.
-    decoded = (
-        raw.replace("&#34;", '"')
-        .replace("&#39;", "'")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-        .replace("&amp;", "&")
-    )
-    return json.loads(decoded)
 
 
 # ---------------------------------------------------------------------------

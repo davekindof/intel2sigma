@@ -2,9 +2,6 @@
 
 from __future__ import annotations
 
-import json
-import re
-
 import pytest
 from fastapi.testclient import TestClient
 
@@ -15,19 +12,7 @@ from intel2sigma.web.load import (
     list_examples,
     load_example,
 )
-
-_STATE_BLOB_RE = re.compile(r'<textarea id="rule-state"[^>]*>([^<]*)</textarea>', re.DOTALL)
-
-
-def _extract_state(html: str) -> dict:
-    raw = _STATE_BLOB_RE.search(html).group(1)
-    return json.loads(
-        raw.replace("&#34;", '"')
-        .replace("&#39;", "'")
-        .replace("&lt;", "<")
-        .replace("&gt;", ">")
-        .replace("&amp;", "&")
-    )
+from tests._state_blob import extract_state as _extract_state
 
 
 @pytest.fixture
