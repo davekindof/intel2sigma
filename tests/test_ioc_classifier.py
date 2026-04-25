@@ -74,6 +74,71 @@ def test_domain_with_known_tld_wins_over_file_extension_check() -> None:
     assert any(i.category == "domain" for i in iocs)
 
 
+def test_classifies_url_with_path_as_distinct_iocs() -> None:
+    """The motivating case from the live deploy bug report.
+
+    Pasting three GitHub payload-hosting URLs used to collapse to one
+    bare ``github.com`` domain (path dropped, dedup eats the rest).
+    Now each URL classifies as a distinct ``url`` IOC.
+    """
+    text = (
+        "github[.]com/SquadMagistrate10/wnxtgkih\n"
+        "github[.]com/francesca898/dqwffqw\n"
+        "github[.]com/ColossusQuailPray/oiegjqde\n"
+    )
+    iocs = classify(text)
+    urls = [i for i in iocs if i.category == "url"]
+    assert len(urls) == 3
+    assert {i.value for i in urls} == {
+        "github.com/SquadMagistrate10/wnxtgkih",
+        "github.com/francesca898/dqwffqw",
+        "github.com/ColossusQuailPray/oiegjqde",
+    }
+    # All route to dns_query for detection-item construction.
+    assert all(i.observation == "dns_query" for i in urls)
+
+
+def test_classifies_url_with_https_scheme() -> None:
+    """Schemed URLs preserve the scheme in the IOC value."""
+    iocs = classify("https://evil.example.com/payload.bin")
+    urls = [i for i in iocs if i.category == "url"]
+    assert len(urls) == 1
+    assert urls[0].value == "https://evil.example.com/payload.bin"
+
+
+def test_url_does_not_double_match_as_domain_or_filename() -> None:
+    """``github.com/foo.exe`` should be ONE url IOC, not also a domain or path_exe."""
+    iocs = classify("github.com/x/y/foo.exe")
+    cats = sorted(i.category for i in iocs)
+    assert cats == ["url"]
+
+
+def test_bare_domain_still_classifies_as_domain_not_url() -> None:
+    """A domain with no path still goes through the domain matcher.
+
+    Sigma's dns_query selection works the same for both, but the IOC
+    panel groups them separately so the user knows which paste lines
+    were URLs vs which were bare hosts.
+    """
+    iocs = classify("plain.example.com")
+    assert [i.category for i in iocs] == ["domain"]
+
+
+def test_build_detection_items_dedupes_urls_by_host() -> None:
+    """Three URLs sharing host github.com → one QueryName=github.com selection.
+
+    Sigma dns_query can't see paths, so multiple URL IOCs collapse to
+    one detection item by host. The IOC panel shows truth (3 URLs);
+    the rule shows truth (1 dns_query).
+    """
+    iocs = classify(
+        "github.com/a/b\ngithub.com/c/d\nevil.example.com/payload\n",
+    )
+    items = build_detection_items(iocs, "dns_query")
+    values = [it.values[0] for it in items]
+    assert sorted(values) == ["evil.example.com", "github.com"]
+
+
 def test_classifies_dll_path() -> None:
     iocs = classify("C:\\Windows\\System32\\TimeBrokerClient.dll")
     assert len(iocs) == 1

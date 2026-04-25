@@ -36,6 +36,7 @@ IOCCategory = Literal[
     "hash_sha1",
     "hash_sha256",
     "ip",
+    "url",
     "domain",
     "path_exe",
     "path_dll_sys",
@@ -272,6 +273,19 @@ _RE_BARE_FILENAME = re.compile(
     r"(?![A-Za-z0-9./\\-])"
 )
 
+# URL — host plus a non-empty path component. Matches before _RE_DOMAIN so
+# ``github.com/Org/repo`` extracts as a URL (host preserved + path), not as
+# a bare domain that drops the path. Optional ``https://`` scheme; assumes
+# the upstream :func:`_undefang` has already converted ``hxxp`` and
+# ``[.]`` forms. Path stops at whitespace or quote chars so URLs embedded
+# in prose don't bleed into the next token.
+_RE_URL = re.compile(
+    r"(?<![A-Za-z0-9.@/\\:-])"
+    r"(?P<scheme>https?://)?"
+    r"(?P<host>(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,24})"
+    r"(?P<path>/[^\s'\"<>|]+)"
+)
+
 # Domain — at least two labels, last label 2-24 chars (TLD-ish), no
 # trailing slash. The file-extension blacklist is checked at match time
 # (we accept any string the regex matches but reject in classify() if the
@@ -336,6 +350,12 @@ _ROUTING: dict[IOCCategory, tuple[str, str, str]] = {
     "hash_sha1": ("file_event", "Hashes", "contains"),
     "hash_sha256": ("file_event", "Hashes", "contains"),
     "ip": ("network_connection", "DestinationIp", "exact"),
+    # URL IOCs route to dns_query on the *host* portion. The path is
+    # preserved in IOC.value for display + dedup, but Sigma's dns_query
+    # category cannot detect on URL paths without proxy logs — multiple
+    # URLs sharing a host collapse to one detection item at build time.
+    # See build_detection_items().
+    "url": ("dns_query", "QueryName", "endswith"),
     "domain": ("dns_query", "QueryName", "endswith"),
     "path_exe": ("process_creation", "Image", "endswith"),
     "path_dll_sys": ("image_load", "ImageLoaded", "endswith"),
@@ -351,6 +371,7 @@ _CATEGORY_LABELS: dict[IOCCategory, str] = {
     "hash_sha1": "SHA-1 hashes",
     "hash_sha256": "SHA-256 hashes",
     "ip": "IP addresses",
+    "url": "URLs",
     "domain": "Domains",
     "path_exe": "Executable paths (.exe)",
     "path_dll_sys": "DLL/driver paths (.dll/.sys)",
@@ -555,6 +576,24 @@ def classify(text: str) -> list[IOC]:  # noqa: PLR0912, PLR0915 (one branch per 
             seen.add(key)
             found.append(IOC(raw=value, value=value, category=cat, observation=_ROUTING[cat][0]))
 
+        # URLs (host + path) before bare-filenames + domains. ``github.com/foo``
+        # would otherwise be eaten by the domain matcher (path dropped) or by
+        # the bare-filename matcher (``foo.exe`` mis-classified as a binary).
+        # Each distinct host+path is its own IOC; build_detection_items()
+        # extracts just the host when constructing the dns_query selection.
+        for m in _RE_URL.finditer(line):
+            if not consume(m.span()):
+                continue
+            scheme = m.group("scheme") or ""
+            host = m.group("host").lower()
+            path = m.group("path")
+            value = f"{scheme}{host}{path}"
+            key = ("url", value)
+            if key in seen:
+                continue
+            seen.add(key)
+            found.append(IOC(raw=value, value=value, category="url", observation="dns_query"))
+
         # Emails MUST run before domains so we don't pick up the email's
         # domain part (`outlook.com` from `alice@outlook.com`) as a separate
         # IOC.
@@ -658,6 +697,7 @@ def build_detection_items(iocs: Iterable[IOC], observation: str) -> list[Detecti
     DestinationPort) so users get the port match for free.
     """
     items: list[DetectionItemDraft] = []
+    seen_url_hosts: set[str] = set()
     for ioc in iocs:
         if ioc.observation != observation:
             continue
@@ -679,6 +719,22 @@ def build_detection_items(iocs: Iterable[IOC], observation: str) -> list[Detecti
                     )
                 )
             continue
+        if ioc.category == "url":
+            # Sigma's dns_query category can't see URL paths (no proxy log),
+            # so extract just the host. Multiple URLs sharing a host
+            # collapse to a single selection — emit once per unique host.
+            host = _url_host(ioc.value)
+            if host in seen_url_hosts:
+                continue
+            seen_url_hosts.add(host)
+            items.append(
+                DetectionItemDraft(
+                    field="QueryName",
+                    modifiers=["endswith"],
+                    values=[host],
+                )
+            )
+            continue
         _obs, field, modifier = _ROUTING[ioc.category]
         items.append(
             DetectionItemDraft(
@@ -690,6 +746,17 @@ def build_detection_items(iocs: Iterable[IOC], observation: str) -> list[Detecti
             )
         )
     return items
+
+
+def _url_host(url: str) -> str:
+    """Return the bare host of a URL value.
+
+    Strips any optional ``http(s)://`` scheme and everything from the first
+    path slash onward. Lowercased — matches the URL-classifier's host
+    normalisation so dedup behaves identically.
+    """
+    body = url.split("://", 1)[-1]
+    return body.split("/", 1)[0].lower()
 
 
 __all__ = [
