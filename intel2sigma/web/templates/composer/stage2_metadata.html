@@ -35,7 +35,12 @@ without typing it — the usual case. They can still edit it.
       hx-include="#rule-state"
       hx-target="#composer-panel"
       hx-swap="innerHTML"
-      hx-trigger="change delay:200ms from:input, change delay:200ms from:textarea, change delay:200ms from:select"
+      {# Text inputs + textareas need ``keyup`` to fire live as the user
+         types — HTML's ``change`` event only fires on blur, which means
+         the preview pane wouldn't update until the user tabbed away.
+         Selects + date pickers stay on ``change`` (click-driven). 300ms
+         debounce keeps the round-trip rate reasonable. #}
+      hx-trigger="keyup delay:300ms from:input, change from:input, keyup delay:300ms from:textarea, change from:textarea, change from:select"
       hx-vals='{"action": "set_metadata"}'
       onsubmit="return false">
 
