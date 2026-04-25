@@ -64,7 +64,17 @@ See `CLAUDE.md` for the full development workflow and architectural rules.
 docker run -p 8000:8000 intel2sigma.azurecr.io/intel2sigma:latest
 ```
 
-All three options run the same stateless app.
+To build locally:
+
+```bash
+docker build --build-arg BUILD_SHA=$(git rev-parse --short HEAD) \
+             -t intel2sigma:dev .
+docker run -p 8000:8000 intel2sigma:dev
+```
+
+All three options run the same stateless app. Once running, `GET /version`
+returns the build SHA and pinned-data versions; `GET /healthz` is the
+liveness probe.
 
 ## Documentation
 
@@ -74,6 +84,7 @@ All three options run the same stateless app.
 - [`docs/ui.md`](docs/ui.md) — presentation layer specification
 - [`docs/taxonomy.md`](docs/taxonomy.md) — observation catalog and field mapping
 - [`docs/heuristics.md`](docs/heuristics.md) — rule quality checks
+- [`docs/recalibration.md`](docs/recalibration.md) — quarterly cadence for refreshing pinned upstreams
 - [`CLAUDE.md`](CLAUDE.md) — instructions for contributors (human and AI)
 
 ## License

@@ -23,26 +23,30 @@ Phased delivery plan. Each phase has an exit gate. Do not start the next phase u
 
 **Goal**: Hosted web app takes an analyst from "I observed this" to "here is my Sigma rule and its KQL/SPL/ES|QL/FQL equivalents."
 
-**Scope**:
-- `core/convert/` — pySigma wrapper with `data/pipelines.yml`-driven matrix for 5 conversion targets (Sentinel KQL, MDE KQL, Splunk, Elastic, CrowdStrike)
-- Golden tests for all (logsource, backend) pairs in the matrix
-- `core/heuristics/` — 60–80 quality checks with severity/enablement driven from `data/heuristics.yml`
-- Heuristic calibration against the SigmaHQ corpus
-- `core/validate/tier3.py` — SigmaHQ conventions advisory
-- `web/` — FastAPI app with htmx + Jinja2
-  - Both Guided and Expert modes (see `docs/ui.md`)
-  - 5-stage composer flow
-  - Rule health bottom drawer
-  - Primary YAML pane + tabbed conversion outputs
-  - Mode toggle in header, localStorage-persisted
-- Plain-English rule summary generator on the review screen
-- Hand-written CSS with green-forward dark palette (CSS custom properties)
-- Vendored htmx with SHA-256 hashes
-- Server-side Pygments for syntax highlighting
-- Dockerfile (multi-stage, slim base, no node layer)
-- `cli/` — Typer wrapper exposing core + `serve` command
+**Scope** (✅ shipped / ⏳ in progress / ⏸️ deferred):
+- ✅ `core/convert/` — pySigma wrapper with `data/pipelines.yml`-driven matrix for 5 conversion targets (Sentinel KQL, MDE KQL, Splunk, Elastic, CrowdStrike)
+- ✅ Golden tests for all (logsource, backend) pairs in the matrix
+- ⏳ `core/heuristics/` — **MVP set of 5–8 high-leverage checks** for v1.0; full ≥22-check catalog moved to v1.7 (see ``docs/heuristics.md`` status table). Severity/enablement driven from `data/heuristics.yml`.
+- ⏳ Heuristic calibration against the SigmaHQ corpus (frequency analysis picks the v1.0 MVP set)
+- ⏳ `core/validate/tier3.py` — SigmaHQ conventions advisory (subset for v1.0; rest in v1.7)
+- ✅ `web/` — FastAPI app with htmx + Jinja2
+  - ✅ Guided mode (Stage 0 → 4)
+  - ⏸️ Expert mode polish — basic shell exists, refinement deferred
+  - ✅ 5-stage composer flow
+  - ✅ Rule health bottom drawer
+  - ✅ Primary YAML pane + tabbed conversion outputs
+  - ✅ Mode toggle in header
+- ⏳ Plain-English rule summary generator on the review screen (basic version exists; richer prose in v1.7)
+- ✅ Hand-written CSS with green-forward dark palette (CSS custom properties)
+- ✅ Vendored htmx with SHA-256 hashes (`tests/test_vendor_hashes.py` enforces)
+- ✅ Server-side Pygments for syntax highlighting
+- ✅ Dockerfile (multi-stage, slim base, no node layer) — **verified building + cold-starting at 0.84s**
+- ✅ `cli/` — Typer wrapper exposing core + `serve` command
+- ✅ `/healthz` and `/version` endpoints, structured JSON access logs with X-Request-Id correlation
+- ✅ v1.5 (rule loading: paste YAML + curated examples) — shipped commit `6d1d13f`
+- ✅ v1.6 (IOC paste-and-classify, Build similar, MITRE ATT&CK picker) — shipped commits `85de80d` / `7a9b17e` / `2bb652a`
 
-**Exit gate**: A non-Sigma-native user can build a process_creation rule with at least one match and one filter block, copy the KQL output, and run it in Sentinel Advanced Hunting without modification. Confirmed by dogfooding with ≥2 testers not previously familiar with Sigma. Docker image boots in <5 seconds on Fly.io or Cloud Run.
+**Exit gate**: A non-Sigma-native user can build a process_creation rule with at least one match and one filter block, copy the KQL output, and run it in Sentinel Advanced Hunting without modification. Confirmed by dogfooding with ≥2 testers not previously familiar with Sigma. Docker image cold-starts in <5 seconds on Azure Container Apps (locally measured at **0.84s** post-`f1c98c9`).
 
 ## v1.1 — Sandbox ingestion: CAPE
 
@@ -122,7 +126,31 @@ Phased delivery plan. Each phase has an exit gate. Do not start the next phase u
 - Local rule-pack export — localStorage tracks the rules a user has downloaded this session, Stage 4 offers an `Export all as zip` button. Lands when testers ask for it.
 - Multi-observation composer — revisit only if testers express a clear need for side-by-side editing of related rules.
 
-## v1.7 — Observation catalog expansion
+## v1.7 — Heuristics catalog completion + observation catalog expansion
+
+Two parallel maintenance tracks tracked together because they're both
+quarterly-recalibration-driven and both purely additive (no schema
+changes, no new dependencies).
+
+### Heuristics catalog — fill out from MVP to full set
+
+v1.0 ships an **MVP set of 5–8 heuristics** chosen by frequency analysis
+against the SigmaHQ corpus (the patterns that actually fire on real
+rule submissions, not the ones that look most thorough on paper). The
+`docs/heuristics.md` catalog lists ~22 candidates total.
+
+v1.7 expands the shipped set toward the full catalog as testers tell us
+which categories matter:
+
+- New heuristics land as one (function, two test cases, ``data/heuristics.yml`` entry, ``docs/heuristics.md`` row) per PR.
+- Each addition is purely additive — no schema change, no new dependency, no breaking change to the existing rule API.
+- The ``HeuristicResult`` shape and the registry decorator are stable from v1.0.
+
+Specific MVP picks for v1.0 will be recorded here once the SigmaHQ
+frequency analysis is run; the deferred remainder becomes the v1.7
+backlog at that point.
+
+### Observation catalog expansion
 
 The v0/v1.0 catalog ships **15** observation types covering the most common Windows + Linux detection surfaces. Real Sigma rule corpora cover many more — `file_change`, `file_delete`, `file_access`, `process_access` (Sysmon EventID 10), `create_stream_hash` (EventID 15), `registry_event` / `registry_add` / `registry_delete`, Windows Security channel events (4624/4625/4672/4688/4698 etc.), Defender events, DNS-server-side logs, macOS unified-log categories, AWS / Azure / GCP cloudtrail-style sources, web-app categories (apache, nginx, kubernetes), and more.
 

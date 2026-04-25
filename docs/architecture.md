@@ -154,6 +154,8 @@ No external cache (Redis etc.). If horizontal scale produces cache-miss pressure
 
 ## Observability
 
-- **Structured logs** to stdout (JSON). Fields: request ID, route, duration, outcome. No rule contents logged.
+- **Structured logs** to stdout (JSON, one record per line). Fields per access record: ``ts`` (ISO 8601 UTC), ``level``, ``logger``, ``message``, ``request_id``, ``method``, ``path``, ``status``, ``duration_ms``. Implementation lives in `intel2sigma/web/logging.py` — stdlib `logging` only, no third-party dep. Rule contents (titles, descriptions, detection items) are explicitly dropped from log records via a denylist in the formatter.
+- **Request correlation**: every response carries an `X-Request-Id` header (random UUID4 hex unless the client sends its own). The same id appears in every log line for that request, so a tester quoting one id maps to one log line on the ops side.
 - **No user tracking, no analytics beacons, no third-party telemetry.** The hosted deployment may opt into anonymous request-count metrics via the hosting platform's built-in tooling; nothing beyond that.
-- **Health endpoint** at `/healthz` returning `{"status": "ok", "version": "..."}`. Used by container platforms for readiness checks.
+- **Health endpoint** at `/healthz` returns `{"status": "ok", "version": "..."}`. Used by Container Apps' liveness probes and by the Dockerfile's `HEALTHCHECK`.
+- **Version endpoint** at `/version` returns build provenance — package version, git build SHA (set by the Dockerfile via `BUILD_SHA` build-arg → `INTEL2SIGMA_BUILD_SHA` env var), bundled MITRE ATT&CK version + generation date, and the pinned SigmaHQ corpus commit. Computed once at import time; no per-request work. Use it for "which build is live" questions and for tester bug reports.

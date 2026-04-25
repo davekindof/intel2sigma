@@ -2,7 +2,9 @@
 
 Heuristics catch rule-quality issues that are valid Sigma but bad detection. They produce advisory warnings, never blocking errors.
 
-Per CLAUDE.md I-5, heuristic severities and enablement live in `data/heuristics.yml`, not in code. The functions themselves live in `core/heuristics/checks/`.
+Per CLAUDE.md I-5, heuristic severities and enablement live in `intel2sigma/data/heuristics.yml`, not in code. The functions themselves live in `core/heuristics/checks/`.
+
+> **Status (v1.0): MVP scope.** The catalog below originally targeted ~22 heuristics for v1.0. After scope review, v1.0 ships an **MVP set of 5–8 high-leverage checks** picked by frequency analysis against the SigmaHQ corpus (the patterns that actually fire on real-world rules, not the ones that look most comprehensive on paper). The remaining catalog entries are deferred to v1.7 and added quarterly as testers tell us which categories matter. The split is purely scope, not architecture: the registry decorator, the ``HeuristicResult`` shape, and ``data/heuristics.yml`` are stable from v1.0. Each row in the catalog will gain a `Status` column (``v1.0`` / ``v1.7``) once the MVP picks are committed. See ROADMAP §v1.7.
 
 ## Heuristic definition
 

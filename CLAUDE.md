@@ -117,13 +117,26 @@ intel2sigma/
 │   └── static/
 │       └── vendor/        # Vendored JS/CSS with HASHES.md
 ├── cli/                   # Typer CLI. Depends on core.
-├── data/                  # Data-driven config. Edit freely without touching code.
-│   ├── taxonomy/          # One YAML per observation type
-│   ├── pipelines.yml      # Backend/pipeline selection matrix
-│   └── heuristics.yml     # Per-heuristic severity + enablement
-├── tests/
-└── docs/
+├── _data.py               # data_path() — single helper for resolving bundled files
+├── _version.py            # SIGMAHQ_PINNED_COMMIT + /version payload builder
+└── data/                  # Data-driven config. Edit freely without touching code.
+    ├── taxonomy/          # One YAML per observation type
+    ├── examples/          # Curated SigmaHQ rules (v1.5 load modal)
+    ├── pipelines.yml      # Backend/pipeline selection matrix
+    ├── mitre_attack.json  # ATT&CK tree (built by scripts/build_mitre_tree.py)
+    └── heuristics.yml     # Per-heuristic severity + enablement (v1.0 MVP)
+
+tests/
+docs/
+scripts/                   # One-shot tools (not shipped in the wheel)
+Dockerfile                 # Multi-stage build; ACA-ready
+.dockerignore
 ```
+
+`data/` lives **inside** the package (`intel2sigma/data/`) so it ships
+with the wheel automatically — no special hatch config needed. Anything
+that needs to read a data file calls ``intel2sigma._data.data_path("…")``,
+not its own ``Path(__file__).parents[N]`` math.
 
 ### Testing
 
