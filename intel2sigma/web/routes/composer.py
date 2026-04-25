@@ -412,9 +412,14 @@ def _preview_context(draft: RuleDraft) -> dict[str, Any]:
     ]
     result = draft.to_sigma_rule()
     if isinstance(result, list):
+        # Tier 1 isn't satisfied yet — render a best-effort partial YAML so
+        # the user sees the rule taking shape as they type. The strict
+        # validation issues still render alongside; conversion stays gated
+        # behind a fully-valid rule.
+        partial_yaml = draft.to_partial_yaml()
         return {
-            "preview_yaml": "",
-            "preview_yaml_html": "",
+            "preview_yaml": partial_yaml,
+            "preview_yaml_html": yaml_to_html(partial_yaml) if partial_yaml.strip() else "",
             "preview_issues": _sorted_issues(result),
             "conversion_tabs": tabs,
             "conversion_outputs": None,

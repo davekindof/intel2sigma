@@ -163,6 +163,203 @@ class RuleDraft(_Model):
         return self.model_dump_json()
 
     # -------------------------------------------------------------------
+    # Best-effort YAML preview while the draft is still incomplete
+    # -------------------------------------------------------------------
+
+    def _is_essentially_empty(self) -> bool:
+        """True when the user hasn't touched any meaningful field yet.
+
+        Used by :meth:`to_partial_yaml` to suppress the partial preview on
+        a fresh-shell render: emitting ``status: experimental / level:
+        medium`` when the user hasn't done anything would imply they
+        chose those defaults, when they're really just placeholders.
+        """
+        return not (
+            self.title.strip()
+            or self.description.strip()
+            or self.author.strip()
+            or self.date.strip()
+            or self.modified.strip()
+            or self.tags
+            or self.references
+            or self.falsepositives
+            or self.observation_id
+            or self.platform_id
+            or self.logsource.category
+            or self.logsource.product
+            or self.logsource.service
+            or self.detections
+            or self.iocs
+        )
+
+    def to_partial_yaml(self) -> str:  # noqa: PLR0912 (linear field-by-field emission reads more clearly than splitting into helpers per field group)
+        """Emit a YAML preview of whatever's currently in the draft.
+
+        Used by the right-hand preview pane so the user sees the rule
+        taking shape as they type, instead of staring at a placeholder
+        until tier-1 passes. This emission path:
+
+        * skips fields the user hasn't set yet (no placeholder text — the
+          tier-1 issue list shown alongside already names what's missing)
+        * skips detection items with both field and values empty
+          (in-progress placeholder rows)
+        * builds an auto-condition from match/filter blocks the same way
+          :meth:`to_sigma_rule` does
+        * always closes with a syntactically valid YAML document so the
+          highlighter doesn't barf
+
+        Result is for *display only* — never saved, never converted to a
+        SIEM query, never goes through pySigma. The strict
+        :meth:`to_sigma_rule` path is what feeds the conversion engine.
+
+        Returns the empty string when the draft is essentially empty (a
+        bare initial-shell render); callers fall back to the placeholder
+        text in that case.
+        """
+        if self._is_essentially_empty():
+            return ""
+
+        # Local import — avoids a top-level cycle and keeps the strict
+        # serializer's helpers in one place.
+        import io  # noqa: PLC0415
+
+        from ruamel.yaml.comments import CommentedMap  # noqa: PLC0415
+
+        from intel2sigma.core.serialize import (  # noqa: PLC0415
+            _detection_item_key,
+            _render_condition,
+            _values_to_yaml,
+            _yaml,
+        )
+
+        out = CommentedMap()
+
+        if self.title.strip():
+            out["title"] = self.title.strip()
+        if self.id is not None:
+            out["id"] = str(self.id)
+        out["status"] = self.status
+        if self.description.strip():
+            out["description"] = self.description.strip()
+        if self.references:
+            out["references"] = list(self.references)
+        if self.author.strip():
+            out["author"] = self.author.strip()
+        if self.date.strip():
+            out["date"] = self.date.strip()
+        if self.modified.strip():
+            out["modified"] = self.modified.strip()
+        if self.tags:
+            out["tags"] = list(self.tags)
+
+        ls = CommentedMap()
+        if self.logsource.category:
+            ls["category"] = self.logsource.category
+        if self.logsource.product:
+            ls["product"] = self.logsource.product
+        if self.logsource.service:
+            ls["service"] = self.logsource.service
+        if ls:
+            out["logsource"] = ls
+
+        # Detection blocks. Skip blocks with no usable items.
+        det = CommentedMap()
+        usable_block_names: list[tuple[str, bool]] = []
+        for block in self.detections:
+            if not block.name.strip():
+                continue
+            block_map = self._block_to_partial_yaml(block, _detection_item_key, _values_to_yaml)
+            if block_map is None:
+                continue
+            det[block.name] = block_map
+            usable_block_names.append((block.name, block.is_filter))
+
+        if usable_block_names:
+            # Auto-condition mirrors to_sigma_rule's _compose_condition.
+            det["condition"] = self._partial_condition_string(usable_block_names, _render_condition)
+            out["detection"] = det
+
+        if self.falsepositives:
+            out["falsepositives"] = list(self.falsepositives)
+        out["level"] = self.level
+
+        buf = io.StringIO()
+        _yaml().dump(out, buf)
+        return buf.getvalue()
+
+    @staticmethod
+    def _block_to_partial_yaml(
+        block: DetectionBlockDraft,
+        key_fn: Any,
+        values_fn: Any,
+    ) -> Any:
+        """Render one detection block as a YAML mapping.
+
+        Returns ``None`` if the block has no usable items so the caller
+        can skip it cleanly. ``any_of`` blocks emit a list of single-key
+        mappings; ``all_of`` blocks (the default) merge into one mapping.
+        """
+        from ruamel.yaml.comments import CommentedMap, CommentedSeq  # noqa: PLC0415
+
+        from intel2sigma.core.model import DetectionItem  # noqa: PLC0415
+
+        usable: list[DetectionItem] = []
+        for item in block.items:
+            field_set = bool(item.field.strip())
+            values_set = bool(item.values) and any(str(v).strip() for v in item.values)
+            if not field_set or not values_set:
+                continue
+            usable.append(
+                DetectionItem.model_construct(
+                    field=item.field,
+                    modifiers=list(item.modifiers),
+                    values=list(item.values),
+                )
+            )
+        if not usable:
+            return None
+
+        if block.combinator == "any_of":
+            seq = CommentedSeq()
+            for strict in usable:
+                row = CommentedMap()
+                row[key_fn(strict)] = values_fn(strict.values)
+                seq.append(row)
+            return seq
+
+        body = CommentedMap()
+        for strict in usable:
+            body[key_fn(strict)] = values_fn(strict.values)
+        return body
+
+    @staticmethod
+    def _partial_condition_string(
+        blocks: list[tuple[str, bool]],
+        _render_condition: Any,
+    ) -> str:
+        """Build the condition string for the partial-YAML preview.
+
+        Mirrors :meth:`_compose_condition` but works on raw (name,
+        is_filter) tuples — no need to construct strict ``DetectionBlock``
+        instances just to reach the condition serializer.
+        """
+        match_names = [name for name, is_filter in blocks if not is_filter]
+        filter_names = [name for name, is_filter in blocks if is_filter]
+        if not match_names:
+            # Filter-only block has no semantic meaning on its own.
+            return filter_names[0] if filter_names else "(none)"
+
+        match_part = (
+            match_names[0] if len(match_names) == 1 else "(" + " and ".join(match_names) + ")"
+        )
+        if not filter_names:
+            return match_part
+        filter_part = (
+            filter_names[0] if len(filter_names) == 1 else "(" + " or ".join(filter_names) + ")"
+        )
+        return f"{match_part} and not {filter_part}"
+
+    # -------------------------------------------------------------------
     # Materialization to core.model.SigmaRule
     # -------------------------------------------------------------------
 
