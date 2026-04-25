@@ -31,6 +31,13 @@
                     <a class="mode-toggle-option {% if mode == 'expert' %}active{% endif %}"
                        href="{{ url_for('expert_home') }}">Expert</a>
                 </div>
+                <button class="header-button" type="button"
+                        hx-get="{{ url_for('composer_load_modal') }}"
+                        hx-target="#load-modal-region"
+                        hx-swap="innerHTML"
+                        title="Load an existing Sigma rule or pick an example">
+                    Load rule
+                </button>
                 <button class="header-button" type="button" disabled
                         title="New rule (available once composer ships in M1.3)">New rule</button>
                 <a class="header-button" href="https://github.com/davidsharp-io/intel2sigma" target="_blank" rel="noopener">Help</a>
@@ -68,6 +75,11 @@
        hx-include and routes swap it back in via hx-swap-oob.
        See docs/web-state-model.md. #}
     <textarea id="rule-state" name="rule_state" hidden>{{ initial_state_json }}</textarea>
+
+    {# Empty by default; the header's Load button populates this region
+       with the load modal partial via htmx. Closing the modal empties
+       it again. #}
+    <div id="load-modal-region"></div>
 
     {% block body_extra %}{% endblock %}
 </body>

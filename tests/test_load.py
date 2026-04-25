@@ -1,0 +1,228 @@
+"""Tests for the rule-loading translator and the composer load routes."""
+
+from __future__ import annotations
+
+import json
+import re
+
+import pytest
+from fastapi.testclient import TestClient
+
+from intel2sigma.web.app import app
+from intel2sigma.web.load import (
+    ExampleEntry,
+    draft_from_yaml,
+    list_examples,
+    load_example,
+)
+
+_STATE_BLOB_RE = re.compile(r'<textarea id="rule-state"[^>]*>([^<]*)</textarea>', re.DOTALL)
+
+
+def _extract_state(html: str) -> dict:
+    raw = _STATE_BLOB_RE.search(html).group(1)
+    return json.loads(
+        raw.replace("&#34;", '"')
+        .replace("&#39;", "'")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&amp;", "&")
+    )
+
+
+@pytest.fixture
+def client() -> TestClient:
+    return TestClient(app)
+
+
+VALID_YAML = """
+title: Encoded PowerShell from non-SYSTEM
+id: 12345678-1234-5678-1234-567812345678
+status: experimental
+description: Detects encoded PowerShell command lines launched outside SYSTEM.
+references:
+  - https://example.invalid/ref
+author: alice
+date: 2026-04-23
+tags:
+  - attack.execution
+  - attack.t1059.001
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        Image|endswith: '\\powershell.exe'
+        CommandLine|contains: '-encodedcommand'
+    filter_admin:
+        User|contains: SYSTEM
+    condition: selection and not filter_admin
+falsepositives:
+  - Administrative scripts
+level: high
+"""
+
+
+# ---------------------------------------------------------------------------
+# draft_from_yaml — unit tests
+# ---------------------------------------------------------------------------
+
+
+def test_draft_from_yaml_translates_a_well_formed_rule() -> None:
+    draft, issues = draft_from_yaml(VALID_YAML)
+    assert draft is not None
+    assert issues == []
+    assert draft.title == "Encoded PowerShell from non-SYSTEM"
+    assert draft.observation_id == "process_creation"
+    assert draft.platform_id == "windows"
+    assert draft.tags == ["attack.execution", "attack.t1059.001"]
+    assert draft.level == "high"
+    assert draft.status == "experimental"
+    # Detection blocks: one match (selection), one filter (filter_admin).
+    names = sorted(b.name for b in draft.detections)
+    assert names == ["filter_admin", "selection"]
+    is_filter = {b.name: b.is_filter for b in draft.detections}
+    assert is_filter == {"selection": False, "filter_admin": True}
+
+
+def test_draft_from_yaml_lands_at_stage3_when_complete() -> None:
+    draft, _issues = draft_from_yaml(VALID_YAML)
+    # A fully-validating draft jumps to review.
+    assert draft is not None
+    assert draft.stage == 3
+
+
+def test_draft_from_yaml_returns_issue_on_garbage_input() -> None:
+    draft, issues = draft_from_yaml("not: valid sigma\n  detection: nope")
+    assert draft is None
+    assert issues
+    assert all(i.code.startswith("LOAD_") for i in issues)
+
+
+def test_draft_from_yaml_flags_unknown_observation() -> None:
+    """A rule with a logsource we don't have catalogued still loads but
+    surfaces a LOAD_OBSERVATION_UNKNOWN warning so the user knows the
+    field dropdown won't help them.
+    """
+    yaml = """
+title: Unknown logsource example
+id: 12345678-1234-5678-1234-567812345678
+status: experimental
+date: 2026-04-23
+logsource:
+    category: definitely_not_a_real_category
+    product: windows
+detection:
+    selection:
+        SomeField: value
+    condition: selection
+"""
+    draft, issues = draft_from_yaml(yaml)
+    assert draft is not None
+    codes = [i.code for i in issues]
+    assert "LOAD_OBSERVATION_UNKNOWN" in codes
+
+
+def test_draft_from_yaml_recognizes_any_of_block_combinator() -> None:
+    """A list-of-mappings detection block translates to combinator=any_of."""
+    yaml = """
+title: any_of block round-trip test
+id: 12345678-1234-5678-1234-567812345678
+status: experimental
+date: 2026-04-23
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        - Image|endswith: '\\foo.exe'
+        - CommandLine|contains: '-bar'
+    condition: selection
+"""
+    draft, _issues = draft_from_yaml(yaml)
+    assert draft is not None
+    block = next(b for b in draft.detections if b.name == "selection")
+    assert block.combinator == "any_of"
+    assert len(block.items) == 2
+
+
+# ---------------------------------------------------------------------------
+# Examples listing
+# ---------------------------------------------------------------------------
+
+
+def test_list_examples_returns_curated_set() -> None:
+    examples = list_examples()
+    assert examples, "Expected at least one curated example under data/examples/"
+    # Every entry should have a non-empty title pulled from the underlying rule.
+    for entry in examples:
+        assert isinstance(entry, ExampleEntry)
+        assert entry.title
+        assert entry.id
+
+
+def test_load_example_round_trips_a_curated_rule() -> None:
+    examples = list_examples()
+    if not examples:
+        pytest.skip("No curated examples on disk — run scripts/curate_examples.py")
+    entry = examples[0]
+    draft, _issues = load_example(entry.id)
+    assert draft is not None
+    assert draft.title == entry.title
+
+
+def test_load_example_unknown_id_returns_issue() -> None:
+    draft, issues = load_example("definitely-not-an-example")
+    assert draft is None
+    assert any(i.code == "LOAD_EXAMPLE_UNKNOWN" for i in issues)
+
+
+# ---------------------------------------------------------------------------
+# Composer routes
+# ---------------------------------------------------------------------------
+
+
+def test_load_modal_route_renders(client: TestClient) -> None:
+    r = client.get("/composer/load")
+    assert r.status_code == 200
+    assert "Load an existing rule" in r.text
+    assert "Paste YAML" in r.text
+    assert "Examples" in r.text
+
+
+def test_load_paste_with_valid_yaml_advances_to_stage3(client: TestClient) -> None:
+    r = client.post("/composer/load-paste", data={"yaml_text": VALID_YAML})
+    assert r.status_code == 200
+    state = _extract_state(r.text)
+    assert state["stage"] == 3
+    assert state["title"] == "Encoded PowerShell from non-SYSTEM"
+    # The modal region is cleared via oob swap.
+    assert 'id="load-modal-region"' in r.text
+    assert "hx-swap-oob" in r.text
+
+
+def test_load_paste_with_garbage_re_renders_modal_with_issues(client: TestClient) -> None:
+    r = client.post("/composer/load-paste", data={"yaml_text": "not a rule"})
+    assert r.status_code == 200
+    # Stays in modal context — no rule-state textarea pop.
+    assert "Load an existing rule" in r.text
+    assert "LOAD_PARSE_FAILED" in r.text
+
+
+def test_load_example_route_loads_a_curated_rule(client: TestClient) -> None:
+    examples = list_examples()
+    if not examples:
+        pytest.skip("No curated examples")
+    entry = examples[0]
+    r = client.post("/composer/load-example", data={"example_id": entry.id})
+    assert r.status_code == 200
+    state = _extract_state(r.text)
+    # Loaded successfully; we shouldn't be back at stage 0.
+    assert state["stage"] in {1, 3}
+    assert state["title"] == entry.title
+
+
+def test_load_close_route_returns_empty_body(client: TestClient) -> None:
+    r = client.post("/composer/load-close")
+    assert r.status_code == 200
+    assert r.text == ""

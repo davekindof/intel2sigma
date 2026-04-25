@@ -1,0 +1,110 @@
+{# "Load rule" modal.
+
+Rendered into ``#load-modal-region`` by the header's Load button. Shows
+two tabs: paste YAML and curated examples. Closing the modal clears the
+region via an oob swap from ``/composer/load-close``.
+
+Context:
+  examples       — list of ExampleEntry from web.load.list_examples()
+  paste_text     — (optional) text to pre-fill the paste textarea with on
+                   re-render after a failed parse attempt
+  paste_issues   — (optional) list of ValidationIssue from the last paste
+                   attempt; displayed inline
+#}
+{# Backdrop click-to-close is intentionally NOT wired up here — the
+   composer's Load button can fire a synthetic-style click whose bubble
+   reaches the freshly-rendered backdrop and immediately closes the modal.
+   Users close via the Close button or by pressing Esc. v1.x can revisit. #}
+<div class="load-modal-backdrop"></div>
+
+<div class="load-modal" role="dialog" aria-label="Load rule">
+    <div class="load-modal-header">
+        <h2 class="load-modal-title">Load an existing rule</h2>
+        <button type="button"
+                class="header-button"
+                hx-post="{{ url_for('composer_load_close') }}"
+                hx-target="#load-modal-region"
+                hx-swap="innerHTML"
+                aria-label="Close">
+            Close
+        </button>
+    </div>
+
+    <div class="load-modal-tabs" role="tablist">
+        <button type="button"
+                class="load-tab active"
+                role="tab"
+                onclick="window.__intel2sigma_load_switch(this, 'paste')">
+            Paste YAML
+        </button>
+        <button type="button"
+                class="load-tab"
+                role="tab"
+                onclick="window.__intel2sigma_load_switch(this, 'examples')">
+            Examples ({{ examples | length }})
+        </button>
+    </div>
+
+    <section class="load-panel" data-panel="paste">
+        <form hx-post="{{ url_for('composer_load_paste') }}"
+              hx-target="#load-modal-region"
+              hx-swap="innerHTML">
+            <textarea name="yaml_text"
+                      class="load-paste-textarea"
+                      rows="18"
+                      placeholder="Paste a Sigma rule YAML here…"
+                      required>{{ paste_text or '' }}</textarea>
+
+            {% if paste_issues %}
+            <ul class="load-issues">
+                {% for issue in paste_issues %}
+                <li class="field-error-message">
+                    <span class="health-issue-id">{{ issue.code }}</span>
+                    {{ issue.message }}
+                </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+
+            <div class="load-panel-actions">
+                <button type="submit" class="button-primary">Load pasted rule</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="load-panel" data-panel="examples" hidden>
+        {% if not examples %}
+        <div class="placeholder">
+            No bundled examples found. If this is a dev environment, run
+            <code>uv run python scripts/curate_examples.py</code> after fetching
+            the SigmaHQ corpus.
+        </div>
+        {% else %}
+        <div class="load-examples-grid">
+            {% for example in examples %}
+            <button type="button"
+                    class="load-example-card"
+                    hx-post="{{ url_for('composer_load_example') }}"
+                    hx-vals='{"example_id": "{{ example.id }}"}'
+                    hx-target="#load-modal-region"
+                    hx-swap="innerHTML">
+                <div class="load-example-title">{{ example.title }}</div>
+                <div class="load-example-id">{{ example.id }}</div>
+                <div class="load-example-desc">{{ example.description }}</div>
+            </button>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+    window.__intel2sigma_load_switch = function (clicked, panel) {
+        document.querySelectorAll(".load-tab").forEach((el) => {
+            el.classList.toggle("active", el === clicked);
+        });
+        document.querySelectorAll(".load-panel").forEach((el) => {
+            el.hidden = el.dataset.panel !== panel;
+        });
+    };
+</script>

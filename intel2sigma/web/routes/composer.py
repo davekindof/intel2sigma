@@ -46,6 +46,11 @@ from intel2sigma.web.draft import (
     RuleDraft,
 )
 from intel2sigma.web.highlight import yaml_to_html
+from intel2sigma.web.load import (
+    draft_from_yaml,
+    list_examples,
+    load_example,
+)
 
 router = APIRouter(prefix="/composer")
 
@@ -688,6 +693,104 @@ def _int_or_none(raw: str) -> int | None:
         return int(raw)
     except ValueError:
         return None
+
+
+# ---------------------------------------------------------------------------
+# Rule loading — paste YAML or pick a bundled example
+# ---------------------------------------------------------------------------
+
+
+@router.get("/load", name="composer_load_modal")
+async def composer_load_modal(request: Request) -> HTMLResponse:
+    """Render the 'Load rule' modal contents.
+
+    Returned as an htmx partial; the header's Load button drops it into a
+    dedicated target region in the shell. The modal has two tabs: paste
+    YAML and bundled examples.
+    """
+    templates = _templates(request)
+    return HTMLResponse(
+        templates.get_template("composer/load_modal.html").render(
+            request=request,
+            examples=list_examples(),
+        )
+    )
+
+
+@router.post("/load-close", name="composer_load_close")
+async def composer_load_close() -> HTMLResponse:
+    """Close the load modal by replacing its region with nothing."""
+    return HTMLResponse("")
+
+
+@router.post("/load-paste", name="composer_load_paste")
+async def composer_load_paste(
+    request: Request,
+    yaml_text: Annotated[str, Form()] = "",
+) -> HTMLResponse:
+    """Parse pasted YAML into a RuleDraft and render the resulting composer stage.
+
+    Issues are surfaced as tier-1 warnings on the preview pane. Parse
+    failures re-render the modal with the failure inline so the user can
+    fix their paste and retry without losing it.
+    """
+    draft, issues = draft_from_yaml(yaml_text)
+    if draft is None:
+        templates = _templates(request)
+        return HTMLResponse(
+            templates.get_template("composer/load_modal.html").render(
+                request=request,
+                examples=list_examples(),
+                paste_text=yaml_text,
+                paste_issues=issues,
+            )
+        )
+    return _render_stage_with_load_clear(request, draft, issues)
+
+
+@router.post("/load-example", name="composer_load_example")
+async def composer_load_example(
+    request: Request,
+    example_id: Annotated[str, Form()] = "",
+) -> HTMLResponse:
+    """Load one of the bundled examples by id."""
+    draft, issues = load_example(example_id)
+    if draft is None:
+        templates = _templates(request)
+        return HTMLResponse(
+            templates.get_template("composer/load_modal.html").render(
+                request=request,
+                examples=list_examples(),
+                paste_issues=issues,
+            )
+        )
+    return _render_stage_with_load_clear(request, draft, issues)
+
+
+def _render_stage_with_load_clear(
+    request: Request, draft: RuleDraft, load_issues: list[ValidationIssue]
+) -> HTMLResponse:
+    """Render the loaded draft + close the modal + surface translator warnings.
+
+    The translator's issue list is appended to the preview-pane issue list
+    so fidelity-loss warnings are visible right where the user lands.
+    """
+    response = _render_stage(request, draft)
+    # ``HTMLResponse.body`` is bytes-like at runtime; decode for concatenation.
+    body_bytes: bytes = bytes(response.body)
+    body = body_bytes.decode("utf-8")
+    body += '\n<div id="load-modal-region" hx-swap-oob="true"></div>'
+    if load_issues:
+        templates = _templates(request)
+        preview_context = _preview_context(draft)
+        preview_context["preview_issues"] = _sorted_issues(
+            list(preview_context["preview_issues"]) + list(load_issues)
+        )
+        preview_html = templates.get_template("partials/preview_pane.html").render(
+            request=request, **preview_context
+        )
+        body += f'\n<div id="preview-pane" hx-swap-oob="true">{preview_html}</div>'
+    return HTMLResponse(body)
 
 
 # ---------------------------------------------------------------------------
