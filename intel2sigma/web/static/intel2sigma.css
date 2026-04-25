@@ -784,6 +784,23 @@ input[type="text"]:focus, textarea:focus, select:focus {
     border-color: var(--color-accent);
 }
 
+/* Tag-preview pill: shows the actual ``attack.*`` string the picker
+   row will write to the tags input. Tactic IDs are TA-prefixed for
+   navigation but the emitted tag uses the SigmaHQ shortname form
+   (e.g. ``attack.initial-access``); spelling the resolved tag inline
+   removes that asymmetry without changing the output. */
+.mitre-resolved-tag {
+    margin-left: auto;
+    margin-right: var(--space-2);
+    padding: 0 var(--space-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-dim);
+    background: var(--color-surface-2, transparent);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+}
+
 .observation-group {
     margin-bottom: var(--space-6);
 }

@@ -529,7 +529,13 @@ async def composer_restart(
     request: Request,
     rule_state: Annotated[str, Form()] = "",
 ) -> HTMLResponse:
-    """Back button on stage 1 — clear observation selection, return to stage 0."""
+    """Back button on stage 1 — clear observation selection, return to stage 0.
+
+    Preserves metadata (title, description, tags, references, author, date,
+    falsepositives, level) and the IOC session. Distinct from
+    :func:`composer_new` (header "New rule" / Stage 4 "Build another rule"),
+    which clears everything.
+    """
     draft = RuleDraft.from_json(rule_state)
     draft.observation_id = ""
     draft.platform_id = ""
@@ -538,6 +544,23 @@ async def composer_restart(
     draft.condition_tree = None
     draft.stage = 0
     return _render_stage(request, draft)
+
+
+@router.post("/new", name="composer_new")
+async def composer_new(
+    request: Request,
+) -> HTMLResponse:
+    """Discard the current draft entirely; return a fresh Stage 0 composer.
+
+    Wired from the header "New rule" button and Stage 4's "Build another
+    rule" button — both have the "I'm done with this rule, start over"
+    semantic. Differs from :func:`composer_restart` (Stage 1 back button)
+    which preserves metadata so the user can swap observations without
+    re-typing title/description/tags. The ``rule_state`` form field is
+    intentionally not declared: we don't read whatever the client sent;
+    we just emit a brand-new empty draft.
+    """
+    return _render_stage(request, RuleDraft())
 
 
 @router.post("/build-similar", name="composer_build_similar")

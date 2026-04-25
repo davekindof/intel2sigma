@@ -50,11 +50,10 @@ CrowdStrike queries from the core.convert engine.
     </a>
 
     <a class="button-secondary"
-       hx-post="{{ url_for('composer_restart') }}"
-       hx-include="#rule-state"
+       hx-post="{{ url_for('composer_new') }}"
        hx-target="#composer-panel"
        hx-swap="innerHTML"
-       title="Start a fresh rule with no carryover.">
+       title="Start a fresh rule with no carryover. Discards everything from this session.">
         Build another rule
     </a>
 </section>

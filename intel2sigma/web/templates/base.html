@@ -38,8 +38,12 @@
                         title="Load an existing Sigma rule or pick an example">
                     Load rule
                 </button>
-                <button class="header-button" type="button" disabled
-                        title="New rule (available once composer ships in M1.3)">New rule</button>
+                <button class="header-button" type="button"
+                        hx-post="{{ url_for('composer_new') }}"
+                        hx-target="#composer-panel"
+                        hx-swap="innerHTML"
+                        hx-confirm="Discard the current rule and start fresh? Title, description, tags, IOCs, and detection blocks will be cleared."
+                        title="Discard the current rule and start a fresh one">New rule</button>
                 <a class="header-button" href="https://github.com/davekindof/intel2sigma" target="_blank" rel="noopener">Help</a>
             </div>
         </header>

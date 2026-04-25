@@ -151,6 +151,24 @@ def test_stage_2_renders_mitre_picker(client: TestClient) -> None:
     assert 'data-attack-tag="attack.t1059.001"' in body  # PowerShell sub-tech
 
 
+def test_picker_renders_resolved_tag_next_to_id(client: TestClient) -> None:
+    """Each picker row shows the actual ``attack.*`` tag inline so users
+    don't expect the TA-id to land in the output (it's nav-only — the
+    emitted tag is the SigmaHQ shortname / T-number form).
+    """
+    state = _draft_at_stage_2()
+    r = client.post(
+        "/composer/update",
+        data={"rule_state": state, "action": "set_metadata"},
+    )
+    body = r.text
+    # Tactic row: the resolved-tag span carries the shortname form.
+    assert '<span class="mitre-resolved-tag"' in body
+    assert "→ attack.execution" in body
+    # Technique row: same pattern, with the T-id form.
+    assert "→ attack.t1059" in body
+
+
 def test_picker_marks_already_selected_tags(client: TestClient) -> None:
     """A draft with attack.t1059.001 in its tags should render that
     technique's toggle button in the .selected state.
