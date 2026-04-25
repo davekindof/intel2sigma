@@ -7,7 +7,8 @@
       "PowerShell($packages = @\\('pysigma','pysigma-backend-kusto','pysigma-backend-splunk','pysigma-backend-elasticsearch','pysigma-backend-crowdstrike','pysigma-pipeline-sysmon','pysigma-pipeline-windows','pysigma-pipeline-crowdstrike','pysigma-pipeline-microsoft365'\\); foreach \\($p in $packages\\) { try { $j = Invoke-RestMethod \"https://pypi.org/pypi/$p/json\" -ErrorAction Stop; \"{0,-40} OK  v{1}  py={2}\" -f $p, $j.info.version, $j.info.requires_python } catch { \"{0,-40} NOT FOUND\" -f $p } })",
       "Bash(curl -sS \"https://raw.githubusercontent.com/SigmaHQ/sigma/master/rules-emerging-threats/2025/Exploits/CVE-2025-59287/proc_creation_win_exploit_cve_2025_59287.yml\")",
       "PowerShell($env:Path = \"C:\\\\Users\\\\david\\\\.local\\\\bin;\" + $env:Path; \"=== FINAL GATES ===\"; \"--- ruff check ---\"; uv run ruff check; \"--- ruff format --check ---\"; uv run ruff format --check; \"--- mypy --strict ---\"; uv run mypy intel2sigma --strict; \"--- pytest with coverage ---\"; uv run pytest --cov=intel2sigma --cov-report=term-missing 2>&1 | Select-Object -Last 25)",
-      "Bash(uv run python -c ' *)"
+      "Bash(uv run python -c ' *)",
+      "Bash(uv run *)"
     ]
   }
 }
