@@ -375,17 +375,27 @@ class RuleDraft(_Model):
             return None
         strict_items: list[DetectionItem] = []
         for item_idx, item in enumerate(draft.items):
-            if not item.field.strip():
+            field_set = bool(item.field.strip())
+            values_set = bool(item.values) and any(str(v).strip() for v in item.values)
+            # Both empty → treat as an in-progress placeholder, not a
+            # validation failure. The composer adds blank rows for the
+            # user to fill in; complaining about them while they're being
+            # typed in is noisy. The "any populated item" advance gate
+            # in can_advance_to_stage(2) prevents shipping a rule that's
+            # ALL empty.
+            if not field_set and not values_set:
+                continue
+            if not field_set:
                 issues.append(
                     ValidationIssue(
                         tier=1,
                         code="DRAFT_ITEM_FIELD_MISSING",
-                        message="Detection item has no field selected.",
+                        message="Detection item has values but no field selected.",
                         location=f"detections[{block_idx}].items[{item_idx}]",
                     )
                 )
                 continue
-            if not item.values:
+            if not values_set:
                 issues.append(
                     ValidationIssue(
                         tier=1,
