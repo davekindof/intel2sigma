@@ -84,8 +84,16 @@ Included from stage1_detection.html per match/filter block. Expects:
                     hx-target="#composer-panel"
                     hx-swap="innerHTML">
                 {% if item.field %}
-                {% set field_spec = field_specs_by_name[item.field] %}
-                {% for mod in field_spec.allowed_modifiers %}
+                {# Defensive fallback: a routing that produces a field
+                   absent from the taxonomy (e.g. an old IOC session) used
+                   to 500 the render. Surface a permissive modifier list
+                   instead — the user can fix the field name in the same
+                   row without losing the whole stage. #}
+                {% set field_spec = field_specs_by_name.get(item.field) %}
+                {% set allowed = field_spec.allowed_modifiers
+                                 if field_spec
+                                 else ["contains", "startswith", "endswith", "exact", "re"] %}
+                {% for mod in allowed %}
                 <option value="{{ mod }}"
                         {% if item.modifiers and item.modifiers[0] == mod %}selected{% endif %}>
                     {{ mod }}

@@ -65,3 +65,11 @@ fields:
       default_modifier: startswith
       allowed_modifiers: [startswith, contains, exact]
       note: "Sysmon records this as an ISO-like timestamp. Use for timestomping detection."
+
+    - name: Hashes
+      label: "File hashes"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact]
+      example: 'SHA256=1b62b7c2...'
+      note: "Sysmon EventID 11 emits a comma-separated list (MD5=...,SHA256=...) when HashAlgorithms is configured. ``contains`` works against any one hash in the list."

@@ -79,6 +79,49 @@ def test_classify_action_renders_per_category_summary_in_html(client: TestClient
 # ---------------------------------------------------------------------------
 
 
+def test_build_from_iocs_renders_stage1_for_hashes(client: TestClient) -> None:
+    """Regression: SHA-256 hashes routed to file_event used to 500 the
+    Stage 1 render because file_event.yml didn't list a Hashes field.
+
+    Drives the full classify → build → render flow and asserts a clean
+    200 with Stage 1 markup. The path that broke in production was the
+    Jinja modifier-dropdown lookup (``field_specs_by_name[item.field]``
+    raised UndefinedError when item.field wasn't in the taxonomy);
+    this test exercises that exact code path.
+    """
+    hashes = "\n".join(
+        [
+            "1b62b7c2ed7cc296ce821f977ef7b22bae59ef1dcdb9a34ae19467ee39bcf168",
+            "4ebfe8f66ca7e9751060b3301b5e8838d6017593cdae748541de83bfa28183bd",
+            "97c275e3406ad6576529f41604ad138c5bdc4297d195bf61b049e14f6b30adfd",
+        ]
+    )
+    r = client.post(
+        "/composer/update",
+        data={"rule_state": "{}", "action": "classify_iocs", "iocs_text": hashes},
+    )
+    state = json.dumps(_extract_state(r.text))
+
+    r = client.post(
+        "/composer/update",
+        data={
+            "rule_state": state,
+            "action": "build_from_iocs",
+            "observation_id": "file_event",
+        },
+    )
+    assert r.status_code == 200, (
+        "Build file_event rule from hashes 500'd — see the file_event Hashes-field fix commit."
+    )
+    state_obj = _extract_state(r.text)
+    assert state_obj["stage"] == 1
+    assert state_obj["observation_id"] == "file_event"
+    block = state_obj["detections"][0]
+    fields = [item["field"] for item in block["items"]]
+    assert all(f == "Hashes" for f in fields)
+    assert "Stage 1 — Compose detection" in r.text
+
+
 def test_build_from_iocs_advances_to_stage_1_with_detection_items(client: TestClient) -> None:
     # First, classify.
     r = client.post(
