@@ -1,0 +1,120 @@
+{# Hierarchical MITRE ATT&CK tag picker.
+
+Rendered inside the Stage 2 metadata form, alongside the existing
+free-text tags input. The tree comes from data/mitre_attack.json (built
+by scripts/build_mitre_tree.py from the MITRE STIX export). Click a
+tactic to expand its techniques; click a technique with sub-techniques
+to expand them; click a leaf (technique with no sub-techniques OR a
+sub-technique) to toggle the corresponding ``attack.tNNNN`` /
+``attack.tNNNN.NNN`` tag in the rule's tag list.
+
+Selected tags also appear as removable chips inline. Toggling here
+fires a change on the hidden ``meta_tags`` input which the metadata
+form's existing change handler picks up — no new route needed.
+
+Context:
+  mitre_tree            — dict from web/mitre.py:load_mitre_tree()
+  selected_attack_tags  — set[str] of attack.* tags currently on the rule
+  draft                 — the RuleDraft (used to render the existing chips)
+#}
+
+{% if mitre_tree.tactics %}
+<details class="mitre-picker">
+    <summary class="mitre-picker-summary">
+        Browse ATT&amp;CK
+        <span class="mitre-version">v{{ mitre_tree.version | default('?') }}</span>
+        <span class="mitre-hint">— click tactics, techniques, sub-techniques to add tags</span>
+    </summary>
+
+    <div class="mitre-tactics">
+        {% for tactic in mitre_tree.tactics %}
+        <details class="mitre-tactic">
+            <summary class="mitre-tactic-summary">
+                <span class="mitre-tactic-id">{{ tactic.id }}</span>
+                <span class="mitre-tactic-name">{{ tactic.name }}</span>
+                <button type="button"
+                        class="mitre-add-tag {% if tactic.tag in selected_attack_tags %}selected{% endif %}"
+                        data-attack-tag="{{ tactic.tag }}"
+                        onclick="event.stopPropagation(); window.__intel2sigma_toggle_attack_tag(this);"
+                        title="Tag this rule with {{ tactic.tag }}">
+                    {% if tactic.tag in selected_attack_tags %}✓{% else %}+{% endif %}
+                </button>
+            </summary>
+            <div class="mitre-techniques">
+                {% for tech in tactic.techniques %}
+                {% if tech.subtechniques %}
+                <details class="mitre-technique mitre-technique-has-subs">
+                    <summary class="mitre-technique-summary">
+                        <span class="mitre-technique-id">{{ tech.id }}</span>
+                        <span class="mitre-technique-name">{{ tech.name }}</span>
+                        <button type="button"
+                                class="mitre-add-tag {% if tech.tag in selected_attack_tags %}selected{% endif %}"
+                                data-attack-tag="{{ tech.tag }}"
+                                onclick="event.stopPropagation(); window.__intel2sigma_toggle_attack_tag(this);">
+                            {% if tech.tag in selected_attack_tags %}✓{% else %}+{% endif %}
+                        </button>
+                    </summary>
+                    <ul class="mitre-subtechniques">
+                        {% for sub in tech.subtechniques %}
+                        <li class="mitre-subtechnique">
+                            <span class="mitre-subtechnique-id">{{ sub.id }}</span>
+                            <span class="mitre-subtechnique-name">{{ sub.name }}</span>
+                            <button type="button"
+                                    class="mitre-add-tag {% if sub.tag in selected_attack_tags %}selected{% endif %}"
+                                    data-attack-tag="{{ sub.tag }}"
+                                    onclick="window.__intel2sigma_toggle_attack_tag(this);">
+                                {% if sub.tag in selected_attack_tags %}✓{% else %}+{% endif %}
+                            </button>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </details>
+                {% else %}
+                <div class="mitre-technique mitre-technique-leaf">
+                    <span class="mitre-technique-id">{{ tech.id }}</span>
+                    <span class="mitre-technique-name">{{ tech.name }}</span>
+                    <button type="button"
+                            class="mitre-add-tag {% if tech.tag in selected_attack_tags %}selected{% endif %}"
+                            data-attack-tag="{{ tech.tag }}"
+                            onclick="window.__intel2sigma_toggle_attack_tag(this);">
+                        {% if tech.tag in selected_attack_tags %}✓{% else %}+{% endif %}
+                    </button>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </details>
+        {% endfor %}
+    </div>
+</details>
+{% endif %}
+
+<script>
+    // Toggle an ATT&CK tag in the metadata form's tags input. Reads the
+    // current comma-separated value, adds or removes the clicked tag,
+    // writes back, and dispatches change so htmx fires set_metadata.
+    window.__intel2sigma_toggle_attack_tag = function (btn) {
+        const tag = btn.dataset.attackTag;
+        if (!tag) return;
+        const input = document.querySelector('input[name="meta_tags"]');
+        if (!input) return;
+
+        const current = input.value
+            .split(",")
+            .map((t) => t.trim())
+            .filter((t) => t.length > 0);
+        const has = current.includes(tag);
+        const next = has
+            ? current.filter((t) => t !== tag)
+            : current.concat([tag]);
+        input.value = next.join(", ");
+
+        btn.classList.toggle("selected", !has);
+        btn.textContent = has ? "+" : "✓";
+
+        // Fire change so htmx's set_metadata trigger picks it up. The
+        // metadata form has hx-trigger=change-with-200ms-delay, so this
+        // produces a single round-trip.
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+</script>

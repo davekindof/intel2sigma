@@ -91,19 +91,22 @@ without typing it — the usual case. They can still edit it.
                    required>
         </label>
 
-        <label class="metadata-field metadata-field-wide">
-            <span class="metadata-label">ATT&amp;CK tags <span class="metadata-hint">(comma-separated, lowercase)</span></span>
-            <input type="text"
-                   name="meta_tags"
-                   value="{{ draft.tags | join(', ') }}"
-                   placeholder="attack.execution, attack.t1059.001"
-                   list="attack-tags-suggestions">
-            <datalist id="attack-tags-suggestions">
-                {% for tag in attack_tag_suggestions %}
-                <option value="{{ tag }}"></option>
-                {% endfor %}
-            </datalist>
-        </label>
+        <div class="metadata-field metadata-field-wide">
+            <label>
+                <span class="metadata-label">ATT&amp;CK tags <span class="metadata-hint">(comma-separated; ATT&amp;CK picker below)</span></span>
+                <input type="text"
+                       name="meta_tags"
+                       value="{{ draft.tags | join(', ') }}"
+                       placeholder="attack.execution, attack.t1059.001"
+                       list="attack-tags-suggestions">
+                <datalist id="attack-tags-suggestions">
+                    {% for tag in attack_tag_suggestions %}
+                    <option value="{{ tag }}"></option>
+                    {% endfor %}
+                </datalist>
+            </label>
+            {% include "composer/_mitre_picker.html" %}
+        </div>
 
         <label class="metadata-field metadata-field-wide">
             <span class="metadata-label">False positives <span class="metadata-hint">(one per line)</span></span>

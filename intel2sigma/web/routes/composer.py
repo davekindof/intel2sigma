@@ -58,6 +58,7 @@ from intel2sigma.web.load import (
     list_examples,
     load_example,
 )
+from intel2sigma.web.mitre import load_mitre_tree
 
 router = APIRouter(prefix="/composer")
 
@@ -201,6 +202,8 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
             draft=draft,
             can_advance=draft.can_advance_to_stage(3),
             attack_tag_suggestions=_ATTACK_TAG_SUGGESTIONS,
+            mitre_tree=load_mitre_tree(),
+            selected_attack_tags=set(draft.tags),
         )
 
     if draft.stage == 3:
