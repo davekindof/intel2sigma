@@ -18,7 +18,7 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CORPUS = REPO_ROOT / "sigmahq-rules"
-OUT_DIR = REPO_ROOT / "data" / "examples"
+OUT_DIR = REPO_ROOT / "intel2sigma" / "data" / "examples"
 
 # Each tuple: (source path under sigmahq-rules/, output filename in data/examples/,
 # why-this-is-instructive blurb that goes in the example's index entry).

@@ -63,7 +63,7 @@ _DOMAINS: dict[str, str] = {
 }
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-OUTPUT = REPO_ROOT / "data" / "mitre_attack.json"
+OUTPUT = REPO_ROOT / "intel2sigma" / "data" / "mitre_attack.json"
 
 
 def main() -> int:  # noqa: PLR0912, PLR0915 (one-shot build script; flat top-down sequence reads more clearly than splitting into helpers)

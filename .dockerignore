@@ -1,0 +1,49 @@
+# Build cleanliness — keep the build context small and reproducible.
+
+# Python build artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+
+# Tooling caches
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Tests aren't shipped in the runtime image (only the package + venv are).
+tests/
+docs/
+scripts/
+
+# IDE / editor / OS noise
+.vscode/
+.idea/
+.cursor/
+.claude/
+*.swp
+.DS_Store
+Thumbs.db
+
+# VCS — uv reads pyproject.toml + uv.lock; .git would balloon the build
+# context and contains nothing the wheel needs.
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Files that don't belong in the runtime image
+SPEC.md
+ROADMAP.md
+CLAUDE.md
+*.local.json
+sigmahq-rules/
