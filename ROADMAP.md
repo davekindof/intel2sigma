@@ -26,9 +26,8 @@ Phased delivery plan. Each phase has an exit gate. Do not start the next phase u
 **Scope** (✅ shipped / ⏳ in progress / ⏸️ deferred):
 - ✅ `core/convert/` — pySigma wrapper with `data/pipelines.yml`-driven matrix for 5 conversion targets (Sentinel KQL, MDE KQL, Splunk, Elastic, CrowdStrike)
 - ✅ Golden tests for all (logsource, backend) pairs in the matrix
-- ⏳ `core/heuristics/` — **MVP set of 5–8 high-leverage checks** for v1.0; full ≥22-check catalog moved to v1.7 (see ``docs/heuristics.md`` status table). Severity/enablement driven from `data/heuristics.yml`.
-- ⏳ Heuristic calibration against the SigmaHQ corpus (frequency analysis picks the v1.0 MVP set)
-- ⏳ `core/validate/tier3.py` — SigmaHQ conventions advisory (subset for v1.0; rest in v1.7)
+- ✅ `core/heuristics/` — **MVP set of 8 checks** shipped: `h-001 h-021 h-030 h-050 h-051 h-060 h-061 h-062` (IOC-vs-behavior, lab artifacts, path specificity, condition integrity, metadata completeness). Severity/enablement driven from `intel2sigma/data/heuristics.yml`. Full catalog deferred to v1.7.
+- ✅ `core/validate/tier3.py` — runs the heuristic registry over a complete rule, returns advisories as `ValidationIssue` records with `H_<SEVERITY>_<id>` codes. Composer Stage 3 renders them with severity-coloured borders.
 - ✅ `web/` — FastAPI app with htmx + Jinja2
   - ✅ Guided mode (Stage 0 → 4)
   - ⏸️ Expert mode polish — basic shell exists, refinement deferred

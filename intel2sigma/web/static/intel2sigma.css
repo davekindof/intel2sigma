@@ -1076,6 +1076,42 @@ input[type="text"]:focus, textarea:focus, select:focus {
     font-size: 11px;
 }
 
+/* Tier-3 advisory list — same shape as .review-issues but with a
+   per-severity left-border accent so users can scan severity at
+   a glance without reading the H_<SEVERITY>_ prefix on the code. */
+.review-advisories {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+.review-advisories ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.review-advisories li {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--color-border-muted);
+    border-left: 3px solid transparent;
+    font-size: 13px;
+}
+.review-advisories li:last-child {
+    border-bottom: none;
+}
+.review-advisory-critical { border-left-color: var(--color-critical, #e85b5b); }
+.review-advisory-warn     { border-left-color: var(--color-warn); }
+.review-advisory-info     { border-left-color: var(--color-text-dim); }
+
+.review-section-hint {
+    font-weight: 400;
+    text-transform: none;
+    letter-spacing: normal;
+    color: var(--color-text-dim);
+    font-size: 12px;
+}
+
 /* ---- stage 4 output ---------------------------------------------- */
 
 .output-actions {

@@ -49,6 +49,28 @@ conversion output comes in stage 4.
 </section>
 {% endif %}
 
+{% if advisories %}
+<section class="review-advisories">
+    <h3 class="review-section-title review-section-title-warn">
+        Quality advisories
+        <span class="review-section-hint">— non-blocking suggestions; you can ship as-is.</span>
+    </h3>
+    <ul>
+        {% for advisory in advisories %}
+        <li class="review-advisory review-advisory-{{ advisory.code.split('_')[1] | lower if '_' in advisory.code else 'info' }}">
+            <span class="health-issue-id">{{ advisory.code }}</span>
+            {{ advisory.message }}
+            {% if advisory.location %}<span class="review-issue-loc">{{ advisory.location }}</span>{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</section>
+{% elif rule %}
+<section class="review-clean">
+    <h3 class="review-section-title review-section-title-ok">✓ No quality advisories</h3>
+</section>
+{% endif %}
+
 <div class="stage-nav">
     <button type="button"
             class="button-primary"

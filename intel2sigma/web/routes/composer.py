@@ -40,6 +40,7 @@ from intel2sigma.core.taxonomy import (
     TaxonomyRegistry,
     load_taxonomy,
 )
+from intel2sigma.core.validate import validate_tier3
 from intel2sigma.core.validate.issues import ValidationIssue
 from intel2sigma.web.draft import (
     DetectionBlockDraft,
@@ -212,11 +213,15 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
         rule_or_issues = draft.to_sigma_rule()
         issues = rule_or_issues if isinstance(rule_or_issues, list) else []
         rule = rule_or_issues if isinstance(rule_or_issues, SigmaRule) else None
+        # Tier 3 (heuristics) only runs when tier 1 + tier 2 pass — there's
+        # no signal in heuristically reviewing an unparseable rule.
+        advisories = validate_tier3(rule) if rule is not None else []
         return templates.get_template("composer/stage3_review.html").render(
             request=request,
             draft=draft,
             rule=rule,
             review_issues=_sorted_issues(issues),
+            advisories=_sorted_advisories(advisories),
             prose_summary=_prose_summary(rule, draft),
             can_advance=rule is not None,
         )
@@ -465,6 +470,28 @@ def _convert_all_backends(rule: SigmaRule) -> dict[str, dict[str, str]]:
 def _sorted_issues(issues: Iterable[ValidationIssue]) -> list[ValidationIssue]:
     """Stable sort so the preview pane doesn't reorder between identical states."""
     return sorted(issues, key=lambda i: (i.tier, i.code, i.location or ""))
+
+
+# Severity prefix → display order. Lower value = higher visual priority.
+# Encoded in tier3.py as the H_<SEVERITY>_ prefix on the issue code.
+_ADVISORY_ORDER: dict[str, int] = {"H_CRITICAL_": 0, "H_WARN_": 1, "H_INFO_": 2}
+
+
+def _sorted_advisories(issues: Iterable[ValidationIssue]) -> list[ValidationIssue]:
+    """Order tier-3 advisories by severity (critical → warn → info), then id.
+
+    Critical advisories surface first so the user resolves real bugs before
+    style nudges. Within a severity bucket, sort by code so identical rule
+    states render advisories in the same order.
+    """
+
+    def _rank(issue: ValidationIssue) -> tuple[int, str, str]:
+        for prefix, rank in _ADVISORY_ORDER.items():
+            if issue.code.startswith(prefix):
+                return (rank, issue.code, issue.location or "")
+        return (99, issue.code, issue.location or "")
+
+    return sorted(issues, key=_rank)
 
 
 # ---------------------------------------------------------------------------

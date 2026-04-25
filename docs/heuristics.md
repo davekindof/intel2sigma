@@ -4,7 +4,7 @@ Heuristics catch rule-quality issues that are valid Sigma but bad detection. The
 
 Per CLAUDE.md I-5, heuristic severities and enablement live in `intel2sigma/data/heuristics.yml`, not in code. The functions themselves live in `core/heuristics/checks/`.
 
-> **Status (v1.0): MVP scope.** The catalog below originally targeted ~22 heuristics for v1.0. After scope review, v1.0 ships an **MVP set of 5–8 high-leverage checks** picked by frequency analysis against the SigmaHQ corpus (the patterns that actually fire on real-world rules, not the ones that look most comprehensive on paper). The remaining catalog entries are deferred to v1.7 and added quarterly as testers tell us which categories matter. The split is purely scope, not architecture: the registry decorator, the ``HeuristicResult`` shape, and ``data/heuristics.yml`` are stable from v1.0. Each row in the catalog will gain a `Status` column (``v1.0`` / ``v1.7``) once the MVP picks are committed. See ROADMAP §v1.7.
+> **Status (v1.0): MVP scope.** v1.0 ships an **MVP set of 8 heuristics** spanning 5 of the 8 catalog categories: **h-001, h-021, h-030, h-050, h-051, h-060, h-061, h-062**. They cover the patterns testers will hit most often (IOC-only rules from the paste-and-classify flow, missing ATT&CK tags, lab-artifact RFC1918 IPs, hardcoded user-profile paths, and the two condition-integrity bugs) without requiring an external corpus or sample dataset. The remaining ~17 catalog entries are deferred to v1.7 per ROADMAP §v1.7 and added quarterly per `docs/recalibration.md`. The split is scope-only — the registry decorator, the `HeuristicResult` shape, and `intel2sigma/data/heuristics.yml` are stable from v1.0; new heuristics are purely additive.
 
 ## Heuristic definition
 
@@ -156,9 +156,9 @@ The **Status** column is the load-bearing backlog tracker. Every heuristic in th
 | h-073 | warn | v1.0 | Value appears to be specific to a single sample (GUID, random string) |
 | h-074 | info | v1.1 | Value contains likely lab-specific hostname |
 
-### v1.0 tally
+### v1.0 tally — what actually shipped
 
-25 heuristics ship at v1.0: **h-001 h-002 h-003 h-010 h-011 h-012 h-021 h-022 h-030 h-032 h-040 h-041 h-044 h-050 h-051 h-052 h-053 h-060 h-061 h-062 h-063 h-064 h-066 h-070 h-073** — spanning all eight categories. Remaining 16 ship at v1.1.
+8 heuristics ship at v1.0: **h-001 h-021 h-030 h-050 h-051 h-060 h-061 h-062**, spanning IOC-vs-behavior, lab-artifacts, path-specificity, condition-integrity, and metadata-completeness. The remaining ~17 entries listed above are deferred to v1.7 and the `Status` column will be added once those land. See SPEC.md decision log entry `2026-04-25 — Heuristics catalog split for v1.0` for the rationale.
 
 ## Calibration methodology
 

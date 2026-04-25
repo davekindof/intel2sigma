@@ -1,0 +1,49 @@
+# Per-heuristic severity + enablement.
+#
+# Shape:
+#   heuristics:
+#     <heuristic-id>:
+#       severity: info | warn | critical
+#       enabled:  true | false
+#
+# Re-tuning is a data-only PR per CLAUDE.md I-5. The catalog and the
+# function signatures stay in code; what fires and how loudly stays here.
+#
+# v1.0 ships an MVP set of 8 heuristics. Remaining catalog entries are
+# tracked in docs/heuristics.md and will be added quarterly per
+# docs/recalibration.md.
+
+heuristics:
+  # ----- IOC vs behavior --------------------------------------------------
+  h-001:
+    severity: warn
+    enabled: true
+
+  # ----- Lab artifacts ----------------------------------------------------
+  h-021:
+    severity: warn
+    enabled: true
+
+  # ----- Path specificity -------------------------------------------------
+  h-030:
+    severity: warn
+    enabled: true
+
+  # ----- Condition integrity ----------------------------------------------
+  h-050:
+    severity: critical
+    enabled: true
+  h-051:
+    severity: warn
+    enabled: true
+
+  # ----- Metadata completeness --------------------------------------------
+  h-060:
+    severity: warn
+    enabled: true
+  h-061:
+    severity: warn
+    enabled: true
+  h-062:
+    severity: warn
+    enabled: true
