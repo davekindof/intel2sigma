@@ -41,10 +41,20 @@ CrowdStrike queries from the core.convert engine.
     </button>
 
     <a class="button-secondary"
+       hx-post="{{ url_for('composer_build_similar') }}"
+       hx-include="#rule-state"
+       hx-target="#composer-panel"
+       hx-swap="innerHTML"
+       title="Reset observation and detection blocks but keep metadata + IOC session — start the next rule of a campaign without retyping shared fields.">
+        Build similar rule
+    </a>
+
+    <a class="button-secondary"
        hx-post="{{ url_for('composer_restart') }}"
        hx-include="#rule-state"
        hx-target="#composer-panel"
-       hx-swap="innerHTML">
+       hx-swap="innerHTML"
+       title="Start a fresh rule with no carryover.">
         Build another rule
     </a>
 </section>

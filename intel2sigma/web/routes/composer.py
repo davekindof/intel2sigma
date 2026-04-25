@@ -508,6 +508,41 @@ async def composer_restart(
     return _render_stage(request, draft)
 
 
+@router.post("/build-similar", name="composer_build_similar")
+async def composer_build_similar(
+    request: Request,
+    rule_state: Annotated[str, Form()] = "",
+) -> HTMLResponse:
+    """Reset for a sibling rule of a campaign.
+
+    Carries forward: title (with `` (related)`` appended), description,
+    references, author, date, modified, tags, level, falsepositives, and
+    the IOC session (so the user can pick the next category without
+    re-pasting). Resets: observation_id, platform_id, logsource,
+    detections, condition_tree, match_combinator. Lands on Stage 0.
+
+    Distinct from "Build another rule" (which calls ``composer_restart``
+    and clears everything).
+    """
+    draft = RuleDraft.from_json(rule_state)
+
+    # Title gets a marker so the user notices and edits it on the next
+    # round through Stage 2; everything else metadata-side carries.
+    if draft.title and "(related)" not in draft.title:
+        draft.title = f"{draft.title} (related)"
+
+    # Detection-side reset.
+    draft.observation_id = ""
+    draft.platform_id = ""
+    draft.logsource = draft.logsource.__class__()
+    draft.detections = []
+    draft.condition_tree = None
+    draft.match_combinator = "all_of"
+
+    draft.stage = 0
+    return _render_stage(request, draft)
+
+
 @router.post("/update", name="composer_update")
 async def composer_update(request: Request) -> HTMLResponse:
     """Catch-all mutation route.
