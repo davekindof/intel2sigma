@@ -443,6 +443,67 @@ input[type="text"]:focus, textarea:focus, select:focus {
 }
 .stage-subtitle-muted { color: var(--color-text-dim); }
 
+/* Stage breadcrumb — horizontal sequence of stages with click-to-jump.
+   Reachable stages are subdued buttons; the current stage is the
+   accent-coloured pill; locked stages render as plain spans. */
+.stage-breadcrumb {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border-muted);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+}
+.stage-step {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--color-text-muted);
+    font: inherit;
+    cursor: default;
+}
+.stage-step-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-dim);
+}
+.stage-step-label {
+    font-weight: 500;
+}
+.stage-step-reachable:not(.stage-step-current) {
+    cursor: pointer;
+    color: var(--color-text);
+}
+.stage-step-reachable:not(.stage-step-current):hover {
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+.stage-step-current {
+    background: var(--color-accent-muted);
+    color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+.stage-step-current .stage-step-num,
+.stage-step-current .stage-step-label {
+    color: inherit;
+}
+.stage-step-locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+.stage-step-sep {
+    color: var(--color-text-dim);
+    user-select: none;
+}
+
 /* Plain-English description of the current detection — appears on
    Stages 1 and 3 to give non-Sigma users a "what does this rule do"
    take without reading the YAML. */

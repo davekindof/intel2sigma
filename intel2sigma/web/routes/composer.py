@@ -172,9 +172,28 @@ def _render_stage(request: Request, draft: RuleDraft) -> HTMLResponse:
     return HTMLResponse(body)
 
 
+def _breadcrumb_context(draft: RuleDraft) -> dict[str, Any]:
+    """Inputs for ``composer/_breadcrumb.html``.
+
+    ``current_stage`` matches the draft's stage; ``reachable`` is a
+    5-tuple of bools, one per stage. Stages at or below current are
+    always reachable (backward navigation is non-destructive); forward
+    stages require :meth:`RuleDraft.can_advance_to_stage` to pass.
+    """
+    current = draft.stage
+    reachable: list[bool] = []
+    for stage in range(_MAX_STAGE + 1):
+        if stage <= current:
+            reachable.append(True)
+        else:
+            reachable.append(draft.can_advance_to_stage(stage))
+    return {"current_stage": current, "reachable": reachable}
+
+
 def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: TaxonomyRegistry) -> str:  # noqa: PLR0911 (one branch per stage reads clearly as a switch)
     """Render the stage partial appropriate for the draft's current stage."""
     templates = _templates(request)
+    bc = _breadcrumb_context(draft)
 
     if draft.stage == 0 or not draft.observation_id:
         return templates.get_template("composer/stage0_observation.html").render(
@@ -183,6 +202,7 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
             ioc_summaries=_ioc_panel_context(draft),
             ioc_total=len(draft.iocs),
             ioc_used_count=sum(1 for i in draft.iocs if i.used),
+            **bc,
         )
 
     try:
@@ -197,6 +217,7 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
             ioc_summaries=_ioc_panel_context(draft),
             ioc_total=len(draft.iocs),
             ioc_used_count=sum(1 for i in draft.iocs if i.used),
+            **_breadcrumb_context(draft),
         )
 
     if draft.stage == 2:
@@ -207,6 +228,7 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
             attack_tag_suggestions=_ATTACK_TAG_SUGGESTIONS,
             mitre_tree=load_mitre_tree(),
             selected_attack_tags=set(draft.tags),
+            **bc,
         )
 
     if draft.stage == 3:
@@ -224,6 +246,7 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
             advisories=_sorted_advisories(advisories),
             prose_summary=_prose_summary(rule, draft),
             can_advance=rule is not None,
+            **bc,
         )
 
     if draft.stage == 4:
@@ -241,6 +264,7 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
             prose_summary=_prose_summary(rule, draft),
             rule_state_urlencoded=quote(draft.to_json()),
             download_filename=_download_filename(rule),
+            **bc,
         )
 
     # Default: stage 1 — detection editor.
@@ -260,6 +284,7 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
         # see "what does this rule actually do?" without reading YAML.
         prose_summary=_prose_summary(None, draft),
         can_advance=draft.can_advance_to_stage(2),
+        **bc,
     )
 
 
@@ -1107,6 +1132,48 @@ async def composer_back(
     if draft.stage == 0:
         draft.observation_id = ""
         draft.platform_id = ""
+    return _render_stage(request, draft)
+
+
+@router.post("/jump", name="composer_jump")
+async def composer_jump(
+    request: Request,
+    rule_state: Annotated[str, Form()] = "",
+    target: Annotated[str, Form()] = "0",
+) -> HTMLResponse:
+    """Jump directly to ``target`` stage if reachable from the current draft.
+
+    Reachability check: backward jumps are always allowed (no destructive
+    side-effect — the user just wants to see/edit an earlier stage).
+    Forward jumps require :meth:`RuleDraft.can_advance_to_stage` to pass
+    for every intermediate stage. If a forward jump can't reach the
+    requested stage, we land the user at the highest stage they qualify
+    for instead of silently failing.
+
+    Wired from the breadcrumb partial; deliberately distinct from
+    :func:`composer_advance` (single-step Next) and :func:`composer_back`
+    (single-step Back) because those carry their own UX semantics
+    (e.g. ``composer_back`` clears observation when stepping below 1).
+    """
+    try:
+        target_stage = int(target)
+    except ValueError:
+        return _render_stage(request, RuleDraft.from_json(rule_state))
+    target_stage = max(0, min(target_stage, _MAX_STAGE))
+
+    draft = RuleDraft.from_json(rule_state)
+    if target_stage <= draft.stage:
+        # Backward jump — purely navigational.
+        draft.stage = target_stage
+        return _render_stage(request, draft)
+
+    # Forward jump — walk the gates and stop at the highest reachable.
+    reached = draft.stage
+    for candidate in range(draft.stage + 1, target_stage + 1):
+        if not draft.can_advance_to_stage(candidate):
+            break
+        reached = candidate
+    draft.stage = reached
     return _render_stage(request, draft)
 
 

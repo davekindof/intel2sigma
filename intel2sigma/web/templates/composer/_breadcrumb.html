@@ -1,0 +1,55 @@
+{# Stage breadcrumb — click any reachable stage to jump.
+
+A non-destructive navigation strip that lets users move freely between
+stages without going through Back / Next clicks. Backward jumps are
+always allowed (the previous stages still hold the user's data); forward
+jumps are gated by ``RuleDraft.can_advance_to_stage`` per stage and
+silently land at the highest reachable stage if the user clicks past
+their current readiness.
+
+Context expected from the route render:
+  current_stage : int (0..4) — which stage the composer panel is showing
+  reachable     : list[bool] of length 5 — which stages are clickable
+
+Renders as a horizontal sequence with separators, mirroring the
+"1. Observation → 2. Detection → 3. Metadata → 4. Review → 5. Output"
+mental model.
+#}
+
+<nav class="stage-breadcrumb" aria-label="Composer stages">
+    {% set stages = [
+        ('Observation', 'Pick what you observed'),
+        ('Detection', 'Compose match + filter blocks'),
+        ('Metadata', 'Title, description, ATT&CK tags'),
+        ('Review', 'Read the rule before output'),
+        ('Output', 'Download YAML + SIEM queries'),
+    ] %}
+    {% for label, hint in stages %}
+        {% set idx = loop.index0 %}
+        {% set is_current = (idx == current_stage) %}
+        {% set is_clickable = reachable[idx] and not is_current %}
+        {% set classes = 'stage-step' %}
+        {% if is_current %}{% set classes = classes + ' stage-step-current' %}{% endif %}
+        {% if reachable[idx] %}{% set classes = classes + ' stage-step-reachable' %}
+        {% else %}{% set classes = classes + ' stage-step-locked' %}{% endif %}
+        {% if is_clickable %}
+        <button type="button"
+                class="{{ classes }}"
+                hx-post="{{ url_for('composer_jump') }}"
+                hx-include="#rule-state"
+                hx-vals='{"target": "{{ idx }}"}'
+                hx-target="#composer-panel"
+                hx-swap="innerHTML"
+                title="{{ hint }}">
+            <span class="stage-step-num">{{ idx }}</span>
+            <span class="stage-step-label">{{ label }}</span>
+        </button>
+        {% else %}
+        <span class="{{ classes }}" title="{{ hint }}{% if not reachable[idx] %} — complete earlier stages first{% endif %}">
+            <span class="stage-step-num">{{ idx }}</span>
+            <span class="stage-step-label">{{ label }}</span>
+        </span>
+        {% endif %}
+        {% if not loop.last %}<span class="stage-step-sep" aria-hidden="true">→</span>{% endif %}
+    {% endfor %}
+</nav>
