@@ -45,6 +45,12 @@ class ConversionFailedError(PipelineMatrixError):
     ``backend_id`` and ``pipelines`` capture which conversion attempt failed;
     ``cause`` retains the original pySigma exception so UI code can
     fall back to a raw message when needed.
+
+    The ``str()`` form is what the conversion-tab template renders, so it
+    needs to read like operator advice, not like a stack trace. The
+    :func:`_friendlier` translator below recognises a small set of known
+    pySigma error shapes and rewrites them into "this rule's logsource
+    doesn't have a default mapping for this backend" guidance.
     """
 
     def __init__(
@@ -54,13 +60,50 @@ class ConversionFailedError(PipelineMatrixError):
         cause: Exception,
     ) -> None:
         pipeline_str = ", ".join(pipelines) if pipelines else "(baseline only)"
-        super().__init__(
+        message = _friendlier(backend_id, pipelines, cause) or (
             f"pySigma failed to convert rule for backend {backend_id!r} "
             f"with pipelines [{pipeline_str}]: {cause}"
         )
+        super().__init__(message)
         self.backend_id = backend_id
         self.pipelines = pipelines
         self.cause = cause
+
+
+def _friendlier(
+    backend_id: str,
+    pipelines: tuple[str, ...],
+    cause: Exception,
+) -> str | None:
+    """Map known pySigma error shapes onto operator-friendly guidance.
+
+    Returns ``None`` if the error doesn't match a known shape, so the
+    caller falls back to the raw pySigma message.
+
+    Today's recognised shapes:
+
+    * "Unable to determine table name from rule" — pySigma-backend-kusto's
+      Microsoft Defender / Sentinel pipelines couldn't map the rule's
+      logsource ``category`` to a Defender XDR / Sentinel table. This is a
+      coverage gap in the upstream pipeline (some Sysmon-only categories
+      like ``create_remote_thread`` aren't in their category-to-table
+      maps). Tell the user what to do instead.
+    """
+    msg = str(cause)
+    if "Unable to determine table name from rule" in msg:
+        # Strip the verbose "see README" trailer pySigma appends.
+        backend_label = {
+            "kusto_mde": "Microsoft Defender XDR",
+            "kusto_sentinel": "Microsoft Sentinel",
+        }.get(backend_id, backend_id)
+        return (
+            f"This rule's logsource category doesn't have a default {backend_label} "
+            f"table mapping in pySigma's pipeline. Sysmon-only categories like "
+            f"``create_remote_thread`` are a known coverage gap. Try "
+            f"Splunk / Elastic / CrowdStrike instead, or use a Windows "
+            f"Security-channel category if the detection allows it."
+        )
+    return None
 
 
 def convert(

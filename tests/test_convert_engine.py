@@ -129,6 +129,45 @@ def test_unknown_backend_raises(encoded_ps_rule: SigmaRule) -> None:
         convert(encoded_ps_rule, "qradar")
 
 
+def test_unmappable_category_emits_friendlier_error() -> None:
+    """A rule whose logsource category isn't in the kusto_mde pipeline's
+    category-to-table map produces a guidance-shaped error string,
+    not the raw "Unable to determine table name from rule" trace.
+
+    create_remote_thread (Sysmon EID 8) is the canonical example —
+    pySigma-backend-kusto's microsoft_365_defender pipeline doesn't
+    map it to a Defender XDR table, so conversion fails. The user
+    deserves "use Splunk/Elastic/CrowdStrike instead" not a paragraph
+    of pipeline-state internals.
+    """
+    rule = SigmaRule(
+        title="CRT rule for which Defender has no table mapping",
+        id=UUID("33333333-4444-5555-6666-777777777777"),
+        date=date(2026, 4, 25),
+        logsource=LogSource(product="windows", category="create_remote_thread"),
+        detections=[
+            DetectionBlock(
+                name="match_1",
+                items=[
+                    DetectionItem(field="TargetImage", modifiers=["endswith"], values=["x"]),
+                ],
+            ),
+        ],
+        condition=ConditionExpression(selection="match_1"),
+    )
+
+    with pytest.raises(ConversionFailedError) as exc_info:
+        convert(rule, "kusto_mde")
+
+    msg = str(exc_info.value)
+    # Friendlier message must mention what to do next.
+    assert "table mapping" in msg
+    assert "Splunk" in msg or "Elastic" in msg or "CrowdStrike" in msg
+    # And must not parrot pySigma's internal "1) ... 2) ..." pipeline
+    # priority list — that's what we rewrote away.
+    assert "query_table parameter" not in msg
+
+
 def test_conversion_failure_wraps_pysigma_error() -> None:
     """A rule whose logsource routes to a backend but whose shape pySigma
     rejects surfaces as ConversionFailedError, not a raw SigmaError.
