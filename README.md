@@ -23,7 +23,7 @@ intel2sigma is a guided composer for Sigma rules targeted at malware analysts, C
 
 ### Hosted
 
-Go to the hosted instance. No account needed. Sessions are ephemeral; the server keeps nothing. The hosted deployment runs as a stateless container on Azure Container Apps behind Cloudflare (TLS, WAF, rate limiting); your inputs never touch a database.
+Visit [intel2sigma.davidsharp.io](https://intel2sigma.davidsharp.io). No account needed. Sessions are ephemeral; the server keeps nothing. The hosted deployment runs as a stateless container on Azure Container Apps behind Cloudflare (TLS, WAF, rate limiting); your inputs never touch a database.
 
 ### Local (user install)
 
@@ -39,7 +39,7 @@ Then open `http://localhost:8000`.
 Requires `uv` (install: `curl -LsSf https://astral.sh/uv/install.sh | sh`, or on Windows: `powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"`).
 
 ```bash
-git clone https://github.com/[org]/intel2sigma
+git clone https://github.com/davekindof/intel2sigma
 cd intel2sigma
 uv sync                                           # install all deps
 uv run pytest                                     # run the test suite
@@ -61,7 +61,7 @@ See `CLAUDE.md` for the full development workflow and architectural rules.
 ### Docker
 
 ```bash
-docker run -p 8000:8000 ghcr.io/[org]/intel2sigma:latest
+docker run -p 8000:8000 intel2sigma.azurecr.io/intel2sigma:latest
 ```
 
 All three options run the same stateless app.
