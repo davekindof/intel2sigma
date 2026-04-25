@@ -113,24 +113,65 @@ def test_composer_new_discards_metadata_and_iocs(client: TestClient) -> None:
     assert state["stage"] == 0
 
 
-def test_composer_restart_still_preserves_metadata(client: TestClient) -> None:
-    """Sanity check: /composer/restart keeps its preserve-metadata semantic.
+def test_back_then_pick_new_observation_keeps_detection_blocks(client: TestClient) -> None:
+    """The motivating tester scenario: load (or build) a rule, hit "Back
+    to observation" intending to switch logsource, pick a new one.
+    Detection blocks should survive — the user has work to keep.
 
-    The whole point of the new endpoint is that /composer/restart had
-    one job (Stage 1 back button, preserve metadata) and was being
-    misused as the "fully reset" path. Make sure we didn't break the
-    Stage 1 back behaviour while fixing the misuse.
+    Observation A (file_event) → Back → Observation B (process_creation).
+    The match block from Observation A should still be present in the
+    final state. Field names may not be valid for the new observation,
+    but the structure + values + block names are preserved.
+    """
+    # Start with an authored rule on Observation A.
+    state = _populated_draft_at_stage_4()  # observation_id = process_creation, has match_1
+
+    # Click "Back to observation" — composer_restart.
+    r = client.post("/composer/restart", data={"rule_state": state})
+    after_back = _extract_state(r.text)
+    assert after_back["stage"] == 0
+    assert after_back["observation_id"] == ""
+    assert after_back["detections"], "Detections lost on Back to observation"
+
+    # Now pick a different observation.
+    r = client.post(
+        "/composer/select-observation",
+        data={"rule_state": json.dumps(after_back), "observation_id": "file_event"},
+    )
+    after_pick = _extract_state(r.text)
+    assert after_pick["stage"] == 1
+    assert after_pick["observation_id"] == "file_event"
+    # The original detection block is still there.
+    assert len(after_pick["detections"]) == 1
+    assert after_pick["detections"][0]["name"] == "match_1"
+    # Item value preserved (field name may or may not be valid for the
+    # new observation; that's a Stage 1 dropdown concern, not data loss).
+    item = after_pick["detections"][0]["items"][0]
+    assert item["values"] == ["\\powershell.exe"]
+
+
+def test_composer_restart_preserves_metadata_and_detections(client: TestClient) -> None:
+    """Sanity check: /composer/restart preserves work; /composer/new clears it.
+
+    /composer/restart originally cleared detections too — that silently
+    destroyed work for users who loaded a rule and then clicked
+    "Back to observation" to explore. The non-destructive contract is:
+    metadata + IOC session + detection blocks survive; only the
+    observation choice resets.
     """
     r = client.post("/composer/restart", data={"rule_state": _populated_draft_at_stage_4()})
     state = _extract_state(r.text)
     # Observation cleared (back from Stage 1 should let user pick anew).
     assert state["observation_id"] == ""
-    assert state["detections"] == []
     assert state["stage"] == 0
-    # But metadata preserved — that's the contract.
+    # Metadata preserved — long-standing contract.
     assert state["title"] == "Encoded PowerShell from non-SYSTEM"
     assert state["tags"] == ["attack.execution", "attack.t1059.001"]
     assert state["author"] == "alice"
+    # Detections preserved — the change. The user can pick a new
+    # observation without losing the match-block authoring.
+    assert len(state["detections"]) == 1
+    assert state["detections"][0]["name"] == "match_1"
 
 
 # ---------------------------------------------------------------------------

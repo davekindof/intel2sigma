@@ -537,15 +537,23 @@ async def composer_restart(
     """Back button on stage 1 — clear observation selection, return to stage 0.
 
     Preserves metadata (title, description, tags, references, author, date,
-    falsepositives, level) and the IOC session. Distinct from
-    :func:`composer_new` (header "New rule" / Stage 4 "Build another rule"),
-    which clears everything.
+    falsepositives, level), the IOC session, AND the detection blocks the
+    user has already authored. The original behaviour cleared detections
+    too, which silently destroyed work for users who loaded a rule and
+    then explored the observation picker. The "fully reset" path is
+    :func:`composer_new` (header "New rule" / Stage 4 "Build another
+    rule"); this one is non-destructive on purpose.
+
+    Field names in the preserved detections may not be valid for the
+    next observation the user picks. That's a Stage 1 concern — the
+    field dropdown's defensive fallback (commit d705e1d) renders an
+    unknown field cleanly and lets the user pick a new one without
+    losing the value.
     """
     draft = RuleDraft.from_json(rule_state)
     draft.observation_id = ""
     draft.platform_id = ""
     draft.logsource = draft.logsource.__class__()
-    draft.detections = []
     draft.condition_tree = None
     draft.stage = 0
     return _render_stage(request, draft)
