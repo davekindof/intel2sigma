@@ -31,6 +31,14 @@ offer them.
         {{ observation_spec.label }} ·
         <span class="stage-subtitle-muted">{{ platform_id }}</span>
     </p>
+    {% if prose_summary and match_blocks %}
+    {# Plain-English summary of the current detection. Helps non-Sigma
+       users understand what they're building (or what was loaded) without
+       reading the YAML. Only appears once there's a populated match
+       block — empty Stage 1 doesn't need a "no match conditions" line
+       when the placeholder text already says it. #}
+    <p class="stage-prose-summary">{{ prose_summary }}</p>
+    {% endif %}
 </div>
 
 <form id="composer-form"

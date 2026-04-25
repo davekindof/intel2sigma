@@ -246,3 +246,57 @@ def test_stage_1_preview_pane_does_not_render_yaml_when_completely_empty(
     body = r.text
     # Empty-draft rendering: the placeholder text is what users see first.
     assert "Canonical Sigma YAML appears here as the composer produces it" in body
+
+
+def test_stage_1_renders_prose_summary_for_populated_detection(client: TestClient) -> None:
+    """Once a match block has a populated item, Stage 1 shows a plain-
+    English summary so non-Sigma users can see what they're building.
+    """
+    state = json.dumps(
+        {
+            "observation_id": "process_creation",
+            "platform_id": "windows",
+            "logsource": {
+                "category": "process_creation",
+                "product": "windows",
+                "service": None,
+            },
+            "detections": [
+                {
+                    "name": "match_1",
+                    "is_filter": False,
+                    "combinator": "all_of",
+                    "items": [
+                        {
+                            "field": "Image",
+                            "modifiers": ["endswith"],
+                            "values": ["\\evil.exe"],
+                        }
+                    ],
+                }
+            ],
+            "match_combinator": "all_of",
+            "stage": 1,
+        }
+    )
+    r = client.post(
+        "/composer/update",
+        data={"rule_state": state, "action": "no_op"},
+    )
+    body = r.text
+    assert 'class="stage-prose-summary"' in body
+    assert "This rule flags process_creation" in body
+    assert "Image" in body and "endswith" in body
+
+
+def test_stage_1_omits_prose_summary_when_no_populated_match(client: TestClient) -> None:
+    """An empty Stage 1 (no match items yet) should NOT show a prose
+    summary that says "no match conditions" — the placeholder text in
+    the match-blocks region already covers that.
+    """
+    r = client.post(
+        "/composer/select-observation",
+        data={"rule_state": "{}", "observation_id": "process_creation"},
+    )
+    body = r.text
+    assert 'class="stage-prose-summary"' not in body

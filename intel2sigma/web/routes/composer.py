@@ -254,6 +254,11 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
         match_combinator=draft.match_combinator,
         field_specs_by_name=field_specs_by_name,
         composed_condition=_describe_condition(draft),
+        # Plain-English summary woven from observation + populated fields.
+        # Same helper Stage 3 uses; with rule=None it works on the draft
+        # alone, which is what we have on Stage 1. Lets non-Sigma users
+        # see "what does this rule actually do?" without reading YAML.
+        prose_summary=_prose_summary(None, draft),
         can_advance=draft.can_advance_to_stage(2),
     )
 
