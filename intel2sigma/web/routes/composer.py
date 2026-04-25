@@ -42,10 +42,17 @@ from intel2sigma.core.taxonomy import (
 )
 from intel2sigma.core.validate.issues import ValidationIssue
 from intel2sigma.web.draft import (
+    DetectionBlockDraft,
     DetectionItemDraft,
+    IOCSession,
     RuleDraft,
 )
 from intel2sigma.web.highlight import yaml_to_html
+from intel2sigma.web.ioc import (
+    build_detection_items,
+    classify,
+    summarise,
+)
 from intel2sigma.web.load import (
     draft_from_yaml,
     list_examples,
@@ -169,6 +176,9 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
         return templates.get_template("composer/stage0_observation.html").render(
             request=request,
             observation_groups=_build_observation_groups(taxonomy),
+            ioc_summaries=_ioc_panel_context(draft),
+            ioc_total=len(draft.iocs),
+            ioc_used_count=sum(1 for i in draft.iocs if i.used),
         )
 
     try:
@@ -180,6 +190,9 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
         return templates.get_template("composer/stage0_observation.html").render(
             request=request,
             observation_groups=_build_observation_groups(taxonomy),
+            ioc_summaries=_ioc_panel_context(draft),
+            ioc_total=len(draft.iocs),
+            ioc_used_count=sum(1 for i in draft.iocs if i.used),
         )
 
     if draft.stage == 2:
@@ -544,6 +557,12 @@ def _apply_action(draft: RuleDraft, action: str, form: Any) -> None:  # noqa: PL
             _set_block_combinator(draft, form)
         case "set_match_combinator":
             _set_match_combinator(draft, form)
+        case "classify_iocs":
+            _classify_iocs(draft, form)
+        case "build_from_iocs":
+            _build_from_iocs(draft, form)
+        case "discard_iocs":
+            _discard_iocs(draft)
         case _:
             # Unknown action — ignore. The stage re-renders as-is.
             pass
@@ -641,6 +660,149 @@ def _set_match_combinator(draft: RuleDraft, form: Any) -> None:
     if value not in {"all_of", "any_of"}:
         return
     draft.match_combinator = value  # type: ignore[assignment]  # narrowed above
+
+
+def _classify_iocs(draft: RuleDraft, form: Any) -> None:
+    """Run the regex classifier on pasted text and store the result.
+
+    Replaces any previous IOC session — pasting again is a fresh start.
+    The composer stays on Stage 0; the panel re-renders with the new
+    classification.
+    """
+    text = str(form.get("iocs_text", ""))
+    parsed = classify(text)
+    draft.iocs = [
+        IOCSession(
+            raw=ioc.raw,
+            value=ioc.value,
+            category=ioc.category,
+            observation=ioc.observation,
+            used=False,
+        )
+        for ioc in parsed
+    ]
+
+
+def _build_from_iocs(draft: RuleDraft, form: Any) -> None:
+    """Jump-start a rule from the IOCs that route to ``observation_id``.
+
+    Pre-populates a single ``match_1`` block with combinator=any_of
+    holding one detection item per IOC. Marks those IOCs as ``used`` so
+    the Stage 0 panel can show them struck-through next time the user
+    returns (e.g. via "Build similar"). Advances to Stage 1 and sets the
+    rule's logsource from the catalogued observation.
+    """
+    observation_id = str(form.get("observation_id", "")).strip()
+    if not observation_id:
+        return
+
+    # Check the observation actually exists in our catalog before mutating.
+    # Catalogue access goes through prime_taxonomy() at app startup; this
+    # function deliberately doesn't import load_taxonomy at module level
+    # to avoid the I/O at import time. Lazy here.
+    from intel2sigma.core.taxonomy import load_taxonomy  # noqa: PLC0415
+
+    try:
+        spec = load_taxonomy().get(observation_id)
+    except KeyError:
+        return
+
+    # Re-hydrate IOC objects in the form ioc.py expects (so we can use
+    # build_detection_items unchanged). Skip already-used IOCs so a
+    # subsequent "Build similar" doesn't re-include the same indicators.
+    from intel2sigma.web.ioc import IOC  # noqa: PLC0415
+
+    available = [
+        IOC(raw=i.raw, value=i.value, category=i.category, observation=i.observation)  # type: ignore[arg-type]
+        for i in draft.iocs
+        if not i.used and i.observation == observation_id
+    ]
+    if not available:
+        return
+
+    items = build_detection_items(available, observation_id)
+    if not items:
+        return
+
+    # Mark consumed IOCs.
+    consumed_values = {ioc.value for ioc in available}
+    for entry in draft.iocs:
+        if entry.value in consumed_values and entry.observation == observation_id:
+            entry.used = True
+
+    # Set the observation + logsource so Stage 1 knows what fields to offer.
+    draft.observation_id = spec.id
+    draft.platform_id = spec.platforms[0].id if spec.platforms else ""
+    draft.logsource.category = spec.logsource.category
+    draft.logsource.product = spec.platforms[0].product if spec.platforms else None
+    draft.logsource.service = spec.logsource.service
+
+    # Replace the match-block list with a fresh any_of block holding the
+    # routed IOCs. We deliberately overwrite rather than append: the rule
+    # being built is the IOC-pack rule, not an extension of an existing
+    # detection.
+    draft.detections = [
+        DetectionBlockDraft(
+            name="match_1",
+            is_filter=False,
+            combinator="any_of",
+            items=items,
+        )
+    ]
+    draft.condition_tree = None  # auto-composer will produce it
+    draft.stage = 1
+
+
+def _discard_iocs(draft: RuleDraft) -> None:
+    """Clear the IOC session entirely — back to a fresh Stage 0."""
+    draft.iocs = []
+
+
+def _ioc_panel_context(draft: RuleDraft) -> list[dict[str, Any]]:
+    """Build the per-category data the Stage 0 IOC panel renders.
+
+    Returns one entry per category present in ``draft.iocs``, ordered as
+    :func:`web.ioc.summarise` orders them. Each entry carries:
+      - label, observation, category
+      - total: count of IOCs in this category
+      - used: count already consumed by a prior "Build" click
+      - remaining: total - used
+      - examples: up to 3 sample raw values for the modal preview
+    """
+    if not draft.iocs:
+        return []
+
+    # Re-build the IOC list in ioc.py form so summarise() works.
+    from intel2sigma.web.ioc import IOC  # noqa: PLC0415
+
+    rebuilt = [
+        IOC(raw=i.raw, value=i.value, category=i.category, observation=i.observation)  # type: ignore[arg-type]
+        for i in draft.iocs
+    ]
+    summaries = summarise(rebuilt)
+
+    used_per_category: dict[str, int] = {}
+    examples_per_category: dict[str, list[str]] = {}
+    for entry in draft.iocs:
+        if entry.used:
+            used_per_category[entry.category] = used_per_category.get(entry.category, 0) + 1
+        examples_per_category.setdefault(entry.category, []).append(entry.raw)
+
+    out: list[dict[str, Any]] = []
+    for s in summaries:
+        used = used_per_category.get(s.category, 0)
+        out.append(
+            {
+                "category": s.category,
+                "label": s.label,
+                "observation": s.observation,
+                "total": s.count,
+                "used": used,
+                "remaining": s.count - used,
+                "examples": examples_per_category.get(s.category, [])[:3],
+            }
+        )
+    return out
 
 
 def _set_metadata(draft: RuleDraft, form: Any) -> None:

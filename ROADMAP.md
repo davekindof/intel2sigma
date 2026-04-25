@@ -92,34 +92,43 @@ Phased delivery plan. Each phase has an exit gate. Do not start the next phase u
 
 **Exit gate**: Paste any rule from `rules-emerging-threats/` and edit it through the Guided flow.
 
-## v1.6 — Multi-observation composer + MITRE ATT&CK picker
+## v1.6 — IOC paste-and-classify, "Build similar rule", MITRE ATT&CK picker
 
-**Goal**: handle real IOC sets that span observation types, with first-class ATT&CK navigation.
+**Goal**: make CTI-style IOC ingestion fast and ATT&CK tagging discoverable, without changing the one-rule-per-session architecture.
 
 **Motivating scenario** (real-world example from a CTI hand-off):
 
-> Friend extracts IOCs from a malware sample they were emailed. The set contains five SHA256 hashes (initial zip, first-stage exe, encoded DLL, two dropped DLLs, two `.dat` payloads), one C2 domain, one IP+port, four System32 filenames (legitimate-DLL hijacks like `TimeBrokerClient.dll`), a Windows registry persistence key (`HKCU\SOFTWARE\HHClient`), an email sender, an Authenticode certificate serial, and a PDB-path string baked into the loader (`D:\CFILES\Projects\WinSSL`).
+> Friend extracts IOCs from a malware sample they were emailed. The set contains five SHA256 hashes, one C2 domain, one IP+port, four System32 filenames (legitimate-DLL hijacks), a Windows registry persistence key, an email sender, an Authenticode certificate serial, and a PDB-path string baked into the loader.
 >
-> Today: the user has to manually figure out which observation type each IOC belongs to, then build a separate rule for each, repeating shared metadata (title prefix, description, ATT&CK tags, references) every time.
+> Today: the user has to manually figure out which observation type each IOC belongs to, then build a separate rule for each, retyping shared metadata each time.
 >
-> v1.6 should let them paste the IOC list, see the composer route each IOC to the right observation type, and produce a *rule pack* — multiple Sigma rules with shared metadata, exported as one zip or one multi-document YAML.
+> v1.6: paste the IOC list once, the classifier groups by observation type, the user clicks one category to jump-start a rule (Stage 1 prepopulated with detection items in `any_of` form). They build → download → click "Build similar rule" — metadata carries forward; the IOC panel re-appears with already-used categories struck through. They pick the next category and repeat. Five rules in a campaign take ~30 minutes instead of a long copy-and-paste session.
+
+**Why not multi-observation composer?** Earlier drafts of this milestone proposed a tabbed multi-observation editor producing a single rule pack. The SigmaHQ corpus shows real practice is overwhelmingly single-rule-per-logsource (the example Axios rule itself was one file_event rule using within-block `any_of`, not a multi-rule pack). Multi-observation would have been a large architectural change touching every existing flow for a use case the corpus suggests is rare. Cut in favor of the simpler IOC classifier + "Build similar" pattern, which captures most of the value at a fraction of the complexity. Revisit in v2 with tester feedback driving the design.
 
 **Scope**:
 
-- **Multi-observation composer**. The current `RuleDraft` carries one observation. v1.6 introduces `RuleSetDraft` carrying a list of `RuleDraft`s plus shared metadata (title prefix, description, references, ATT&CK tags, author, date). Stage 0 lets the user pick *one or more* observations; Stage 1+ shows a tabbed editor — one tab per observation. Stage 4 outputs a zip or a multi-document YAML.
-- **IOC paste-and-route helper.** A textarea/CSV/free-text input on Stage 0 (or via the load modal). Heuristic routing of each IOC to the right observation:
-    - `[a-f0-9]{32|40|64}` → Hashes on file_event/image_load (and process_creation if no separate file event)
-    - IPv4/IPv6 (with optional port) → DestinationIp on network_connection
-    - DNS-shaped → QueryName on dns_query
-    - `\\Device\\HarddiskVolume…` or `[A-Z]:\\…` paths → TargetFilename on file_event (or Image on process_creation, depending on extension)
-    - `HK[CL][UM]\\…` → TargetObject on registry_set
-    - `\\AppData\\…\\foo.exe` → Image on process_creation
-    - PDB-path strings (`X:\\…\\Projects\\…`) → CommandLine pattern on process_creation
-    - Email addresses, Authenticode cert serials → carry through as metadata fields when no Sigma observation maps cleanly
-- **Hierarchical MITRE ATT&CK tag picker.** Stage 2's tags input today is free-text + a ~24-entry datalist. v1.6 replaces it with a collapsible tactics → techniques → sub-techniques tree. Click adds the corresponding `attack.tNNNN` / `attack.tNNNN.NNN` tag. Data source: ATT&CK STIX 2.1 export, derived into a small JSON tree at build time and shipped under `data/mitre_attack.json`. Free-text input stays as the escape hatch for tags outside ATT&CK.
+- **IOC paste-and-classify** (Stage 0 addition). A regex-based classifier identifies SHA256/SHA1/MD5 hashes, IPv4/IPv6 (with optional port), domains, Windows paths (split by extension into process_creation / image_load / file_event candidates), registry keys, and PDB-path strings. Email addresses and Authenticode cert serials surface as metadata-only candidates. The classifier returns a per-category breakdown with one button per category that jumps the composer into Stage 1 with the relevant IOCs prepopulated as `any_of` detection items.
+- **"Build similar rule" button** (Stage 4 addition). Resets the observation and detection blocks but carries metadata (title prefix, description, references, tags, author, date, level, falsepositives) and the IOC session forward, so each rule of a campaign starts halfway-completed.
+- **Hierarchical MITRE ATT&CK tag picker** (Stage 2 replacement of the free-text tags input's datalist). Tactics → techniques → sub-techniques tree backed by `data/mitre_attack.json`, derived from MITRE's STIX 2.1 ATT&CK export by `scripts/build_mitre_tree.py`. Click adds the matching `attack.tNNNN` / `attack.tNNNN.NNN` tag. Free-text input retained for tags outside ATT&CK.
+- The IOC `any_of` default is visually called out so users notice when an IOC-pack rule's semantics differ from a hand-authored rule's defaults: accent-green outline on the toggle, prose update ("any of these IOCs match"), and a one-time inline hint after build.
 - Tests + dogfooding round with the IOC scenario above.
 
-**Exit gate**: an analyst pastes the motivating-scenario IOC set, the composer produces 4–6 well-formed Sigma rules across the right observation types, the user reviews + tweaks them in tabbed Stage 1 panels, and downloads them as a rule pack.
+**Exit gate**: an analyst pastes the motivating-scenario IOC set, the classifier groups it correctly, the user builds 5 rules sequentially using "Build similar" between each, and the campaign metadata is identical across all 5 .yml files without manual copy-paste.
+
+**Deferred to v1.7 / post-tester**:
+
+- Auto cross-references between rules built in the same session (`references:` linking).
+- Local rule-pack export — localStorage tracks the rules a user has downloaded this session, Stage 4 offers an `Export all as zip` button. Lands when testers ask for it.
+- Multi-observation composer — revisit only if testers express a clear need for side-by-side editing of related rules.
+
+## v1.7 — Observation catalog expansion
+
+The v0/v1.0 catalog ships **15** observation types covering the most common Windows + Linux detection surfaces. Real Sigma rule corpora cover many more — `file_change`, `file_delete`, `file_access`, `process_access` (Sysmon EventID 10), `create_stream_hash` (EventID 15), `registry_event` / `registry_add` / `registry_delete`, Windows Security channel events (4624/4625/4672/4688/4698 etc.), Defender events, DNS-server-side logs, macOS unified-log categories, AWS / Azure / GCP cloudtrail-style sources, web-app categories (apache, nginx, kubernetes), and more.
+
+Approach: every quarterly recalibration cycle (already scheduled for taxonomy frequency analysis + heuristic severity tuning) also reviews the corpus for high-frequency uncatalogued logsources and adds catalog files for any with ≥50 vetted rules. Each addition is a data-only change per CLAUDE.md I-5 — no Python edits.
+
+Tracked here so the work doesn't get lost. No specific exit gate — it's recurring maintenance.
 
 ## v1.x — Smaller post-v1.0 polish
 

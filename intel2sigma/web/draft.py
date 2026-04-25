@@ -81,6 +81,24 @@ class DetectionBlockDraft(_Model):
 ConditionTreeDraft = dict[str, Any]
 
 
+class IOCSession(_Model):
+    """A user's pasted IOC list, persisted across "Build similar" jumps.
+
+    Each entry tracks its raw form (for display), canonical value (for
+    routing + detection items), category (which classifier bucket it
+    fell into), the observation it routes to (empty for metadata-only),
+    and a ``used`` flag flipped when a rule has been built from this
+    IOC. Stays in the ``RuleDraft`` so the IOC panel on Stage 0 can
+    re-render with already-consumed categories visibly struck through.
+    """
+
+    raw: str = ""
+    value: str = ""
+    category: str = ""
+    observation: str = ""
+    used: bool = False
+
+
 class RuleDraft(_Model):
     """Top-level composer state. Round-trips through the hidden JSON blob."""
 
@@ -110,6 +128,11 @@ class RuleDraft(_Model):
     #   any_of  → condition: 1 of match_*   (blocks OR'd)
     # Filter blocks are always NOT'd regardless of this field.
     match_combinator: BlockCombinator = "all_of"
+
+    # IOC paste session, persisted across "Build similar" jumps so the
+    # user doesn't re-paste between rules of a campaign. Empty list when
+    # the user hasn't classified anything (the normal single-rule flow).
+    iocs: list[IOCSession] = Field(default_factory=list)
 
     # Composer-local state — not exported to the rule
     stage: int = 0
@@ -454,6 +477,7 @@ class RuleDraft(_Model):
 __all__ = [
     "DetectionBlockDraft",
     "DetectionItemDraft",
+    "IOCSession",
     "LogSourceDraft",
     "RuleDraft",
 ]

@@ -1,0 +1,99 @@
+{# Stage 0 — IOC paste-and-classify panel.
+
+Two states:
+
+  * Empty (``ioc_total == 0``): a textarea + Classify button. Submit
+    triggers ``classify_iocs`` action; the response re-renders Stage 0
+    with the classified summaries below.
+
+  * Classified (``ioc_total > 0``): a per-category breakdown with one
+    "Build <observation> rule" button per routing-bearing category. A
+    Discard link clears the session and returns to the empty state.
+
+Carried state:
+  ioc_summaries  — list of dicts from _ioc_panel_context (label, total,
+                   used, remaining, examples, observation)
+  ioc_total      — len(draft.iocs)
+  ioc_used_count — count where used=True
+#}
+
+<section class="ioc-panel" aria-label="IOC paste-and-classify">
+    {% if ioc_total == 0 %}
+    <details class="ioc-paste-details">
+        <summary class="ioc-paste-summary">
+            Paste IOCs from a CTI hand-off
+            <span class="ioc-hint">— we'll suggest which rules to build</span>
+        </summary>
+        <form class="ioc-paste-form"
+              hx-post="{{ url_for('composer_update') }}"
+              hx-include="#rule-state"
+              hx-vals='{"action": "classify_iocs"}'
+              hx-target="#composer-panel"
+              hx-swap="innerHTML"
+              onsubmit="return false">
+            <textarea name="iocs_text"
+                      class="ioc-paste-textarea"
+                      rows="8"
+                      placeholder="Paste hashes, IPs, domains, paths, registry keys… any format. We'll defang [.] and hxxp:// automatically."
+                      required></textarea>
+            <div class="ioc-paste-actions">
+                <button type="submit" class="button-primary">Classify IOCs</button>
+            </div>
+        </form>
+    </details>
+    {% else %}
+    <div class="ioc-summary-card">
+        <div class="ioc-summary-header">
+            <span class="ioc-summary-title">
+                {{ ioc_total }} IOCs
+                {% if ioc_used_count > 0 %}
+                    <span class="ioc-used-count">({{ ioc_used_count }} already used)</span>
+                {% endif %}
+            </span>
+            <button type="button"
+                    class="button-secondary ioc-discard-button"
+                    hx-post="{{ url_for('composer_update') }}"
+                    hx-include="#rule-state"
+                    hx-vals='{"action": "discard_iocs"}'
+                    hx-target="#composer-panel"
+                    hx-swap="innerHTML">
+                Discard IOCs
+            </button>
+        </div>
+
+        <div class="ioc-categories">
+            {% for entry in ioc_summaries %}
+            <div class="ioc-category {% if entry.remaining == 0 %}ioc-category-used{% endif %}">
+                <div class="ioc-category-header">
+                    <span class="ioc-category-label">{{ entry.label }}</span>
+                    <span class="ioc-category-count">
+                        {{ entry.remaining }}{% if entry.used %} / {{ entry.total }}{% endif %}
+                    </span>
+                </div>
+                <div class="ioc-category-examples">
+                    {% for ex in entry.examples %}
+                    <code class="ioc-example">{{ ex[:60] }}{% if ex|length > 60 %}…{% endif %}</code>
+                    {% endfor %}
+                </div>
+                {% if entry.observation and entry.remaining > 0 %}
+                <button type="button"
+                        class="button-primary ioc-build-button"
+                        hx-post="{{ url_for('composer_update') }}"
+                        hx-include="#rule-state"
+                        hx-vals='{"action": "build_from_iocs", "observation_id": "{{ entry.observation }}"}'
+                        hx-target="#composer-panel"
+                        hx-swap="innerHTML">
+                    Build {{ entry.observation }} rule
+                    ({{ entry.remaining }} IOC{% if entry.remaining != 1 %}s{% endif %})
+                </button>
+                {% elif entry.remaining == 0 %}
+                <span class="ioc-category-done">✓ used</span>
+                {% else %}
+                <span class="ioc-category-meta-only">metadata only — no rule</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</section>
