@@ -75,10 +75,12 @@ def _templates(request: Request) -> Jinja2Templates:
     lets route modules fetch it without a circular import back to
     ``intel2sigma.web.app``.
     """
+    # app.state attributes are Any; create_app attaches a Jinja2Templates here.
     return request.app.state.templates  # type: ignore[no-any-return]
 
 
 def _taxonomy(request: Request) -> TaxonomyRegistry:
+    # Same Any-narrowing as _templates: prime_taxonomy() attaches at startup.
     return request.app.state.taxonomy  # type: ignore[no-any-return]
 
 
@@ -751,6 +753,8 @@ def _build_from_iocs(draft: RuleDraft, form: Any) -> None:
     from intel2sigma.web.ioc import IOC  # noqa: PLC0415
 
     available = [
+        # IOCSession persists category/observation as str; the classifier
+        # already validated them against the IOC Literal types.
         IOC(raw=i.raw, value=i.value, category=i.category, observation=i.observation)  # type: ignore[arg-type]
         for i in draft.iocs
         if not i.used and i.observation == observation_id
@@ -814,6 +818,8 @@ def _ioc_panel_context(draft: RuleDraft) -> list[dict[str, Any]]:
     from intel2sigma.web.ioc import IOC  # noqa: PLC0415
 
     rebuilt = [
+        # IOCSession persists category/observation as str; the classifier
+        # already validated them against the IOC Literal types.
         IOC(raw=i.raw, value=i.value, category=i.category, observation=i.observation)  # type: ignore[arg-type]
         for i in draft.iocs
     ]
@@ -861,10 +867,12 @@ def _set_metadata(draft: RuleDraft, form: Any) -> None:
     if "meta_level" in form:
         level = str(form.get("meta_level", "")).strip()
         if level in {"informational", "low", "medium", "high", "critical"}:
+            # ``in`` check above narrows level to the Literal; mypy can't see it.
             draft.level = level  # type: ignore[assignment]
     if "meta_status" in form:
         status = str(form.get("meta_status", "")).strip()
         if status in {"experimental", "test", "stable", "deprecated", "unsupported"}:
+            # Same Literal-narrowing pattern as draft.level above.
             draft.status = status  # type: ignore[assignment]
     if "meta_tags" in form:
         raw = str(form.get("meta_tags", ""))

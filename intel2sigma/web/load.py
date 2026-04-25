@@ -94,6 +94,8 @@ def _translate(py_rule: PySigmaRule, issues: list[ValidationIssue]) -> RuleDraft
     draft = RuleDraft(
         title=py_rule.title or "",
         id=py_rule.id,  # UUID or None
+        # _translate_status returns one of the Literal members; the runtime
+        # check inside it is what mypy can't see across the call boundary.
         status=_translate_status(py_rule.status),  # type: ignore[arg-type]
         description=py_rule.description or "",
         references=list(py_rule.references or []),
@@ -101,6 +103,7 @@ def _translate(py_rule: PySigmaRule, issues: list[ValidationIssue]) -> RuleDraft
         date=py_rule.date.isoformat() if py_rule.date else "",
         modified=py_rule.modified.isoformat() if py_rule.modified else "",
         tags=[_render_tag(t) for t in py_rule.tags],
+        # Same Literal-narrowing as _translate_status.
         level=_translate_level(py_rule.level),  # type: ignore[arg-type]
         falsepositives=list(py_rule.falsepositives or []),
         logsource=LogSourceDraft(
@@ -325,6 +328,8 @@ def _translate_item(di: SigmaDetectionItem) -> DetectionItemDraft:
     values = [_stringify_value(v) for v in value_iter]
     return DetectionItemDraft(
         field=field,
+        # ``modifiers`` is a list[str] from the YAML; each entry was already
+        # validated against ValueModifier in _modifier_name above.
         modifiers=modifiers,  # type: ignore[arg-type]
         values=values,
     )

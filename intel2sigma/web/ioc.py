@@ -482,6 +482,9 @@ def classify(text: str) -> list[IOC]:  # noqa: PLR0912, PLR0915 (one branch per 
                 if key in seen:
                     continue
                 seen.add(key)
+                # ``category`` comes from the for-loop over IOCCategory keys; mypy
+                # widens it to str across the closure. Both ignores are safe because
+                # _ROUTING is keyed on the same Literal set the classifier emits.
                 found.append(
                     IOC(
                         raw=m.group(0),
@@ -680,6 +683,8 @@ def build_detection_items(iocs: Iterable[IOC], observation: str) -> list[Detecti
         items.append(
             DetectionItemDraft(
                 field=field,
+                # _ROUTING values are str at the type level but always one of
+                # the ValueModifier Literal members at runtime.
                 modifiers=[modifier],  # type: ignore[list-item]
                 values=[ioc.value],
             )
