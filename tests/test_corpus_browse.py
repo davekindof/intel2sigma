@@ -192,6 +192,11 @@ def test_load_corpus_route_lands_on_stage(client: TestClient) -> None:
     r = client.post("/composer/load-corpus", data={"rule_id": rule_id})
     assert r.status_code == 200
     body = r.text
-    assert '<div id="composer-panel" hx-swap-oob="true">' in body
+    # OOB-swap wrapper for composer-panel must keep id + class so the
+    # CSS overflow rules survive the swap (see test_load_response_
+    # preserves_pane_classes_for_oob_swap in tests/test_load.py).
+    assert 'id="composer-panel"' in body
+    assert 'class="composer-panel"' in body
+    assert 'hx-swap-oob="true"' in body
     # Modal closed (its title text shouldn't appear in response).
     assert "Load an existing rule" not in body

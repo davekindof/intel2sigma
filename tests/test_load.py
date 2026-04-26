@@ -191,8 +191,12 @@ def test_load_paste_with_valid_yaml_advances_to_stage3(client: TestClient) -> No
     assert state["stage"] == 3
     assert state["title"] == "Encoded PowerShell from non-SYSTEM"
     # Composer panel swapped via oob — Stage 3 markup goes there, not
-    # to the modal target.
-    assert '<div id="composer-panel" hx-swap-oob="true">' in r.text
+    # to the modal target. Wrapper must carry id + class (the class is
+    # what makes the panel actually scrollable; the dogfood-2026-04-26
+    # bug was a class-less wrapper that stripped overflow:auto on swap).
+    assert 'id="composer-panel"' in r.text
+    assert 'class="composer-panel"' in r.text
+    assert 'hx-swap-oob="true"' in r.text
     assert "Stage 3 — Review" in r.text
     # Modal title text should NOT appear (modal closed via empty
     # main-body swap to the #load-modal-region target).
@@ -211,7 +215,11 @@ def test_load_lands_user_on_stage_3_in_composer_panel(client: TestClient) -> Non
     r = client.post("/composer/load-paste", data={"yaml_text": VALID_YAML})
     body = r.text
     # The composer-panel oob wrapper carries the Stage 3 review markup.
-    assert '<div id="composer-panel" hx-swap-oob="true">' in body
+    # Tag, id, and class all matter — see test_load_response_preserves_
+    # pane_classes_for_oob_swap below for the full contract.
+    assert 'id="composer-panel"' in body
+    assert 'class="composer-panel"' in body
+    assert 'hx-swap-oob="true"' in body
     # Stage 3-specific text appears, Stage 0-specific text doesn't.
     assert "Stage 3 — Review" in body
     assert "Stage 0 — Pick an observation" not in body
@@ -507,6 +515,42 @@ def test_stage1_renders_every_value_of_a_multivalue_item(client: TestClient) -> 
     # to single-value rendering.
     assert 'class="item-value"' in r2.text
     assert "<textarea" in r2.text
+
+
+def test_load_response_preserves_pane_classes_for_oob_swap(client: TestClient) -> None:
+    """OOB-swap wrappers must keep ``composer-panel`` + ``preview-pane-primary``.
+
+    Regression for the dogfood symptom: loading a long SigmaHQ rule
+    (e.g. the antivirus rule with 30+ Signature|contains values) broke
+    scrolling on BOTH panes. Root cause: htmx oob-swap replaces the
+    whole outer element, and the pre-fix wrappers were:
+
+        <div id="composer-panel" hx-swap-oob="true">...</div>
+        <div id="preview-pane" hx-swap-oob="true">...</div>
+
+    No class attribute. After swap, the elements lost
+    ``class="composer-panel"`` / ``class="preview-pane-primary"`` and
+    therefore lost their CSS sizing rules (overflow: auto; flex; min-
+    height: 0). Long loaded rules then expanded the element to content
+    height, defeating per-pane scroll on both sides. Composed rules
+    rarely hit the overflow threshold during normal use, masking the
+    bug for everything but the load path.
+
+    Fix: wrappers carry the same class + tag as the element they
+    replace. This test asserts that contract on the load-paste path;
+    same contract holds for ``_render_stage`` per inline comment.
+    """
+    r = client.post("/composer/load-paste", data={"yaml_text": ANTIVIRUS_RULE_YAML})
+    assert r.status_code == 200
+
+    # The oob wrapper for composer-panel: must be a <section> with the
+    # composer-panel class so its overflow-y: auto applies.
+    assert 'id="composer-panel"' in r.text
+    assert 'class="composer-panel"' in r.text
+    # The oob wrapper for preview-pane: must carry preview-pane-primary
+    # so its flex/overflow/min-height rules apply.
+    assert 'id="preview-pane"' in r.text
+    assert 'class="preview-pane-primary"' in r.text
 
 
 def test_stage1_set_value_splits_textarea_lines(client: TestClient) -> None:

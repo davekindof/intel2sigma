@@ -173,7 +173,18 @@ def _render_stage(request: Request, draft: RuleDraft) -> HTMLResponse:
     # own id, telling htmx which region on the page to replace. The state
     # blob template owns its own oob attr; the two preview regions we wrap
     # here because they render plain content-for-region.
-    preview_oob = f'<div id="preview-pane" hx-swap-oob="true">{preview_html}</div>'
+    #
+    # *Critical*: the wrapper must carry the SAME class attribute as the
+    # element it replaces — htmx replaces the whole outer element, so any
+    # class lost from the wrapper is lost from the element. Without the
+    # ``preview-pane-primary`` class the YAML pane stops scrolling on long
+    # rules because its CSS sizing rules (flex: 1 1 0; overflow: auto;
+    # min-height: 0) don't match a class-less <div>. Bug surfaced 2026-04-26
+    # via load of long SigmaHQ rules.
+    preview_oob = (
+        f'<div id="preview-pane" class="preview-pane-primary" '
+        f'hx-swap-oob="true">{preview_html}</div>'
+    )
     tabs_oob = f'<div id="conversion-tabs-region" hx-swap-oob="true">{tabs_html}</div>'
 
     body = f"{composer_html}\n{preview_oob}\n{tabs_oob}\n{state_html}"
@@ -1295,9 +1306,20 @@ def _render_stage_with_load_clear(
     # Main body is intentionally empty — the load-modal-region is the
     # htmx target, and emptying it closes the modal. Every other region
     # updates via its own oob swap below.
+    #
+    # *Critical*: each wrapper must carry the SAME tag + class attributes
+    # as the element it replaces (see _render_stage above for the same
+    # constraint). htmx oob-swap replaces the whole outer element, so a
+    # class-less wrapper means a class-less element after the swap, which
+    # means none of the .composer-panel / .preview-pane-primary CSS sizing
+    # rules apply. Symptom: long loaded rules don't scroll — neither pane
+    # gets overflow: auto because the relevant classes are gone. Bug
+    # surfaced 2026-04-26 via the load of an antivirus rule.
     body = (
-        f'<div id="composer-panel" hx-swap-oob="true">{composer_html}</div>'
-        f'<div id="preview-pane" hx-swap-oob="true">{preview_html}</div>'
+        f'<section id="composer-panel" class="composer-panel" '
+        f'aria-label="Composer" hx-swap-oob="true">{composer_html}</section>'
+        f'<div id="preview-pane" class="preview-pane-primary" '
+        f'hx-swap-oob="true">{preview_html}</div>'
         f'<div id="conversion-tabs-region" hx-swap-oob="true">{tabs_html}</div>'
         f"{state_html}"
     )
