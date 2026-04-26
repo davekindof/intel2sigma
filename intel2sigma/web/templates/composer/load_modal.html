@@ -43,6 +43,14 @@ Context:
                 onclick="window.__intel2sigma_load_switch(this, 'examples')">
             Examples ({{ examples | length }})
         </button>
+        {% if corpus_size %}
+        <button type="button"
+                class="load-tab"
+                role="tab"
+                onclick="window.__intel2sigma_load_switch(this, 'browse')">
+            Browse SigmaHQ ({{ corpus_size }})
+        </button>
+        {% endif %}
     </div>
 
     <section class="load-panel" data-panel="paste">
@@ -71,6 +79,57 @@ Context:
             </div>
         </form>
     </section>
+
+    {% if corpus_size %}
+    <section class="load-panel" data-panel="browse" hidden>
+        {# Search-driven browse over the bundled SigmaHQ corpus index.
+           Search input fires keyup-debounced htmx posts to
+           /composer/load-search; the result list swaps into
+           #corpus-search-results below. Click a result to load that rule. #}
+        <form class="corpus-search-form"
+              hx-post="{{ url_for('composer_load_search') }}"
+              hx-target="#corpus-search-results"
+              hx-swap="innerHTML"
+              hx-trigger="keyup delay:250ms from:input, change from:select, change from:input"
+              onsubmit="return false">
+            <div class="corpus-search-row">
+                <input type="search"
+                       name="q"
+                       class="corpus-search-input"
+                       placeholder="Search by title, tag, or keyword…"
+                       autocomplete="off">
+                <select name="category" class="corpus-search-select" aria-label="Filter by category">
+                    <option value="">— any category —</option>
+                    {% for cat in corpus_categories %}
+                    <option value="{{ cat }}">{{ cat }}</option>
+                    {% endfor %}
+                </select>
+                <select name="product" class="corpus-search-select" aria-label="Filter by product">
+                    <option value="">— any product —</option>
+                    {% for prod in corpus_products %}
+                    <option value="{{ prod }}">{{ prod }}</option>
+                    {% endfor %}
+                </select>
+                <select name="level" class="corpus-search-select" aria-label="Filter by severity">
+                    <option value="">— any severity —</option>
+                    <option value="informational">informational</option>
+                    <option value="low">low</option>
+                    <option value="medium">medium</option>
+                    <option value="high">high</option>
+                    <option value="critical">critical</option>
+                </select>
+            </div>
+        </form>
+
+        <div id="corpus-search-results" class="corpus-search-results">
+            {# Initial state: no query yet — invite the user to search. #}
+            <div class="placeholder">
+                Type a keyword above to search {{ corpus_size }} SigmaHQ rules
+                pinned at the corpus commit shipped with this build.
+            </div>
+        </div>
+    </section>
+    {% endif %}
 
     <section class="load-panel" data-panel="examples" hidden>
         {% if not examples %}

@@ -1,0 +1,65 @@
+{# SigmaHQ corpus search-results list.
+
+Rendered into ``#corpus-search-results`` via htmx oob from
+``/composer/load-search``. Each result is a button that posts to
+``/composer/load-corpus`` with the rule id, taking the user out of
+the modal and into Stage 1/3 with the loaded rule in scope.
+
+Context:
+  results      — list[CorpusEntry] from web.corpus.search_corpus
+  query        — the search string (echoed for "no results" framing)
+  total_index  — len of the bundled corpus
+#}
+
+{% if not results %}
+<div class="placeholder">
+    {% if query %}
+    No SigmaHQ rules match "{{ query }}". Try a different keyword or relax
+    the filters.
+    {% else %}
+    Type a keyword above to search {{ total_index }} SigmaHQ rules.
+    {% endif %}
+</div>
+{% else %}
+<div class="corpus-result-count">
+    Showing {{ results | length }} match{{ '' if results | length == 1 else 'es' }}
+    {% if query %}for "{{ query }}"{% endif %}.
+</div>
+<ul class="corpus-result-list">
+    {% for entry in results %}
+    <li class="corpus-result">
+        <button type="button"
+                class="corpus-result-button"
+                hx-post="{{ url_for('composer_load_corpus') }}"
+                hx-vals='{"rule_id": "{{ entry.id }}"}'
+                hx-target="#load-modal-region"
+                hx-swap="innerHTML"
+                hx-disabled-elt="this"
+                title="Load this rule into the composer">
+            <div class="corpus-result-row1">
+                <span class="corpus-result-title">{{ entry.title }}</span>
+                {% if entry.level %}
+                <span class="corpus-result-level corpus-result-level-{{ entry.level }}">
+                    {{ entry.level }}
+                </span>
+                {% endif %}
+            </div>
+            <div class="corpus-result-meta">
+                {% if entry.category %}<span class="corpus-result-chip">{{ entry.category }}</span>{% endif %}
+                {% if entry.product %}<span class="corpus-result-chip">{{ entry.product }}</span>{% endif %}
+                {% if entry.service %}<span class="corpus-result-chip">{{ entry.service }}</span>{% endif %}
+                {% for tag in entry.tags[:3] %}
+                <span class="corpus-result-tag">{{ tag }}</span>
+                {% endfor %}
+                {% if entry.tags | length > 3 %}
+                <span class="corpus-result-tag-more">+{{ entry.tags | length - 3 }}</span>
+                {% endif %}
+            </div>
+            {% if entry.description %}
+            <div class="corpus-result-desc">{{ entry.description }}</div>
+            {% endif %}
+        </button>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}

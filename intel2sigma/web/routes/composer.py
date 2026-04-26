@@ -1096,14 +1096,26 @@ async def composer_load_modal(request: Request) -> HTMLResponse:
     """Render the 'Load rule' modal contents.
 
     Returned as an htmx partial; the header's Load button drops it into a
-    dedicated target region in the shell. The modal has two tabs: paste
-    YAML and bundled examples.
+    dedicated target region in the shell. The modal has three tabs: paste
+    YAML, bundled curated examples, and Browse SigmaHQ (search-driven
+    over the bundled corpus index).
     """
+    # Local import — corpus is a ~9MB JSON load on first access; deferring
+    # keeps the import graph cheap for routes that don't touch it.
+    from intel2sigma.web.corpus import (  # noqa: PLC0415
+        all_categories,
+        all_products,
+        index_size,
+    )
+
     templates = _templates(request)
     return HTMLResponse(
         templates.get_template("composer/load_modal.html").render(
             request=request,
             examples=list_examples(),
+            corpus_size=index_size(),
+            corpus_categories=all_categories(),
+            corpus_products=all_products(),
         )
     )
 
@@ -1153,6 +1165,78 @@ async def composer_load_example(
                 request=request,
                 examples=list_examples(),
                 paste_issues=issues,
+            )
+        )
+    return _render_stage_with_load_clear(request, draft, issues)
+
+
+@router.post("/load-search", name="composer_load_search")
+async def composer_load_search(
+    request: Request,
+    q: Annotated[str, Form()] = "",
+    category: Annotated[str, Form()] = "",
+    product: Annotated[str, Form()] = "",
+    level: Annotated[str, Form()] = "",
+) -> HTMLResponse:
+    """Search the bundled SigmaHQ corpus index.
+
+    Returns an HTML fragment for ``#corpus-search-results`` — the list
+    of matching rules. htmx swaps it in on every keystroke (debounced
+    250ms in the form template). Bundled index = pinned-commit;
+    deterministic and self-contained.
+    """
+    from intel2sigma.web.corpus import index_size, search_corpus  # noqa: PLC0415
+
+    templates = _templates(request)
+    results = search_corpus(
+        q,
+        category=category or None,
+        product=product or None,
+        level=level or None,
+    )
+    return HTMLResponse(
+        templates.get_template("composer/_corpus_results.html").render(
+            request=request,
+            results=results,
+            query=q,
+            total_index=index_size(),
+        )
+    )
+
+
+@router.post("/load-corpus", name="composer_load_corpus")
+async def composer_load_corpus(
+    request: Request,
+    rule_id: Annotated[str, Form()] = "",
+) -> HTMLResponse:
+    """Load a SigmaHQ corpus rule by its id, advance composer to the right stage.
+
+    Same shape as ``/composer/load-paste`` and ``/composer/load-example``
+    once the rule is in hand: translator issues become preview-pane
+    warnings, the modal closes via the empty-main-body swap, the
+    composer panel oob-swaps to Stage 1 or Stage 3.
+    """
+    from intel2sigma.web.corpus import (  # noqa: PLC0415
+        all_categories,
+        all_products,
+        index_size,
+        load_corpus_rule,
+    )
+
+    draft, issues = load_corpus_rule(rule_id)
+    if draft is None:
+        # Re-render the modal so the user can pick a different rule;
+        # surface the LOAD_CORPUS_* issues inline next to the paste tab
+        # (cheapest place to render them given the existing template).
+        templates = _templates(request)
+        return HTMLResponse(
+            templates.get_template("composer/load_modal.html").render(
+                request=request,
+                examples=list_examples(),
+                paste_issues=issues,
+                corpus_size=index_size(),
+                corpus_categories=all_categories(),
+                corpus_products=all_products(),
             )
         )
     return _render_stage_with_load_clear(request, draft, issues)

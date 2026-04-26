@@ -1471,6 +1471,131 @@ input[type="text"]:focus, textarea:focus, select:focus {
     line-height: 1.45;
 }
 
+/* ---- SigmaHQ corpus browse tab -------------------------------------- */
+
+.corpus-search-form {
+    margin-bottom: var(--space-3);
+}
+.corpus-search-row {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) 1fr 1fr 1fr;
+    gap: var(--space-2);
+}
+.corpus-search-input,
+.corpus-search-select {
+    padding: 6px 10px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+}
+.corpus-search-input:focus,
+.corpus-search-select:focus {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+}
+.corpus-search-results {
+    max-height: 50vh;
+    overflow-y: auto;
+    border: 1px solid var(--color-border-muted);
+    border-radius: var(--radius-md);
+    padding: var(--space-2);
+    background: var(--color-bg);
+}
+.corpus-result-count {
+    font-size: 11px;
+    color: var(--color-text-dim);
+    padding: 0 var(--space-2) var(--space-2);
+}
+.corpus-result-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+.corpus-result-button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text);
+    cursor: pointer;
+    transition: border-color 120ms, background 120ms, opacity 120ms;
+}
+.corpus-result-button:hover {
+    border-color: var(--color-accent);
+    background: var(--color-surface-alt);
+}
+.corpus-result-button.htmx-request {
+    opacity: 0.55;
+    cursor: wait;
+}
+.corpus-result-row1 {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: 4px;
+}
+.corpus-result-title {
+    font-weight: 600;
+    font-size: 13px;
+    flex: 1;
+    line-height: 1.3;
+}
+.corpus-result-level {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.corpus-result-level-low          { background: var(--color-surface-alt); color: var(--color-text-muted); }
+.corpus-result-level-medium       { background: rgba(63, 185, 80, 0.12); color: var(--color-accent); }
+.corpus-result-level-high         { background: rgba(255, 159, 0, 0.15); color: var(--color-warn, #ff9f00); }
+.corpus-result-level-critical     { background: rgba(232, 91, 91, 0.15); color: var(--color-critical, #e85b5b); }
+.corpus-result-level-informational{ background: var(--color-surface-alt); color: var(--color-text-dim); }
+.corpus-result-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+.corpus-result-chip {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    background: var(--color-surface-alt);
+    color: var(--color-text-muted);
+    padding: 1px 6px;
+    border-radius: 2px;
+}
+.corpus-result-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+    padding: 1px 4px;
+}
+.corpus-result-tag-more {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-text-dim);
+}
+.corpus-result-desc {
+    font-size: 11px;
+    line-height: 1.45;
+    color: var(--color-text-muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 /* ---- Pygments YAML highlighting --------------------------------------
  * Minimal class coverage — enough to look intentional in the preview pane.
  * Generated via: pygments.formatters.HtmlFormatter().get_style_defs('.highlight')

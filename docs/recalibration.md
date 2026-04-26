@@ -21,18 +21,24 @@ Three pinned upstreams, each refreshed independently:
 |---|---|---|
 | MITRE ATT&CK STIX 2.1 | `ATTACK_VERSION` in `scripts/build_mitre_tree.py` | `intel2sigma/data/mitre_attack.json` |
 | SigmaHQ rule corpus | `SIGMAHQ_PINNED_COMMIT` in `intel2sigma/_version.py` | (not vendored — checked out into `sigmahq-rules/` for analysis) |
+| SigmaHQ browse index | rebuilt from the synced corpus | `intel2sigma/data/sigmahq_corpus.json` |
 | Curated SigmaHQ examples | hand-picked SHA-pinned rules | `intel2sigma/data/examples/*.yml` |
 
 ## Order
 
 ```
 1. Refresh SigmaHQ corpus pin
-   → 2. Refresh MITRE ATT&CK tree
-   → 3. Re-run taxonomy frequency analysis
-      → 4. Heuristic severity tuning + new heuristic candidates
-         → 5. Curated examples sanity check
-            → 6. Doc + version bump
+   → 2. Rebuild SigmaHQ browse index
+   → 3. Refresh MITRE ATT&CK tree
+   → 4. Re-run taxonomy frequency analysis
+      → 5. Heuristic severity tuning + new heuristic candidates
+         → 6. Curated examples sanity check
+            → 7. Doc + version bump
 ```
+
+Step 2 is a quick rebuild — ``uv run python scripts/build_sigmahq_corpus.py``
+walks the synced corpus and writes the load-modal browse index. Run
+after every corpus pin bump so the index doesn't drift.
 
 Each step has its own gate; don't proceed if the previous step's gate
 fails.
