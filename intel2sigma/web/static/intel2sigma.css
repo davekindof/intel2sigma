@@ -438,6 +438,15 @@ input[type="text"]:focus, textarea:focus, select:focus {
     border-color: var(--color-accent);
 }
 
+/* Browser-default placeholder colors drift very dim on dark backgrounds —
+   especially Chrome on Windows, which renders them at ~30% opacity.
+   Pin to --color-text-muted so placeholders are legible without
+   competing with actual user input (which uses --color-text). */
+::placeholder {
+    color: var(--color-text-muted);
+    opacity: 1;                     /* Firefox defaults to 0.54; reset it. */
+}
+
 /* ---- IDE-esque error decoration (docs/ui.md) ------------------------- */
 
 .field-error {
