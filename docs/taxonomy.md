@@ -174,10 +174,105 @@ Modifier availability per field is determined by `allowed_modifiers` in the taxo
 
 ## Label writing guidelines
 
-- **Plain English, not Sigma jargon.** "Executable path" not "Image". "Command line" not "CommandLine". The analyst should not need to know the Sigma field name to pick the right dropdown entry.
-- **Descriptions are one sentence.** If you need more, reconsider whether the field is relevant at this tier.
-- **Examples are real.** Prefer values from actual rules in the SigmaHQ corpus.
-- **Notes call out common pitfalls.** "Paths normalize backslashes automatically — don't escape them." "Windows paths: use the leading `\` + executable name pattern."
+The whole product thesis is "non-SIEM users build Sigma rules without
+knowing Sigma jargon." Labels and notes are the front line of that
+promise. This section is the contract every taxonomy YAML follows;
+``tests/test_taxonomy_verbiage.py`` enforces the parts a regex can
+catch.
+
+### Observation `label`
+
+The label is what shows on the Stage 0 card and at the top of every
+later stage. It tells the user *what kind of activity* this taxonomy
+entry represents.
+
+**Pattern A — Active (preferred).** Use whenever there's a clear
+actor + verb pair:
+
+> "A process was started"
+> "A process resolved a DNS name"
+> "A user signed in to Azure AD"
+> "A scheduled task was created"
+> "A driver was loaded"
+
+**Pattern B — Passive (fallback).** Only when the actor is the OS,
+the audit pipeline itself, or otherwise genuinely actor-less:
+
+> "A Windows Security event was logged"
+> "An AWS CloudTrail event was logged"
+> "A Linux auditd event was logged"
+
+**Accuracy beats voice.** If Pattern A would force a misleading verb
+choice ("A subscription deleted itself"), use Pattern B even though
+it's less narrative. Examples that needed Pattern B because A was
+inaccurate are a feature, not a regression — record the reason in a
+YAML comment if it isn't obvious.
+
+### Observation `description`
+
+One sentence, starts with **"Use "**:
+
+> "Use when malware or suspicious activity created a new process."
+> "Use for AWS CloudTrail rules — IAM, S3, EC2, etc."
+> "Use to detect kernel-mode driver loads, including BYOVD-style abuse."
+
+### Observation `synonyms`
+
+A short list (3–6 entries) of alternate phrasings the user might type
+into the Stage 0 search bar. Include both casual phrasings ("process
+launched") and SIEM/EDR jargon they might know ("EID 1", "Sysmon
+event 1") so search hits both audiences. Required for every
+observation — empty `synonyms: []` is a contract violation; it
+silently breaks Stage 0 search relevance.
+
+### Field `label`
+
+Plain English noun phrase. **Never the raw Sigma field name.**
+
+| Bad (raw Sigma) | Good (plain English) |
+|---|---|
+| `Image` | `Executable path` |
+| `CommandLine` | `Command line` |
+| `TargetFilename` | `Target file path` |
+| `EventID` | `Event ID` |
+| `IntegrityLevel` | `Process integrity level` |
+| `ObjectName` | `Object name (path or registry key)` |
+
+The analyst should not need to know the Sigma field name to pick the
+right dropdown entry. Auto-generated labels that copy the Sigma name
+verbatim (PascalCase, single-word, etc.) are a contract violation
+and the verbiage tests catch them.
+
+### Field `note`
+
+One short sentence. Calls out a common pitfall, a non-obvious
+semantic, or a tip that meaningfully changes how the user fills the
+field. Skip if there's nothing useful to say — a hollow note is worse
+than no note.
+
+> "Path suffix with leading backslash matches the executable regardless of directory."
+> "Sigma expects a comma-separated string with algorithm prefixes, e.g. 'MD5=…, SHA256=…'."
+> "'true' = process initiated an outbound connection; 'false' = inbound."
+
+### Field `example`
+
+A real-looking value drawn from the SigmaHQ corpus where possible.
+Used as the placeholder text in the value input *and* as the click-to-
+insert chip in the helper tooltip (Stage 1 hover UX). A fake example
+("foo") is worse than no example.
+
+### Field-level coverage rules
+
+- Every observation's **top-3 fields** (the first three in declaration
+  order, which is corpus-frequency order per the file headers) must
+  have **both `note` and `example`**. These are the fields a user is
+  most likely to interact with on Stage 1.
+- Below the top-3, `note` and `example` are optional — quality beats
+  completeness. A rich helper for `Image` and `CommandLine` is more
+  valuable than mediocre boilerplate for `LogonId`.
+- For enum-typed fields, the YAML's `values:` list is sufficient
+  documentation; `note` is optional but `example` should be omitted
+  (the dropdown shows the choices).
 
 ## Adding a new observation type
 
