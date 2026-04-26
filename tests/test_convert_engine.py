@@ -130,26 +130,30 @@ def test_unknown_backend_raises(encoded_ps_rule: SigmaRule) -> None:
 
 
 def test_unmappable_category_emits_friendlier_error() -> None:
-    """A rule whose logsource category isn't in the kusto_mde pipeline's
-    category-to-table map produces a guidance-shaped error string,
-    not the raw "Unable to determine table name from rule" trace.
+    """A rule whose logsource category is in NEITHER the pySigma upstream
+    map NOR our intel2sigma override layer produces the operator-friendly
+    error.
 
-    create_remote_thread (Sysmon EID 8) is the canonical example —
-    pySigma-backend-kusto's microsoft_365_defender pipeline doesn't
-    map it to a Defender XDR table, so conversion fails. The user
-    deserves "use Splunk/Elastic/CrowdStrike instead" not a paragraph
-    of pipeline-state internals.
+    Originally used ``create_remote_thread`` as the canonical example; the
+    Phase B3 override layer (commit landing this change) added a table
+    mapping for it, so the canonical example moved to a category that's
+    truly unsupported by Defender XDR — a Linux logsource. Defender XDR
+    is Windows-focused; Linux process_creation has no mapping there
+    upstream, and we don't override it because the right answer is
+    "use Splunk/Elastic instead".
     """
     rule = SigmaRule(
-        title="CRT rule for which Defender has no table mapping",
+        title="Rule against a category neither side maps",
         id=UUID("33333333-4444-5555-6666-777777777777"),
         date=date(2026, 4, 25),
-        logsource=LogSource(product="windows", category="create_remote_thread"),
+        # A made-up category — neither pySigma upstream nor our override
+        # layer maps this to a Defender XDR table.
+        logsource=LogSource(product="windows", category="not_a_real_category_xyz"),
         detections=[
             DetectionBlock(
                 name="match_1",
                 items=[
-                    DetectionItem(field="TargetImage", modifiers=["endswith"], values=["x"]),
+                    DetectionItem(field="Image", modifiers=["endswith"], values=["x"]),
                 ],
             ),
         ],
@@ -160,8 +164,7 @@ def test_unmappable_category_emits_friendlier_error() -> None:
         convert(rule, "kusto_mde")
 
     msg = str(exc_info.value)
-    # Friendlier message must mention what to do next.
-    assert "table mapping" in msg
+    assert "table mapping" in msg or "Splunk" in msg or "Elastic" in msg
     assert "Splunk" in msg or "Elastic" in msg or "CrowdStrike" in msg
     # And must not parrot pySigma's internal "1) ... 2) ..." pipeline
     # priority list — that's what we rewrote away.

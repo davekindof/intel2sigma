@@ -15,12 +15,45 @@ backends:
         format: default
         baseline_pipelines: [microsoft_xdr]
         label: "Microsoft Sentinel (KQL)"
+        # Sysmon-only Sigma categories that pySigma's microsoft_xdr
+        # pipeline doesn't have a default table mapping for. Each entry
+        # injects ``query_table`` into the pipeline state at priority 5
+        # (runs before the upstream's priority-10 SetQueryTableState),
+        # which short-circuits the "Unable to determine table name"
+        # error. ``filter`` is optional — used to disambiguate a slice
+        # of a multi-purpose table; left empty when no clean ActionType
+        # value applies (or when we haven't verified one yet).
+        category_overrides:
+            create_remote_thread:  { table: DeviceEvents }
+            pipe_created:          { table: DeviceEvents }
+            raw_access_thread:     { table: DeviceEvents }
+            wmi_event:             { table: DeviceEvents }
+            driver_load:           { table: DeviceEvents }
+            process_access:        { table: DeviceEvents }
+            dns_query:             { table: DeviceNetworkEvents }
+            ps_script:             { table: DeviceEvents }
+            ps_module:             { table: DeviceEvents }
 
     kusto_mde:
         sigma_backend: kusto
         format: default
         baseline_pipelines: [microsoft_365_defender]
         label: "Microsoft Defender for Endpoint (KQL)"
+        # Mirrors kusto_sentinel — both backends use the same
+        # microsoft_xdr / microsoft_365_defender pipelines under the
+        # hood and share the same coverage gaps. Reviewed quarterly per
+        # docs/recalibration.md; entries removed if pySigma upstream
+        # adds them.
+        category_overrides:
+            create_remote_thread:  { table: DeviceEvents }
+            pipe_created:          { table: DeviceEvents }
+            raw_access_thread:     { table: DeviceEvents }
+            wmi_event:             { table: DeviceEvents }
+            driver_load:           { table: DeviceEvents }
+            process_access:        { table: DeviceEvents }
+            dns_query:             { table: DeviceNetworkEvents }
+            ps_script:             { table: DeviceEvents }
+            ps_module:             { table: DeviceEvents }
 
     splunk:
         sigma_backend: splunk

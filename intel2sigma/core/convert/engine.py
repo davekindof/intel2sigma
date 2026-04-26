@@ -31,6 +31,7 @@ from intel2sigma.core.convert.pipelines import (
     PipelineMatrixError,
     ResolvedConversion,
     UnknownBackendError,
+    build_category_override_pipeline,
     resolve,
 )
 from intel2sigma.core.model import SigmaRule
@@ -164,7 +165,7 @@ def _convert_cached(
             f"This is a dependency-pinning bug in intel2sigma, not a user error."
         )
 
-    pipeline = _compose_pipeline(plugins, resolved.pipelines)
+    pipeline = _compose_pipeline(plugins, resolved.pipelines, resolved.category_overrides)
     # pySigma's Backend base class has a ``processing_pipeline`` kwarg that
     # mypy can't see through the Generic abstraction.
     backend: Any = backend_cls(processing_pipeline=pipeline)  # type: ignore[operator]
@@ -202,6 +203,7 @@ def _plugins() -> InstalledSigmaPlugins:
 def _compose_pipeline(
     plugins: InstalledSigmaPlugins,
     pipeline_names: tuple[str, ...],
+    category_overrides: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...] = (),
 ) -> ProcessingPipeline | None:
     """Compose a single ``ProcessingPipeline`` from the named pipelines.
 
@@ -211,13 +213,18 @@ def _compose_pipeline(
     priority, and sum them — the same composition ``ProcessingPipelineResolver``
     does internally, without the detour through name-lookup.
 
-    Returns ``None`` when no pipelines apply; pySigma backends accept that
-    and use their built-in defaults.
+    ``category_overrides`` is the data-driven gap-filler from
+    ``data/pipelines.yml`` (priority 5 — runs before the upstream
+    pipelines). Returns ``None`` when no pipelines apply AND no overrides
+    exist; pySigma backends accept that and use their built-in defaults.
     """
-    if not pipeline_names:
-        return None
-
     pipelines: list[ProcessingPipeline] = []
+
+    # Override pipeline runs first (priority=5 in build_category_override_pipeline).
+    override_pipeline = build_category_override_pipeline(category_overrides)
+    if override_pipeline is not None:
+        pipelines.append(override_pipeline)
+
     for name in pipeline_names:
         factory = plugins.pipelines.get(name)
         if factory is None:
@@ -230,6 +237,9 @@ def _compose_pipeline(
                 ),
             )
         pipelines.append(factory())
+
+    if not pipelines:
+        return None
 
     # ``ProcessingPipeline.__add__`` composes pipelines; summing preserves
     # priority ordering pySigma uses internally.

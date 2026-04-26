@@ -48,18 +48,47 @@ class _Model(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
 
 
+class CategoryOverride(_Model):
+    """One ``category_overrides`` entry under a backend.
+
+    Closes coverage gaps in the upstream pipeline's category-to-table
+    mapping. ``table`` is the SIEM-specific table name (e.g. Defender's
+    ``DeviceEvents``); ``filter`` is an optional set of field=value
+    constraints added to the rule via Sigma's ``AddConditionTransformation``
+    so the resulting query targets the right slice of a multi-purpose
+    table (e.g. ``DeviceEvents`` covers many ActionType values, and we
+    want to filter to ``CreateRemoteThreadApiCall`` for the
+    ``create_remote_thread`` category).
+
+    Set the override at the backend level so retiring it once the
+    upstream catches up is a one-line YAML edit.
+    """
+
+    table: str = Field(min_length=1)
+    filter: dict[str, str] = Field(default_factory=dict)
+
+
 class BackendSpec(_Model):
     """One entry under ``backends:`` in the YAML.
 
     ``sigma_backend`` is the pySigma short name from
     ``InstalledSigmaPlugins.autodiscover().backends`` (e.g. ``kusto``,
     ``splunk``, ``lucene``, ``log_scale``).
+
+    ``category_overrides`` plugs gaps in the upstream pipeline's
+    category-to-table dictionary. Any rule whose logsource category
+    matches a key here gets its ``query_table`` (and optional
+    ActionType filter) injected via a Sigma processing pipeline that
+    runs at higher priority than the upstream — so the upstream sees a
+    state that's already been set, no "Unable to determine table name"
+    error fires.
     """
 
     sigma_backend: str = Field(min_length=1)
     format: str = "default"
     baseline_pipelines: list[str] = Field(default_factory=list)
     label: str = Field(min_length=1)
+    category_overrides: dict[str, CategoryOverride] = Field(default_factory=dict)
 
 
 class LogsourceMatch(_Model):
@@ -101,6 +130,72 @@ _DEFAULT_PATH = data_path("pipelines.yml")
 def _default_matrix() -> PipelineMatrix:
     """Lazy-load + cache the bundled matrix for default callers."""
     return load_pipeline_matrix()
+
+
+def build_category_override_pipeline(
+    overrides: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...],
+) -> Any | None:
+    """Build a Sigma ``ProcessingPipeline`` from category-override data.
+
+    Takes the tuple-frozen form carried on :class:`ResolvedConversion`
+    (so this stays hashable / cacheable). Each override produces up to
+    two ``ProcessingItem`` entries:
+
+    1. A :class:`SetStateTransformation` that sets ``query_table`` in the
+       pipeline state. The upstream pipeline's
+       :class:`SetQueryTableStateTransformation` checks ``pipeline.state``
+       BEFORE its category_to_table_mappings dict, so a state set first
+       short-circuits the lookup that would otherwise raise "Unable to
+       determine table name from rule".
+
+    2. An optional :class:`AddConditionTransformation` that ANDs in a
+       ``ActionType: <value>`` filter (or whatever the override's filter
+       map specifies). Used when the SIEM table is multi-purpose and
+       needs a discriminator to target the right slice.
+
+    Both items are gated on a :class:`LogsourceCondition` so they only
+    apply to rules whose category matches the override key. The pipeline
+    runs at priority 5 — lower (earlier) than the upstream microsoft_xdr
+    pipeline's priority 10 — so our state-set fires first.
+
+    Returns ``None`` when there are no overrides; callers should skip
+    composition rather than ship an empty pipeline.
+    """
+    if not overrides:
+        return None
+
+    # Local imports — pySigma is a heavy import surface and only callers
+    # actually building pipelines should pay for it.
+    from sigma.processing.conditions import LogsourceCondition  # noqa: PLC0415
+    from sigma.processing.pipeline import ProcessingItem, ProcessingPipeline  # noqa: PLC0415
+    from sigma.processing.transformations import (  # noqa: PLC0415
+        AddConditionTransformation,
+        SetStateTransformation,
+    )
+
+    items: list[ProcessingItem] = []
+    for category, table, filter_items in overrides:
+        items.append(
+            ProcessingItem(
+                identifier=f"i2s_override_{category}_table",
+                transformation=SetStateTransformation(key="query_table", val=table),
+                rule_conditions=[LogsourceCondition(category=category)],
+            )
+        )
+        if filter_items:
+            items.append(
+                ProcessingItem(
+                    identifier=f"i2s_override_{category}_filter",
+                    transformation=AddConditionTransformation(dict(filter_items)),
+                    rule_conditions=[LogsourceCondition(category=category)],
+                )
+            )
+
+    return ProcessingPipeline(
+        name="intel2sigma category overrides",
+        priority=5,
+        items=items,
+    )
 
 
 def load_pipeline_matrix(path: Path | None = None) -> PipelineMatrix:
@@ -169,6 +264,11 @@ class ResolvedConversion:
     """Immutable result of matching a rule's logsource against the matrix.
 
     Hashable — callers use this as part of the conversion-cache key.
+
+    ``category_overrides`` carries the (category → table[, filter])
+    map from the backend spec, frozen into a tuple-of-tuples so the
+    dataclass remains hashable. Lets the convert engine assemble the
+    override pipeline without re-loading the matrix per call.
     """
 
     backend_id: str
@@ -176,6 +276,9 @@ class ResolvedConversion:
     format: str
     pipelines: tuple[str, ...]  # ordered; first element has highest priority
     label: str
+    # Tuple of (category, table_name, frozen filter-items) so this stays
+    # hashable for the lru_cache. Empty if no overrides.
+    category_overrides: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...] = ()
 
 
 def resolve(
@@ -212,12 +315,17 @@ def resolve(
                 pipelines.extend(extras)
             break  # first match wins
 
+    overrides_frozen: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...] = tuple(
+        (cat, ov.table, tuple(sorted(ov.filter.items())))
+        for cat, ov in spec.category_overrides.items()
+    )
     return ResolvedConversion(
         backend_id=backend_id,
         sigma_backend=spec.sigma_backend,
         format=spec.format,
         pipelines=tuple(pipelines),
         label=spec.label,
+        category_overrides=overrides_frozen,
     )
 
 
