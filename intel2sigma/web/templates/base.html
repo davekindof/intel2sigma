@@ -42,11 +42,16 @@
             </div>
         </header>
 
-        <main class="app-main">
+        <main class="app-main" id="app-main">
             <section class="composer-panel" id="composer-panel"
                      aria-label="Composer">
                 {{ initial_composer_html | safe }}
             </section>
+
+            <div class="pane-splitter" id="pane-splitter"
+                 role="separator" aria-orientation="vertical"
+                 aria-label="Resize composer / preview panes"
+                 title="Drag to resize"></div>
 
             <section class="preview-panel" aria-label="Preview">
                 <div class="preview-pane-primary" id="preview-pane">
@@ -80,5 +85,82 @@
     <div id="load-modal-region"></div>
 
     {% block body_extra %}{% endblock %}
+
+    {# Inline splitter for the composer / preview divider. Vanilla JS, no
+       extra deps — htmx is the only vendored dependency per CLAUDE.md I-6.
+       Persists the user's preferred split ratio in localStorage so it
+       survives reloads; falls back to 50/50 silently if storage isn't
+       available (private mode, locked-down browsers). #}
+    <script>
+        (function () {
+            var STORAGE_KEY = "intel2sigma:composer-pct";
+            var MIN_PX = 320;            // each pane stays at least this wide
+            var SPLITTER_PX = 6;
+            var main = document.getElementById("app-main");
+            var splitter = document.getElementById("pane-splitter");
+            if (!main || !splitter) return;
+
+            function applyPct(pct) {
+                var clampedPct = Math.max(15, Math.min(85, pct));
+                main.style.setProperty("--composer-width", clampedPct + "%");
+                main.style.setProperty(
+                    "--preview-width",
+                    100 - clampedPct + "%"
+                );
+            }
+
+            // Restore preference on load.
+            try {
+                var saved = parseFloat(localStorage.getItem(STORAGE_KEY));
+                if (!isNaN(saved)) applyPct(saved);
+            } catch (e) { /* private mode etc. — ignore */ }
+
+            var dragging = false;
+            splitter.addEventListener("mousedown", function (e) {
+                dragging = true;
+                splitter.classList.add("dragging");
+                document.body.style.userSelect = "none";
+                document.body.style.cursor = "col-resize";
+                e.preventDefault();
+            });
+
+            document.addEventListener("mousemove", function (e) {
+                if (!dragging) return;
+                var rect = main.getBoundingClientRect();
+                var totalPx = rect.width - SPLITTER_PX;
+                if (totalPx <= 0) return;
+                var composerPx = Math.max(
+                    MIN_PX,
+                    Math.min(totalPx - MIN_PX, e.clientX - rect.left)
+                );
+                var pct = (composerPx / totalPx) * 100;
+                applyPct(pct);
+            });
+
+            document.addEventListener("mouseup", function () {
+                if (!dragging) return;
+                dragging = false;
+                splitter.classList.remove("dragging");
+                document.body.style.userSelect = "";
+                document.body.style.cursor = "";
+                try {
+                    var current = main.style.getPropertyValue(
+                        "--composer-width"
+                    );
+                    var pct = parseFloat(current);
+                    if (!isNaN(pct)) {
+                        localStorage.setItem(STORAGE_KEY, String(pct));
+                    }
+                } catch (e) { /* ignore */ }
+            });
+
+            // Double-click resets to 50/50 — discoverable escape hatch
+            // for users who drag too far and want a fresh start.
+            splitter.addEventListener("dblclick", function () {
+                applyPct(50);
+                try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+            });
+        })();
+    </script>
 </body>
 </html>

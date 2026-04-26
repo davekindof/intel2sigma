@@ -14,25 +14,41 @@ everything stays inline for I-6 compliance (no vendored helper).
 <div class="stage-header">
     <h2 class="stage-title">Stage 0 — Pick an observation</h2>
     <p class="stage-subtitle">
-        Choose the kind of behavior you observed. The composer tailors the next
-        stage to the fields that category supports.
+        Pick the kind of activity you observed. The next stage will ask only
+        for the fields that category actually has — no Sigma knowledge
+        required.
     </p>
 </div>
 
-{# Search box ABOVE the IOC panel — testers who already know what they
-   want shouldn't have to scroll past CTI tooling to start typing. #}
-<input type="search"
-       id="observation-search"
-       class="observation-search"
-       placeholder="Search observations (e.g. 'process launched', 'dns', 'registry')"
-       autocomplete="off"
-       oninput="window.__intel2sigma_filter_observations(this.value)">
-
 {% include "composer/_ioc_panel.html" %}
 
+{# Sticky search header. Stays pinned to the top of the composer scroll
+   area so the user can refilter at any depth without scrolling back up.
+   The empty-state notice below the input is unhidden by the filter
+   script when no card matches. #}
+<div class="observation-search-bar">
+    <input type="search"
+           id="observation-search"
+           class="observation-search"
+           placeholder="Search 36 observation types — try 'process', 'dns', 'registry', 'azure'…"
+           autocomplete="off"
+           oninput="window.__intel2sigma_filter_observations(this.value)">
+    <div class="observation-search-empty" id="observation-search-empty" hidden>
+        No observation matched. Try a different keyword, or
+        <a href="#freeform-obs-anchor"
+           onclick="document.querySelector('.freeform-obs').open=true">
+            specify a custom logsource ↓
+        </a>
+    </div>
+</div>
+
 {% for group_id, group_label, entries in observation_groups %}
-<section class="observation-group" data-group="{{ group_id }}">
-    <h3 class="observation-group-title">{{ group_label }}</h3>
+<section class="observation-group observation-group-{{ group_id }}"
+         data-group="{{ group_id }}">
+    <header class="observation-group-header">
+        <h3 class="observation-group-title">{{ group_label }}</h3>
+        <span class="observation-group-count">{{ entries|length }}</span>
+    </header>
     <div class="card-grid card-grid-stage0">
         {% for entry in entries %}
         <button type="button"
@@ -50,16 +66,24 @@ everything stays inline for I-6 compliance (no vendored helper).
                 title="{{ entry.label }} — Stage 1 fields: {{ entry.field_preview }}">
             <div class="observation-card-label">{{ entry.label }}</div>
             <div class="observation-card-desc">{{ entry.description }}</div>
-            <div class="observation-card-platforms">
-                {% for platform in entry.platforms %}
-                <span class="platform-chip">{{ platform }}</span>
-                {% endfor %}
+            <div class="observation-card-foot">
+                <div class="observation-card-platforms">
+                    {% for platform in entry.platforms %}
+                    <span class="platform-chip">{{ platform }}</span>
+                    {% endfor %}
+                </div>
+                <span class="observation-card-fields"
+                      title="First fields you'll see on Stage 1">
+                    {{ entry.field_preview }}
+                </span>
             </div>
         </button>
         {% endfor %}
     </div>
 </section>
 {% endfor %}
+
+<a id="freeform-obs-anchor"></a>
 
 {# Long-tail fallback. The observable catalog covers the ~93% of corpus
    rules whose logsource appears ≥15 times; everything below that
@@ -120,11 +144,15 @@ everything stays inline for I-6 compliance (no vendored helper).
             const text = (el.dataset.searchText || "").toLowerCase();
             el.hidden = q !== "" && !text.includes(q);
         });
+        let anyGroupVisible = false;
         document.querySelectorAll(".observation-group").forEach((group) => {
             const anyVisible = Array.from(
                 group.querySelectorAll(".observation-card"),
             ).some((c) => !c.hidden);
             group.hidden = !anyVisible;
+            if (anyVisible) anyGroupVisible = true;
         });
+        const empty = document.getElementById("observation-search-empty");
+        if (empty) empty.hidden = anyGroupVisible || q === "";
     };
 </script>

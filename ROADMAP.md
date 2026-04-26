@@ -164,6 +164,7 @@ Doesn't fit a milestone:
 - **Rule upload (`.yml` file picker).** v1.5 ships paste + curated examples; the file picker is a small follow-up using the browser File API (read client-side, POST text body to the existing load endpoint).
 - **Rule download UX**: progress indicator + last-N rules list (client-side localStorage, *not* server persistence).
 - **Keyboard shortcuts** (deferred from v1 per docs/ui.md).
+- **Stage 1 field helpers for the non-SIEM audience.** Once a user picks an observation, each field row should explain in plain English what the field actually is — "*Image* is the path of the executable that ran" — plus a one-tap "use a typical value" suggestion drawn from the SigmaHQ corpus (e.g. for `Image` on `process_creation`, the top-N most-cited paths). Optional inline "what does this modifier do" tooltip on the modifier dropdown for the same reason. The data is already in `data/taxonomy/*.yml` (`label`, `note`, `example`); this is wiring + UX, not new data. Feeds the broader product thesis: testers shouldn't need to know Sigma jargon to write Sigma rules.
 
 ## v2 — Aspirational
 
