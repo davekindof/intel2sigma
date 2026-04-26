@@ -52,15 +52,20 @@ class PlatformTier(StrEnum):
     SECONDARY = "secondary"
 
 
-# The five UI groups used by Stage 0 ("Observation selection"). Fixed by the
+# UI groups used by Stage 0 ("Observation selection"). Fixed by the
 # wireframe in ``docs/ui.md``. Adding a new group is a code + UI change, not
-# a pure data change.
+# a pure data change. Two cloud/audit groups added as part of the Phase B1
+# observable expansion (corpus-frequency analysis surfaced 23 ≥15-rule
+# logsources outside the original five buckets — AWS CloudTrail, Windows
+# Security channel, Okta, etc.).
 CategoryGroup = Literal[
     "process_and_execution",
     "file_and_registry",
     "network",
     "scheduled_and_system",
     "powershell_and_scripting",
+    "os_event_log",  # Windows Security/System/Application/Defender, Linux auditd
+    "audit_and_identity",  # AWS CloudTrail, Azure logs, GCP audit, Okta, GitHub audit
 ]
 
 

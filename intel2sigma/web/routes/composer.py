@@ -96,6 +96,8 @@ GROUP_LABELS: dict[str, str] = {
     "network": "Network",
     "scheduled_and_system": "Scheduled & System",
     "powershell_and_scripting": "PowerShell & Scripting",
+    "os_event_log": "OS Event Logs",
+    "audit_and_identity": "Audit & Identity (Cloud / SaaS)",
 }
 GROUP_ORDER: tuple[str, ...] = tuple(GROUP_LABELS.keys())
 

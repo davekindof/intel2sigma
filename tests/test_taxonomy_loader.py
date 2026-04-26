@@ -305,7 +305,11 @@ def test_bad_observation_id_pattern_raises(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-EXPECTED_IDS = frozenset(
+# Original v0 catalog (the 15 hand-curated observation types). Kept as
+# the floor: any of these going missing from the bundled set is a
+# regression. Newer entries are validated separately so this set
+# doesn't have to grow on every catalog expansion.
+_ORIGINAL_IDS = frozenset(
     {
         "process_creation",
         "image_load",
@@ -331,24 +335,38 @@ def test_bundled_catalog_loads() -> None:
 
     Uses the default (bundled) data directory so the whole pipeline is
     exercised end-to-end — failure here means a file in ``data/taxonomy/``
-    drifted from the schema and caught CI rather than production.
+    drifted from the schema and caught CI rather than production. The
+    original 15 v0 entries must all be present (regression floor); the
+    catalog can grow beyond that as Phase B1 corpus-frequency analysis
+    adds new categories.
     """
     registry = load_taxonomy()
-    assert set(registry.all_ids()) == EXPECTED_IDS
+    loaded = set(registry.all_ids())
+    missing = _ORIGINAL_IDS - loaded
+    assert not missing, f"Original v0 catalog regressed; missing: {sorted(missing)}"
+    # Sanity: catalog should be at least as big as the v0 floor and
+    # not absurdly large (a runaway generator bug).
+    assert len(_ORIGINAL_IDS) <= len(loaded) <= 200
 
 
-def test_bundled_catalog_has_five_ui_groups() -> None:
+def test_bundled_catalog_groups_are_valid() -> None:
+    """Every observation's category_group is one of the documented groups."""
     registry = load_taxonomy()
     groups = registry.by_group()
-    assert set(groups) == {
+    valid_groups = {
         "process_and_execution",
         "file_and_registry",
         "network",
         "scheduled_and_system",
         "powershell_and_scripting",
+        "os_event_log",
+        "audit_and_identity",
     }
-    # Every group must have at least one observation; empty groups suggest
-    # a broken category_group on one of the files.
+    extra = set(groups) - valid_groups
+    assert not extra, f"Unknown category_group(s): {sorted(extra)}"
+    # Every group present has at least one observation; empty groups
+    # would mean a stray category_group in the Literal but no file
+    # claiming it.
     for group_members in groups.values():
         assert group_members
 
