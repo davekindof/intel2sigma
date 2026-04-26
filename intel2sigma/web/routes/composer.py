@@ -40,6 +40,7 @@ from intel2sigma.core.taxonomy import (
     TaxonomyRegistry,
     load_taxonomy,
 )
+from intel2sigma.core.taxonomy.schema import ObservationTypeSpec
 from intel2sigma.core.validate import validate_tier3
 from intel2sigma.core.validate.issues import ValidationIssue
 from intel2sigma.web.draft import (
@@ -212,20 +213,29 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
             **bc,
         )
 
-    try:
-        spec = taxonomy.get(draft.observation_id)
-    except KeyError:
-        # Corrupted blob or taxonomy drift — fall back to stage 0.
-        draft.stage = 0
-        draft.observation_id = ""
-        return templates.get_template("composer/stage0_observation.html").render(
-            request=request,
-            observation_groups=_build_observation_groups(taxonomy),
-            ioc_summaries=_ioc_panel_context(draft),
-            ioc_total=len(draft.iocs),
-            ioc_used_count=sum(1 for i in draft.iocs if i.used),
-            **_breadcrumb_context(draft),
-        )
+    # Long-tail freeform observation: skip the taxonomy lookup entirely
+    # and render Stage 1+ with no spec. Stage 1's field input switches
+    # from a select-from-catalog dropdown to a free text input; the
+    # modifier-dropdown's defensive fallback (commit d705e1d) provides
+    # a permissive modifier list when no spec is in scope.
+    spec: ObservationTypeSpec | None
+    if draft.observation_id == _FREEFORM_OBSERVATION_ID:
+        spec = None
+    else:
+        try:
+            spec = taxonomy.get(draft.observation_id)
+        except KeyError:
+            # Corrupted blob or taxonomy drift — fall back to stage 0.
+            draft.stage = 0
+            draft.observation_id = ""
+            return templates.get_template("composer/stage0_observation.html").render(
+                request=request,
+                observation_groups=_build_observation_groups(taxonomy),
+                ioc_summaries=_ioc_panel_context(draft),
+                ioc_total=len(draft.iocs),
+                ioc_used_count=sum(1 for i in draft.iocs if i.used),
+                **_breadcrumb_context(draft),
+            )
 
     if draft.stage == 2:
         return templates.get_template("composer/stage2_metadata.html").render(
@@ -275,11 +285,19 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
         )
 
     # Default: stage 1 — detection editor.
-    field_specs_by_name = {f.name: f for f in spec.fields}
+    if spec is None:
+        # Freeform path: no taxonomy spec, no field catalog. The Stage 1
+        # template handles the fall-through (text-input field, permissive
+        # modifier list).
+        field_specs_by_name = {}
+        platform_id = draft.platform_id or draft.logsource.product or "custom"
+    else:
+        field_specs_by_name = {f.name: f for f in spec.fields}
+        platform_id = draft.platform_id or (spec.platforms[0].id if spec.platforms else "")
     return templates.get_template("composer/stage1_detection.html").render(
         request=request,
         observation_spec=spec,
-        platform_id=draft.platform_id or (spec.platforms[0].id if spec.platforms else ""),
+        platform_id=platform_id,
         match_blocks=[b for b in draft.detections if not b.is_filter],
         filter_blocks=[b for b in draft.detections if b.is_filter],
         match_combinator=draft.match_combinator,
@@ -291,6 +309,11 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
         # see "what does this rule actually do?" without reading YAML.
         prose_summary=_prose_summary(None, draft),
         can_advance=draft.can_advance_to_stage(2),
+        # Freeform sentinel — templates branch on this for the
+        # field-as-textbox UI.
+        is_freeform=spec is None,
+        # Logsource summary for the Stage 1 subtitle when there's no spec.
+        logsource_summary=_logsource_summary(draft),
         **bc,
     )
 
@@ -377,6 +400,24 @@ def _prose_summary(rule: SigmaRule | None, draft: RuleDraft) -> str:  # noqa: PL
         if filter_phrases:
             opening += " It excludes events matching " + " or ".join(filter_phrases) + "."
     return opening
+
+
+def _logsource_summary(draft: RuleDraft) -> str:
+    """One-line summary of the draft's logsource.
+
+    Used by Stage 1's subtitle when the user picked the freeform path
+    (no taxonomy spec) so the page still shows what they're authoring
+    against. Format: "product: x · category: y · service: z" with empty
+    pieces dropped.
+    """
+    parts: list[str] = []
+    if draft.logsource.product:
+        parts.append(f"product: {draft.logsource.product}")
+    if draft.logsource.category:
+        parts.append(f"category: {draft.logsource.category}")
+    if draft.logsource.service:
+        parts.append(f"service: {draft.logsource.service}")
+    return " · ".join(parts) if parts else "(no logsource set)"
 
 
 def _download_filename(rule: SigmaRule) -> str:
@@ -539,6 +580,48 @@ def _sorted_advisories(issues: Iterable[ValidationIssue]) -> list[ValidationIssu
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+
+
+# Sentinel observation_id for the long-tail "I don't see my logsource"
+# entry point. Stage 1 renders without a taxonomy spec — field inputs
+# become text boxes, allowed modifiers fall back to the permissive set.
+# Used when the user's logsource is below the corpus-frequency threshold
+# our taxonomy ships YAMLs for, OR when they're authoring against a
+# proprietary / not-yet-supported logsource.
+_FREEFORM_OBSERVATION_ID = "_freeform"
+
+
+@router.post("/select-freeform-observation", name="select_freeform_observation")
+async def select_freeform_observation(
+    request: Request,
+    rule_state: Annotated[str, Form()] = "",
+    freeform_product: Annotated[str, Form()] = "",
+    freeform_category: Annotated[str, Form()] = "",
+    freeform_service: Annotated[str, Form()] = "",
+) -> HTMLResponse:
+    """Stage 0 → Stage 1 with a user-supplied logsource.
+
+    The (product, category, service) tuple comes straight from the
+    Stage 0 freeform form. At least one of the three must be non-empty
+    (Sigma logsource semantics — pySigma rejects an empty logsource).
+    Empty input falls through to a re-render of Stage 0 with no draft
+    mutation.
+    """
+    product = freeform_product.strip()
+    category = freeform_category.strip()
+    service = freeform_service.strip()
+    if not (product or category or service):
+        # Empty submit — silently re-render Stage 0.
+        return _render_stage(request, RuleDraft.from_json(rule_state))
+
+    draft = RuleDraft.from_json(rule_state)
+    draft.observation_id = _FREEFORM_OBSERVATION_ID
+    draft.platform_id = product or "custom"
+    draft.logsource.product = product or None
+    draft.logsource.category = category or None
+    draft.logsource.service = service or None
+    draft.stage = 1
+    return _render_stage(request, draft)
 
 
 @router.post("/select-observation", name="select_observation")

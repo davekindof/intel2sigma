@@ -30,8 +30,13 @@ offer them.
         </a>
     </div>
     <p class="stage-subtitle">
+        {% if observation_spec %}
         {{ observation_spec.label }} ·
         <span class="stage-subtitle-muted">{{ platform_id }}</span>
+        {% else %}
+        Custom logsource ·
+        <span class="stage-subtitle-muted">{{ logsource_summary }}</span>
+        {% endif %}
     </p>
     {% if prose_summary and match_blocks %}
     {# Plain-English summary of the current detection. Helps non-Sigma

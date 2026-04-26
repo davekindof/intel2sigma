@@ -61,6 +61,54 @@ everything stays inline for I-6 compliance (no vendored helper).
 </section>
 {% endfor %}
 
+{# Long-tail fallback. The observable catalog covers the ~93% of corpus
+   rules whose logsource appears ≥15 times; everything below that
+   threshold (or proprietary / not-yet-supported) lands here. The user
+   types (product, category, service) — at least one is required — and
+   Stage 1 renders with text-input field rows since we don't have a
+   field catalog for the custom logsource. #}
+<details class="freeform-obs">
+    <summary class="freeform-obs-summary">
+        Don't see your observation type?
+        <span class="freeform-obs-hint">— specify a custom logsource</span>
+    </summary>
+    <form class="freeform-obs-form"
+          hx-post="{{ url_for('select_freeform_observation') }}"
+          hx-include="#rule-state"
+          hx-target="#composer-panel"
+          hx-swap="innerHTML"
+          onsubmit="return false">
+        <p class="freeform-obs-help">
+            Match the logsource block of the rules you'd write. At least
+            one of <code>product</code>, <code>category</code>, or
+            <code>service</code> is required — the other two are optional.
+        </p>
+        <div class="freeform-obs-row">
+            <label class="freeform-obs-field">
+                <span>product</span>
+                <input type="text" name="freeform_product"
+                       placeholder="windows / linux / aws / azure / …"
+                       autocomplete="off">
+            </label>
+            <label class="freeform-obs-field">
+                <span>category</span>
+                <input type="text" name="freeform_category"
+                       placeholder="process_creation / firewall / …"
+                       autocomplete="off">
+            </label>
+            <label class="freeform-obs-field">
+                <span>service</span>
+                <input type="text" name="freeform_service"
+                       placeholder="security / sysmon / cloudtrail / …"
+                       autocomplete="off">
+            </label>
+        </div>
+        <button type="submit" class="button-primary">
+            Use custom logsource
+        </button>
+    </form>
+</details>
+
 <script>
     // Client-side card filter. Runs without htmx; no round-trip needed for
     // pure presentation. If/when we add server-side synonym search we'd

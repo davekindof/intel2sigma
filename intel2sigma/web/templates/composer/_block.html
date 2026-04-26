@@ -57,6 +57,7 @@ Included from stage1_detection.html per match/filter block. Expects:
     <div class="detection-items">
         {% for item in block.items %}
         <div class="detection-item" data-item-index="{{ loop.index0 }}">
+            {% if observation_spec %}
             <select class="item-field"
                     name="field::{{ block.name }}::{{ loop.index0 }}"
                     aria-label="Field"
@@ -73,6 +74,25 @@ Included from stage1_detection.html per match/filter block. Expects:
                 </option>
                 {% endfor %}
             </select>
+            {% else %}
+            {# Freeform path: no taxonomy catalog. Plain text input — user
+               types whatever field name applies to their custom logsource.
+               Same set_field action; server doesn't validate against a
+               field list when observation_spec is None. #}
+            <input class="item-field"
+                   type="text"
+                   name="field::{{ block.name }}::{{ loop.index0 }}"
+                   aria-label="Field name"
+                   value="{{ item.field }}"
+                   placeholder="Field name (e.g. EventID, CommandLine)"
+                   autocomplete="off"
+                   hx-post="{{ url_for('composer_update') }}"
+                   hx-include="#rule-state"
+                   hx-vals='{"action": "set_field", "block_name": "{{ block.name }}", "item_index": "{{ loop.index0 }}"}'
+                   hx-target="#composer-panel"
+                   hx-swap="innerHTML"
+                   hx-trigger="change, keyup delay:300ms">
+            {% endif %}
 
             <select class="item-modifier"
                     name="modifier::{{ block.name }}::{{ loop.index0 }}"

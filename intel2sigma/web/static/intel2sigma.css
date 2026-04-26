@@ -945,6 +945,58 @@ input[type="text"]:focus, textarea:focus, select:focus {
     gap: 4px;
 }
 
+/* Long-tail freeform observation entry — collapsed disclosure at the
+   bottom of Stage 0 for logsources that didn't make the corpus-frequency
+   threshold (and proprietary / not-yet-supported logsources). */
+.freeform-obs {
+    margin-top: var(--space-6);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-surface);
+    border: 1px dashed var(--color-border);
+    border-radius: var(--radius-md);
+}
+.freeform-obs-summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--color-text);
+    list-style: none;
+}
+.freeform-obs-summary::-webkit-details-marker { display: none; }
+.freeform-obs-summary::before {
+    content: "▶";
+    display: inline-block;
+    margin-right: var(--space-2);
+    color: var(--color-text-dim);
+    transition: transform 150ms;
+}
+.freeform-obs[open] .freeform-obs-summary::before {
+    transform: rotate(90deg);
+}
+.freeform-obs-hint {
+    color: var(--color-text-dim);
+    font-weight: 400;
+    margin-left: var(--space-2);
+    font-size: 13px;
+}
+.freeform-obs-help {
+    margin: var(--space-3) 0;
+    color: var(--color-text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+.freeform-obs-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+}
+.freeform-obs-field { display: flex; flex-direction: column; gap: 4px; }
+.freeform-obs-field span {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-dim);
+}
+
 .platform-chip {
     font-family: var(--font-mono);
     font-size: 11px;
