@@ -631,11 +631,25 @@ class RuleDraft(_Model):
     def _compose_condition(self, blocks: list[DetectionBlock]) -> ConditionExpression | None:
         """Build a default condition tree from the block list.
 
-        v0 composer UX: ``all of match_* and not any filter_*``. If there's
-        only one match block and no filter, the condition is just that one
-        selection's name. This auto-composition is replaced in M2.4 when
-        the Expert-mode condition editor lands; for now it keeps the
-        Guided flow from asking the user about conditions at all.
+        Enumerates actual block names rather than emitting ``all of match_*``
+        / ``1 of filter_*`` globs. The earlier glob form was correct for
+        composer-built rules (whose blocks default to ``match_N`` /
+        ``filter_N``) but silently broke when loading rules whose blocks
+        used other names — a SigmaHQ rule with selections named
+        ``selection_sllauncher`` would emit ``condition: all of match_*``,
+        a glob that resolves to nothing in pySigma. Net effect: every
+        loaded multi-block rule lost its detection logic and false-fired
+        h-050. Enumerating produces ``selection_sllauncher and
+        selection_svchost`` instead — slightly more verbose YAML but
+        always references the rule's actual blocks.
+
+        ``match_combinator`` picks AND vs OR across the match side:
+
+        * ``all_of`` → ``match_a and match_b``
+        * ``any_of`` → ``match_a or match_b``
+
+        Filter side is always OR'd together (``not (filter_a or filter_b)``)
+        because that's the SigmaHQ-canonical "exclude any of these" form.
         """
         if not blocks:
             return None
@@ -644,22 +658,21 @@ class RuleDraft(_Model):
         if not matches:
             return None
 
-        # Match side: single block reference, or AND/OR over a glob.
-        # ``match_combinator`` picks between ``all of match_*`` (AND across
-        # match blocks) and ``1 of match_*`` (OR across match blocks).
+        # Match side: enumerate actual names, joined by AND or OR.
         if len(matches) == 1:
             match_expr = ConditionExpression(selection=matches[0].name)
         else:
-            op = ConditionOp.ONE_OF if self.match_combinator == "any_of" else ConditionOp.ALL_OF
+            op = ConditionOp.OR if self.match_combinator == "any_of" else ConditionOp.AND
             match_expr = ConditionExpression(
                 op=op,
-                children=[ConditionExpression(selection="match_*")],
+                children=[ConditionExpression(selection=b.name) for b in matches],
             )
 
         if not filters:
             return match_expr
 
-        # Filter side: negate either a single block or an "any of" glob.
+        # Filter side: negate the actual filter names. Single filter =
+        # ``not filter_x``; multiple = ``not (filter_a or filter_b)``.
         if len(filters) == 1:
             filter_negation = ConditionExpression(
                 op=ConditionOp.NOT,
@@ -670,8 +683,8 @@ class RuleDraft(_Model):
                 op=ConditionOp.NOT,
                 children=[
                     ConditionExpression(
-                        op=ConditionOp.ONE_OF,
-                        children=[ConditionExpression(selection="filter_*")],
+                        op=ConditionOp.OR,
+                        children=[ConditionExpression(selection=b.name) for b in filters],
                     )
                 ],
             )

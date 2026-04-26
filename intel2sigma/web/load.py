@@ -43,6 +43,14 @@ _EXAMPLES_DIR = data_path("examples")
 # separately from tier-1/tier-2/composer issues.
 _ISSUE_CODE_PREFIX = "LOAD_"
 
+# Sentinel observation id used when the loaded rule's logsource isn't in
+# our taxonomy. Mirrors ``_FREEFORM_OBSERVATION_ID`` in
+# ``web/routes/composer.py``; duplicated as a literal here to keep
+# ``web/load.py`` from importing the routes layer (load is a service,
+# not a presentation concern). If the literal ever changes both sites
+# need the update.
+_FREEFORM_OBSERVATION_ID = "_freeform"
+
 
 def draft_from_yaml(yaml_text: str) -> tuple[RuleDraft | None, list[ValidationIssue]]:
     """Translate a Sigma YAML document into a :class:`RuleDraft`.
@@ -204,8 +212,15 @@ def _translate_observation(
         draft.platform_id = spec.platforms[0].id if spec.platforms else ""
         return
 
-    # No catalogue match — the rule will still render in stage 1 but
-    # without the taxonomy-driven field dropdown.
+    # No catalogue match. Route to the freeform observation path so the
+    # composer treats this as a custom logsource (text-input field rows
+    # instead of taxonomy-driven dropdowns) and the breadcrumb / stage
+    # render stay in sync with draft.stage. Without this, an unknown
+    # logsource left observation_id="" and the render fallback in
+    # _render_composer_panel dropped to Stage 0 regardless of the
+    # loaded stage — a rule landing at stage 3 (review) would render
+    # Stage 0 cards while the breadcrumb still highlighted Stage 3.
+    draft.observation_id = _FREEFORM_OBSERVATION_ID
     issues.append(
         ValidationIssue(
             tier=1,
@@ -213,8 +228,9 @@ def _translate_observation(
             message=(
                 f"Rule's logsource ({category}"
                 + (f", {product}" if product else "")
-                + ") doesn't match any catalogued observation type."
-                " Fields won't be validated against the taxonomy."
+                + ") doesn't match any catalogued observation type. "
+                "Composer will use freeform field-name inputs; field "
+                "values won't be validated against the taxonomy."
             ),
         )
     )

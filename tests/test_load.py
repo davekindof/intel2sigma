@@ -242,3 +242,220 @@ def test_load_close_route_returns_empty_body(client: TestClient) -> None:
     r = client.post("/composer/load-close")
     assert r.status_code == 200
     assert r.text == ""
+
+
+# ---------------------------------------------------------------------------
+# Regression: P1 — multi-selection rules use actual block names, not globs
+# ---------------------------------------------------------------------------
+#
+# The exact shape of the APT27 Emissary Panda rule from screenshot 1 of the
+# load-bug dogfood report. Two ``selection_*`` match blocks, condition
+# ``all of selection_*``. Before the fix, our ``_compose_condition`` emitted
+# ``all of match_*`` (a glob that doesn't resolve against ``selection_*``
+# blocks) when the loader didn't repopulate ``condition_tree``. That broke
+# pySigma conversion and false-fired h-050.
+
+APT27_STYLE_YAML = """
+title: APT27 - Emissary Panda Activity
+id: 9aa01d62-7667-4d3b-acb8-8cb5103e2014
+status: test
+description: Detects DLL side-loading malware used by APT27 (Emissary Panda).
+author: Florian Roth (Nextron Systems)
+date: 2018-09-03
+tags:
+  - attack.privilege-escalation
+  - attack.t1574.001
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_sllauncher:
+        ParentImage|endswith: '\\sllauncher.exe'
+        Image|endswith: '\\svchost.exe'
+    selection_svchost:
+        ParentImage|contains: '\\AppData\\Roaming\\'
+        Image|endswith: '\\svchost.exe'
+        CommandLine|contains: '-k'
+    condition: all of selection_*
+falsepositives:
+  - Unlikely
+level: critical
+"""
+
+
+def test_load_multiselection_rule_emits_actual_block_names_in_condition() -> None:
+    """The composed condition must reference actual block names, not match_*.
+
+    Regression for the APT27 dogfood case: load a rule whose blocks are
+    named ``selection_*``, serialize back to canonical YAML, assert the
+    condition references the loaded names — the auto-composer was
+    emitting ``all of match_*`` regardless, which doesn't resolve.
+    """
+    from intel2sigma.core.serialize import to_yaml  # noqa: PLC0415
+
+    draft, issues = draft_from_yaml(APT27_STYLE_YAML)
+    assert draft is not None
+    # Loader-level issues are fine (e.g. taxonomy match is informational);
+    # what's not fine is condition desync.
+    assert all(i.code != "LOAD_PARSE_FAILED" for i in issues)
+
+    # Block names preserved verbatim from the source rule.
+    names = sorted(b.name for b in draft.detections)
+    assert names == ["selection_sllauncher", "selection_svchost"]
+
+    # Convert draft → strict SigmaRule → YAML and inspect the condition.
+    sigma = draft.to_sigma_rule()
+    assert not isinstance(sigma, list), f"Draft should validate; got issues: {sigma}"
+    yaml_text = to_yaml(sigma)
+    # Condition must reference the actual block names. Either form is
+    # acceptable: enumerated ``selection_a and selection_b`` (current
+    # synthesis) or a future glob-aware form like ``all of selection_*``.
+    # What's NOT acceptable is ``match_*`` — the regression we're locking.
+    assert "match_*" not in yaml_text, (
+        f"Condition still references hardcoded match_* glob; expected "
+        f"actual block names. YAML:\n{yaml_text}"
+    )
+    assert "selection_sllauncher" in yaml_text
+    assert "selection_svchost" in yaml_text
+
+
+def test_load_multiselection_rule_does_not_false_fire_h050() -> None:
+    """h-050 (undefined selection) must not fire on a loaded multi-selection rule.
+
+    Before the fix, loading the APT27-style rule produced a condition
+    referencing ``match_*`` while the rule's blocks were named
+    ``selection_*`` — h-050 correctly flagged the broken reference, but
+    the rule was authored fine; the loader created the bug.
+    """
+    from intel2sigma.core.heuristics.checks.condition_integrity import (  # noqa: PLC0415
+        condition_references_undefined,
+    )
+
+    draft, _issues = draft_from_yaml(APT27_STYLE_YAML)
+    assert draft is not None
+    sigma = draft.to_sigma_rule()
+    assert not isinstance(sigma, list)
+    assert condition_references_undefined(sigma) is None
+
+
+def test_load_two_match_two_filter_rule_enumerates_both_sides() -> None:
+    """A 2-match + 2-filter rule should enumerate names on both sides.
+
+    Locks in that the synthesis emits ``(m1 and m2) and not (f1 or f2)``-
+    shaped conditions for the multi-each case. Pre-fix this would have
+    been ``all of match_* and not 1 of filter_*`` with hardcoded globs.
+    """
+    yaml_text = """
+title: Two-of-each test rule
+id: 11111111-2222-3333-4444-555555555555
+status: test
+description: Test fixture for the multi-each condition synthesis path.
+author: intel2sigma tests
+date: 2026-04-26
+tags: [attack.execution]
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_a:
+        Image|endswith: '\\evil.exe'
+    selection_b:
+        CommandLine|contains: '-bad'
+    filter_admin:
+        User|contains: SYSTEM
+    filter_sccm:
+        ParentImage|contains: '\\ccmexec.exe'
+    condition: all of selection_* and not 1 of filter_*
+falsepositives: [Unlikely]
+level: high
+"""
+    from intel2sigma.core.serialize import to_yaml  # noqa: PLC0415
+
+    draft, _issues = draft_from_yaml(yaml_text)
+    assert draft is not None
+    sigma = draft.to_sigma_rule()
+    assert not isinstance(sigma, list)
+    rendered = to_yaml(sigma)
+
+    # Neither glob form should leak through.
+    assert "match_*" not in rendered
+    assert "filter_*" not in rendered
+    # All four block names must appear in the condition.
+    for name in ("selection_a", "selection_b", "filter_admin", "filter_sccm"):
+        assert name in rendered
+
+
+# ---------------------------------------------------------------------------
+# Regression: P2 — unknown logsource routes to freeform, not Stage 0 fallback
+# ---------------------------------------------------------------------------
+
+
+ANTIVIRUS_RULE_YAML = """
+title: Antivirus Exploitation Framework Detection
+id: 238527ad-3c2c-4e4f-a1f6-92fd63adb864
+status: stable
+description: Detects a relevant Antivirus alert that reports an exploitation framework.
+references:
+  - https://example.invalid/ref
+author: Florian Roth (Nextron Systems)
+date: 2018-09-09
+tags:
+  - attack.execution
+  - attack.t1203
+logsource:
+    category: antivirus
+detection:
+    selection:
+        Signature|contains:
+          - CobaltStrike
+          - Meterpreter
+          - PowerSploit
+    condition: selection
+falsepositives:
+  - Unlikely
+level: high
+"""
+
+
+def test_load_unknown_category_routes_to_freeform_observation() -> None:
+    """An ``antivirus`` logsource isn't in our taxonomy — must use _freeform.
+
+    Regression for the dogfood case where loading the antivirus rule
+    left ``observation_id=""`` and the render fallback dropped to
+    Stage 0 with a stale breadcrumb. The fix routes to ``_freeform``
+    instead, so the breadcrumb / stage stay consistent.
+    """
+    draft, issues = draft_from_yaml(ANTIVIRUS_RULE_YAML)
+    assert draft is not None
+
+    assert draft.observation_id == "_freeform"
+    assert draft.logsource.category == "antivirus"
+    # The informational issue stays — user should know the field
+    # catalogue isn't validating their inputs.
+    codes = {i.code for i in issues}
+    assert "LOAD_OBSERVATION_UNKNOWN" in codes
+
+
+def test_load_unknown_category_breadcrumb_stays_consistent(client: TestClient) -> None:
+    """Loading an unknown-category rule must not desync breadcrumb from content.
+
+    Before the fix, the antivirus rule landed with ``stage=3,
+    observation_id=""`` — render dropped to Stage 0 markup while the
+    breadcrumb still reported Stage 3. With the fix, the same rule
+    lands with ``observation_id=_freeform`` and the rendered Stage 3
+    review markup matches the breadcrumb.
+    """
+    r = client.post("/composer/load-paste", data={"yaml_text": ANTIVIRUS_RULE_YAML})
+    assert r.status_code == 200
+    state = _extract_state(r.text)
+    assert state["observation_id"] == "_freeform"
+    # Stage advanced past 0; breadcrumb and rendered content should agree.
+    assert state["stage"] >= 1
+    # When a rule lands in review, the response html should contain the
+    # Stage 3 / Stage 1 markup, not Stage 0's "Pick an observation" header.
+    if state["stage"] == 3:
+        assert "Stage 3 — Review" in r.text
+        assert "Pick an observation" not in r.text
+    elif state["stage"] == 1:
+        assert "Stage 1" in r.text
+        assert "Pick an observation" not in r.text
