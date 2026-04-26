@@ -176,14 +176,45 @@ def test_load_modal_route_renders(client: TestClient) -> None:
 
 
 def test_load_paste_with_valid_yaml_advances_to_stage3(client: TestClient) -> None:
+    """A valid pasted rule lands the user at Stage 3 review with the
+    composer-panel updated and the load modal closed.
+
+    Tester regression: the previous wiring rendered Stage 3 markup as
+    the response's *main* body, which htmx swapped into the load modal
+    target — so the composer-panel never updated and the user stayed
+    visually on Stage 0. Fix: composer-panel is an oob swap, the main
+    body is empty (which closes the modal cleanly).
+    """
     r = client.post("/composer/load-paste", data={"yaml_text": VALID_YAML})
     assert r.status_code == 200
     state = _extract_state(r.text)
     assert state["stage"] == 3
     assert state["title"] == "Encoded PowerShell from non-SYSTEM"
-    # The modal region is cleared via oob swap.
-    assert 'id="load-modal-region"' in r.text
-    assert "hx-swap-oob" in r.text
+    # Composer panel swapped via oob — Stage 3 markup goes there, not
+    # to the modal target.
+    assert '<div id="composer-panel" hx-swap-oob="true">' in r.text
+    assert "Stage 3 — Review" in r.text
+    # Modal title text should NOT appear (modal closed via empty
+    # main-body swap to the #load-modal-region target).
+    assert "Load an existing rule" not in r.text
+
+
+def test_load_lands_user_on_stage_3_in_composer_panel(client: TestClient) -> None:
+    """Regression for the load-rule UX bug: after loading a fully-valid
+    rule, the LEFT pane (composer panel) shows Stage 3 review markup,
+    not the Stage 0 observation picker.
+
+    The bug was that ``_render_stage_with_load_clear`` returned the
+    Stage 3 HTML as the response body and let htmx swap it into the
+    modal target — so the composer-panel stayed on Stage 0.
+    """
+    r = client.post("/composer/load-paste", data={"yaml_text": VALID_YAML})
+    body = r.text
+    # The composer-panel oob wrapper carries the Stage 3 review markup.
+    assert '<div id="composer-panel" hx-swap-oob="true">' in body
+    # Stage 3-specific text appears, Stage 0-specific text doesn't.
+    assert "Stage 3 — Review" in body
+    assert "Stage 0 — Pick an observation" not in body
 
 
 def test_load_paste_with_garbage_re_renders_modal_with_issues(client: TestClient) -> None:

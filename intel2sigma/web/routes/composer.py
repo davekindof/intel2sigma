@@ -1071,26 +1071,54 @@ async def composer_load_example(
 def _render_stage_with_load_clear(
     request: Request, draft: RuleDraft, load_issues: list[ValidationIssue]
 ) -> HTMLResponse:
-    """Render the loaded draft + close the modal + surface translator warnings.
+    """Render the loaded draft into the composer + close the modal.
 
-    The translator's issue list is appended to the preview-pane issue list
-    so fidelity-loss warnings are visible right where the user lands.
+    Subtle: the load buttons' ``hx-target`` is ``#load-modal-region``,
+    so the response's *main* body lands there. Earlier wiring fed the
+    full ``_render_stage`` output (with composer-panel HTML as the main
+    body) into the modal region — meaning the actual composer-panel
+    never updated and the user stayed visually on Stage 0 even though
+    the right-pane preview reflected the loaded rule. Bug surfaced
+    by tester screenshot of an AnyDesk rule load.
+
+    Fix: every region we update is wrapped as an out-of-band swap, and
+    the main body is the empty modal-close. htmx then:
+      1. swaps "" into ``#load-modal-region`` (modal closes)
+      2. picks up the oob ``#composer-panel`` and swaps Stage 1/3 there
+      3. picks up the oob preview / tabs / state-blob swaps as before
+
+    Translator warnings (fidelity loss from pySigma → RuleDraft) are
+    spliced into the preview-pane's issue list so the user sees them
+    right where they land.
     """
-    response = _render_stage(request, draft)
-    # ``HTMLResponse.body`` is bytes-like at runtime; decode for concatenation.
-    body_bytes: bytes = bytes(response.body)
-    body = body_bytes.decode("utf-8")
-    body += '\n<div id="load-modal-region" hx-swap-oob="true"></div>'
+    templates = _templates(request)
+    taxonomy = _taxonomy(request)
+
+    composer_html = _render_composer_panel(request, draft, taxonomy)
+    preview_context = _preview_context(draft)
     if load_issues:
-        templates = _templates(request)
-        preview_context = _preview_context(draft)
         preview_context["preview_issues"] = _sorted_issues(
             list(preview_context["preview_issues"]) + list(load_issues)
         )
-        preview_html = templates.get_template("partials/preview_pane.html").render(
-            request=request, **preview_context
-        )
-        body += f'\n<div id="preview-pane" hx-swap-oob="true">{preview_html}</div>'
+    preview_html = templates.get_template("partials/preview_pane.html").render(
+        request=request, **preview_context
+    )
+    tabs_html = templates.get_template("partials/conversion_tabs.html").render(
+        request=request, **preview_context
+    )
+    state_html = templates.get_template("partials/state_blob.html").render(
+        request=request, draft_json=draft.to_json()
+    )
+
+    # Main body is intentionally empty — the load-modal-region is the
+    # htmx target, and emptying it closes the modal. Every other region
+    # updates via its own oob swap below.
+    body = (
+        f'<div id="composer-panel" hx-swap-oob="true">{composer_html}</div>'
+        f'<div id="preview-pane" hx-swap-oob="true">{preview_html}</div>'
+        f'<div id="conversion-tabs-region" hx-swap-oob="true">{tabs_html}</div>'
+        f"{state_html}"
+    )
     return HTMLResponse(body)
 
 
