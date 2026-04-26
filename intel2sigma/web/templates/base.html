@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>intel2sigma{% block title_suffix %}{% endblock %}</title>
 
-    {# ``?v={{ version }}`` busts browser + Cloudflare caches whenever a
-       new wheel ships. Without this, edge caches can serve stale CSS for
-       hours after a deploy and users see a half-broken UI. #}
-    <link rel="stylesheet" href="{{ url_for('static', path='intel2sigma.css') }}?v={{ version }}">
+    {# ``?v={{ build_sha }}`` busts browser + Cloudflare caches on every
+       deploy. The earlier ``?v={{ version }}`` only changed when the
+       package version bumped (~quarterly), which let Cloudflare serve
+       stale CSS for hours after every deploy of an unrelated commit
+       (real failure mode observed in dogfooding 2026-04-26). build_sha
+       comes from INTEL2SIGMA_BUILD_SHA — set by the Dockerfile per
+       docs/architecture.md — so every container build = a fresh URL. #}
+    <link rel="stylesheet" href="{{ url_for('static', path='intel2sigma.css') }}?v={{ build_sha }}">
     <!-- htmx is vendored per CLAUDE.md I-6; SHA-256 recorded in
          static/vendor/HASHES.md and enforced by tests/test_vendor_hashes.py. -->
-    <script src="{{ url_for('static', path='vendor/htmx.min.js') }}?v={{ version }}" defer></script>
+    <script src="{{ url_for('static', path='vendor/htmx.min.js') }}?v={{ build_sha }}" defer></script>
 
     {% block head_extra %}{% endblock %}
 </head>

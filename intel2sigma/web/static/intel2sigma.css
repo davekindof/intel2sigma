@@ -190,6 +190,18 @@ button {
     grid-row: 2;
     overflow: hidden;
     min-width: 0;
+    /* Explicit pixel height instead of relying on the parent grid's
+       ``1fr`` row to constrain us. Three rounds of ``min-height: 0``
+       fixes (one per nesting level) didn't reliably stop a long
+       loaded rule from overflowing the viewport because grid+flex
+       intrinsic-size resolution is brittle when nested 3 levels deep
+       with mixed display modes. The calc is just ``viewport minus the
+       two known fixed-height regions`` — bulletproof against grid
+       quirks and independent of content size. When the health drawer
+       expands (M2.1), update this calc to subtract the expanded
+       height too, or move the calc into a JS hook that observes the
+       drawer's class. */
+    height: calc(100vh - var(--height-header) - var(--height-drawer-collapsed));
 }
 
 .composer-panel {

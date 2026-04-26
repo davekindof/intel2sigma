@@ -24,7 +24,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
 from intel2sigma import __version__
-from intel2sigma._version import version_payload
+from intel2sigma._version import _build_sha, version_payload
 from intel2sigma.web.logging import configure_logging, request_logging_middleware
 from intel2sigma.web.routes import composer as composer_routes
 
@@ -121,6 +121,17 @@ def _shell_context(request: Request) -> dict[str, Any]:
     initial = composer_routes.initial_composer_context(request, request.app.state.taxonomy)
     return {
         "version": __version__,
+        # Static-asset cache-bust key. The earlier scheme was
+        # ``?v={{ version }}``, which only changed on package version
+        # bumps (~quarterly) and let Cloudflare cache stale CSS for
+        # hours after every deploy of an unrelated commit. Switch to
+        # ``build_sha`` (set by the Dockerfile via the BUILD_SHA build-
+        # arg → INTEL2SIGMA_BUILD_SHA env var per docs/architecture.md)
+        # so every deploy gets a fresh URL automatically. Local dev
+        # gets the literal "dev" — hard-refresh once on a CSS change is
+        # standard practice. Same env var feeds /version, so the asset
+        # query string and the build-provenance endpoint always agree.
+        "build_sha": _build_sha(),
         "initial_composer_html": initial["initial_composer_html"],
         "initial_state_json": initial["initial_state_json"],
         # Spread preview context (conversion_tabs, conversion_outputs,
