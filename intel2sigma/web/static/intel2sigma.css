@@ -238,13 +238,12 @@ button {
  * default 50/50 split, which the JS clamps to a sane minimum on each side.
  */
 .pane-splitter {
-    background: var(--color-border-muted);
+    background: var(--color-border);
     cursor: col-resize;
-    grid-row: 1;
     transition: background 120ms;
     position: relative;
-    /* Generous hit area without taking visible space — a centered 6px
-       visual track with extra invisible padding on each side. */
+    /* Generous invisible hit area on each side so the user doesn't have
+       to be pixel-perfect to grab the 6px track. */
 }
 .pane-splitter::before {
     content: "";
@@ -606,19 +605,14 @@ input[type="text"]:focus, textarea:focus, select:focus {
 
 /* ---- stage 0: observation picker ------------------------------------- */
 
-/* Sticky search header: pinned to the top of the composer scroll area so
-   the user can refilter at any depth. The negative margins compensate
-   for the composer-panel padding so the bar's background hides scrolled
-   content behind it instead of leaving a content peek through the gap. */
+/* Plain (non-sticky) search bar at the top of Stage 0. An earlier
+   iteration tried `position: sticky` with negative margins to bleed into
+   the composer-panel padding; that interacted badly with the panel's
+   scroll origin and shoved the breadcrumb / stage title out of view.
+   Reverted to a normal flow element — the search is right at the top of
+   Stage 0 anyway, so users don't have far to scroll to reach it. */
 .observation-search-bar {
-    position: sticky;
-    top: calc(-1 * var(--space-6));
-    margin: calc(-1 * var(--space-6));
-    padding: var(--space-3) var(--space-6);
     margin-bottom: var(--space-4);
-    background: var(--color-bg);
-    border-bottom: 1px solid var(--color-border-muted);
-    z-index: 5;
 }
 
 .observation-search {
@@ -650,15 +644,22 @@ input[type="text"]:focus, textarea:focus, select:focus {
     text-decoration: underline;
 }
 
+/* Group section header — flex row holding the title on the left and a
+   count chip on the right. The flex+`margin-left: auto` pattern keeps
+   the chip pinned right even when the title wraps. Apply both
+   `display: flex` (the modern way) and an explicit `align-items: baseline`
+   so older browsers don't drop the chip onto its own line. */
 .observation-group-header {
     display: flex;
-    align-items: center;
+    flex-wrap: nowrap;
+    align-items: baseline;
     gap: var(--space-2);
     margin: var(--space-4) 0 var(--space-2);
     padding-bottom: var(--space-1);
     border-bottom: 1px solid var(--color-border-muted);
 }
 .observation-group-count {
+    display: inline-block;
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--color-text-dim);
@@ -666,6 +667,7 @@ input[type="text"]:focus, textarea:focus, select:focus {
     padding: 1px 8px;
     border-radius: 999px;
     margin-left: auto;
+    flex-shrink: 0;
 }
 
 /* Compact one-line "what fields you'll see on Stage 1" preview, foot of

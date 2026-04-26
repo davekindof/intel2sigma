@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>intel2sigma{% block title_suffix %}{% endblock %}</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', path='intel2sigma.css') }}">
+    {# ``?v={{ version }}`` busts browser + Cloudflare caches whenever a
+       new wheel ships. Without this, edge caches can serve stale CSS for
+       hours after a deploy and users see a half-broken UI. #}
+    <link rel="stylesheet" href="{{ url_for('static', path='intel2sigma.css') }}?v={{ version }}">
     <!-- htmx is vendored per CLAUDE.md I-6; SHA-256 recorded in
          static/vendor/HASHES.md and enforced by tests/test_vendor_hashes.py. -->
-    <script src="{{ url_for('static', path='vendor/htmx.min.js') }}" defer></script>
+    <script src="{{ url_for('static', path='vendor/htmx.min.js') }}?v={{ version }}" defer></script>
 
     {% block head_extra %}{% endblock %}
 </head>
