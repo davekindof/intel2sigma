@@ -124,18 +124,25 @@ Included from stage1_detection.html per match/filter block. Expects:
                 {% endif %}
             </select>
 
-            <input type="text"
-                   class="item-value"
-                   name="value::{{ block.name }}::{{ loop.index0 }}"
-                   value="{{ item.values[0] if item.values else '' }}"
-                   placeholder="value"
-                   aria-label="Value"
-                   hx-post="{{ url_for('composer_update') }}"
-                   hx-include="#rule-state"
-                   hx-vals='{"action": "set_value", "block_name": "{{ block.name }}", "item_index": "{{ loop.index0 }}"}'
-                   hx-target="#composer-panel"
-                   hx-swap="innerHTML"
-                   hx-trigger="change, keyup delay:300ms">
+            {# A textarea so multi-value items (loaded from rules with
+               ``Field|contains: [a, b, c, ...]``) round-trip cleanly:
+               each value lands on its own line, the user can edit /
+               add / delete lines, and the server splits on newlines
+               on submit. Earlier ``<input value="{{ values[0] }}">``
+               only surfaced the first value, hiding the rest of a
+               loaded rule's content from the editor. #}
+            <textarea class="item-value"
+                      name="value::{{ block.name }}::{{ loop.index0 }}"
+                      rows="{{ item.values|length if item.values and item.values|length > 1 else 1 }}"
+                      placeholder="value (one per line for multiple)"
+                      aria-label="Value(s) — one per line"
+                      hx-post="{{ url_for('composer_update') }}"
+                      hx-include="#rule-state"
+                      hx-vals='{"action": "set_value", "block_name": "{{ block.name }}", "item_index": "{{ loop.index0 }}"}'
+                      hx-target="#composer-panel"
+                      hx-swap="innerHTML"
+                      hx-trigger="change, keyup delay:300ms">{% for v in item.values %}{{ v }}{% if not loop.last %}
+{% endif %}{% endfor %}</textarea>
 
             <button type="button"
                     class="item-delete-button"

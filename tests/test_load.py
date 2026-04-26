@@ -459,3 +459,89 @@ def test_load_unknown_category_breadcrumb_stays_consistent(client: TestClient) -
     elif state["stage"] == 1:
         assert "Stage 1" in r.text
         assert "Pick an observation" not in r.text
+
+
+# ---------------------------------------------------------------------------
+# Regression: Stage 1 detection editor renders ALL values, not just values[0]
+# ---------------------------------------------------------------------------
+
+
+def test_stage1_renders_every_value_of_a_multivalue_item(client: TestClient) -> None:
+    """A loaded rule with ``Field|contains: [a, b, c]`` must show all values.
+
+    Regression for the dogfood symptom on the antivirus rule: the
+    detection editor at Stage 1 only showed the first value of a
+    multi-value item (``Backdoor.Cobalt``) because ``_block.html``
+    rendered ``<input value="{{ values[0] }}">``. The remaining 20+
+    values were stored in the draft (the prose summary listed them
+    all, the right-pane YAML rendered them all) but were neither
+    visible nor editable in the Stage 1 editor. Fixed by rendering
+    a textarea with one value per line.
+    """
+    # Load + jump to Stage 1 so the detection editor runs.
+    r = client.post("/composer/load-paste", data={"yaml_text": ANTIVIRUS_RULE_YAML})
+    assert r.status_code == 200
+    state_blob = _extract_state(r.text)
+
+    # Re-post with action=jump to land on stage 1 deterministically.
+    import json  # noqa: PLC0415
+
+    r2 = client.post(
+        "/composer/jump",
+        data={"target": "1", "rule_state": json.dumps(state_blob)},
+    )
+    assert r2.status_code == 200
+
+    # Every value from the antivirus fixture must appear in the
+    # rendered Stage 1 HTML — they're inside the textarea body, one per
+    # line. The contains check is sufficient because the textarea wraps
+    # them in a single element rather than splitting across attributes.
+    for expected_value in ("CobaltStrike", "Meterpreter", "PowerSploit"):
+        assert expected_value in r2.text, (
+            f"Expected value {expected_value!r} missing from Stage 1 render. "
+            f"Was the multi-value textarea-rendering regressed?"
+        )
+
+    # Defence-in-depth: the textarea element itself should be present
+    # (not the old <input>). Catches a future revert that switches back
+    # to single-value rendering.
+    assert 'class="item-value"' in r2.text
+    assert "<textarea" in r2.text
+
+
+def test_stage1_set_value_splits_textarea_lines(client: TestClient) -> None:
+    """Server-side set_value must split textarea content into list[str].
+
+    The textarea submits multi-line content as a single string with
+    newlines. ``_set_item_value`` splits on newlines and drops empty
+    lines so a trailing newline doesn't produce a phantom empty value.
+    """
+    # Load the antivirus rule so we have a multi-value item to mutate.
+    r = client.post("/composer/load-paste", data={"yaml_text": ANTIVIRUS_RULE_YAML})
+    state_blob = _extract_state(r.text)
+
+    # Find the loaded block + item shape from the state blob.
+    block = state_blob["detections"][0]
+    block_name = block["name"]
+
+    # Submit a textarea-shaped value with three values + trailing newline.
+    import json  # noqa: PLC0415
+
+    new_values = "Mimikatz\nCobaltStrike\nEmpire\n"
+    r2 = client.post(
+        "/composer/update",
+        data={
+            "action": "set_value",
+            "block_name": block_name,
+            "item_index": "0",
+            f"value::{block_name}::0": new_values,
+            "rule_state": json.dumps(state_blob),
+        },
+    )
+    assert r2.status_code == 200
+
+    new_state = _extract_state(r2.text)
+    new_block = next(b for b in new_state["detections"] if b["name"] == block_name)
+    new_item = new_block["items"][0]
+    # Three real values, no phantom empty entry from the trailing newline.
+    assert new_item["values"] == ["Mimikatz", "CobaltStrike", "Empire"]

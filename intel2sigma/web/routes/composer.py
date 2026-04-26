@@ -854,7 +854,15 @@ def _set_item_value(draft: RuleDraft, form: Any) -> None:
     if item_index is None:
         return
     raw = str(form.get(f"value::{block_name}::{item_index}", ""))
-    item.values = [raw] if raw else []
+    # The Stage 1 editor renders this field as a textarea so multi-value
+    # items (loaded from rules with ``Field|contains: [a, b, c]``) survive
+    # the round-trip with all their values intact and individually
+    # editable. ``splitlines()`` handles both ``\n`` (Unix browsers) and
+    # ``\r\n`` (Windows browsers) without needing a normalisation pass.
+    # Empty lines are dropped so a trailing newline doesn't leak a
+    # phantom empty value into the draft.
+    values = [line for line in raw.splitlines() if line]
+    item.values = values
 
 
 def _set_block_combinator(draft: RuleDraft, form: Any) -> None:

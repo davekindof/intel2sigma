@@ -197,6 +197,15 @@ button {
     overflow-y: auto;
     border-right: 1px solid var(--color-border);
     min-width: 0;
+    /* Same grid-item trap as .preview-panel: without this override, a
+       long composer-panel content (Stage 2 metadata for an antivirus
+       rule with long description + many ATT&CK tags + many false-
+       positive entries; or a Stage 1 with 30+ detection items)
+       expands the panel beyond its grid cell and overflow-y: auto
+       never engages because the panel itself is the size of its
+       content. ``min-height: 0`` lets the cell win and the inner
+       scroll kicks in correctly. */
+    min-height: 0;
 }
 
 .preview-panel {
@@ -1285,13 +1294,33 @@ input[type="text"]:focus, textarea:focus, select:focus {
     display: grid;
     grid-template-columns: 1.4fr 1fr 2fr auto;
     gap: var(--space-2);
-    align-items: center;
+    /* baseline so a multi-line value textarea aligns with the field /
+       modifier dropdowns at the first row of text rather than vertical-
+       centering and dragging the whole row tall. */
+    align-items: baseline;
 }
 
 .item-field,
 .item-modifier,
 .item-value {
     font-size: 13px;
+}
+
+/* Multi-value items get a textarea so a loaded rule like
+   ``Signature|contains: [Backdoor.Cobalt, Brutel, …]`` round-trips
+   with every value visible and editable — earlier the editor only
+   showed the first value via ``<input value="{{ values[0] }}">``. The
+   textarea grows with content via the rendered ``rows`` attribute and
+   stays user-resizable; mono-spaced makes long lists of one-per-line
+   IOC tokens easier to scan. */
+textarea.item-value {
+    font-family: var(--font-mono);
+    line-height: 1.4;
+    resize: vertical;
+    min-height: 32px;
+    padding: 6px 10px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .item-add-button {
