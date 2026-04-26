@@ -248,17 +248,19 @@ button {
     border-bottom: 1px solid var(--color-border);
 }
 
-/* Conversion tabs region must also play by the flex rules. Cap at 45% of
-   the parent so a tall tab body (e.g. a multi-line KQL query) can't
+/* Conversion tabs region must also play by the flex rules. Cap at 50%
+   of the parent so a tall tab body (e.g. a multi-line KQL query) can't
    crowd out the YAML pane above; the tab body itself scrolls internally.
-   Without this cap, a tall conversion query pushed preview-pane-primary
-   down to nothing. */
+   Originally 45% (slight lean toward the YAML side as the canonical
+   artifact); bumped to 50% per dogfood feedback that the SIEM/EDR
+   output region wanted a smidge more height — the parity split reads
+   better when the converted query has more than two lines. */
 #conversion-tabs-region {
     display: flex;
     flex-direction: column;
     flex: 0 1 auto;
     min-height: 0;
-    max-height: 45%;
+    max-height: 50%;
     overflow: hidden;
 }
 .preview-pane-tabs {
