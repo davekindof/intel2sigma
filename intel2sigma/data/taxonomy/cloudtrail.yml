@@ -11,68 +11,68 @@ logsource:
   product: aws
   service: cloudtrail
 platforms:
-  - id: aws
-    product: aws
-    tier: primary
+- id: aws
+  product: aws
+  tier: primary
 synonyms: []
 fields:
-  - name: eventName
-    label: eventName
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: eventSource
-    label: eventSource
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: userAgent
-    label: userAgent
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
-  - name: errorCode
-    label: errorCode
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: userIdentity.type
-    label: userIdentity.type
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: userIdentity.arn
-    label: userIdentity.arn
-    type: string
-    default_modifier: re
-    allowed_modifiers:
-      - re
-      - contains
-      - startswith
-      - endswith
-      - exact
+- name: eventName
+  label: Event name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: eventSource
+  label: Event source
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: userAgent
+  label: User agent
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re
+- name: errorCode
+  label: Error code
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: userIdentity.type
+  label: User identity.type
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: userIdentity.arn
+  label: User identity.arn
+  type: string
+  default_modifier: re
+  allowed_modifiers:
+  - re
+  - contains
+  - startswith
+  - endswith
+  - exact

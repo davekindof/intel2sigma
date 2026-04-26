@@ -11,68 +11,68 @@ logsource:
   product: windows
   service: application
 platforms:
-  - id: windows
-    product: windows
-    tier: primary
+- id: windows
+  product: windows
+  tier: primary
 synonyms: []
 fields:
-  - name: Provider_Name
-    label: Provider_Name
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: EventID
-    label: EventID
-    type: int
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - gt
-      - gte
-      - lt
-      - lte
-  - name: Data
-    label: Data
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
-  - name: Level
-    label: Level
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: AppName
-    label: AppName
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: Message
-    label: Message
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
+- name: Provider_Name
+  label: Provider name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: EventID
+  label: Event ID
+  type: int
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - gt
+  - gte
+  - lt
+  - lte
+- name: Data
+  label: Data
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re
+- name: Level
+  label: Level
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: AppName
+  label: App name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: Message
+  label: Message
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re

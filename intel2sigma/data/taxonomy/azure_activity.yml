@@ -11,68 +11,68 @@ logsource:
   product: azure
   service: activitylogs
 platforms:
-  - id: azure
-    product: azure
-    tier: primary
+- id: azure
+  product: azure
+  tier: primary
 synonyms: []
 fields:
-  - name: operationName
-    label: operationName
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: properties.message
-    label: properties.message
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: CategoryValue
-    label: CategoryValue
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: OperationNameValue
-    label: OperationNameValue
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: ResourceId
-    label: ResourceId
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
-  - name: ResourceProviderValue
-    label: ResourceProviderValue
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
+- name: operationName
+  label: Operation name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: properties.message
+  label: Properties.message
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: CategoryValue
+  label: Category value
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: OperationNameValue
+  label: Operation name value
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: ResourceId
+  label: Resource ID
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re
+- name: ResourceProviderValue
+  label: Resource provider value
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re

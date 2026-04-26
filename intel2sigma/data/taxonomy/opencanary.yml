@@ -11,18 +11,18 @@ logsource:
   product: opencanary
   category: application
 platforms:
-  - id: opencanary
-    product: opencanary
-    tier: primary
+- id: opencanary
+  product: opencanary
+  tier: primary
 synonyms: []
 fields:
-  - name: logtype
-    label: logtype
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
+- name: logtype
+  label: Logtype
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re

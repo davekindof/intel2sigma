@@ -11,68 +11,68 @@ logsource:
   product: okta
   service: okta
 platforms:
-  - id: okta
-    product: okta
-    tier: primary
+- id: okta
+  product: okta
+  tier: primary
 synonyms: []
 fields:
-  - name: eventtype
-    label: eventtype
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: displaymessage
-    label: displaymessage
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: debugContext.debugData.requestUri
-    label: debugContext.debugData.requestUri
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
-  - name: actor.alternateid
-    label: actor.alternateid
-    type: string
-    default_modifier: re
-    allowed_modifiers:
-      - re
-      - contains
-      - startswith
-      - endswith
-      - exact
-  - name: debugcontext.debugdata.behaviors
-    label: debugcontext.debugdata.behaviors
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
-  - name: debugcontext.debugdata.logonlysecuritydata
-    label: debugcontext.debugdata.logonlysecuritydata
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
+- name: eventtype
+  label: Eventtype
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: displaymessage
+  label: Displaymessage
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: debugContext.debugData.requestUri
+  label: Debug context.debug data.request uri
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re
+- name: actor.alternateid
+  label: Actor.alternateid
+  type: string
+  default_modifier: re
+  allowed_modifiers:
+  - re
+  - contains
+  - startswith
+  - endswith
+  - exact
+- name: debugcontext.debugdata.behaviors
+  label: Debugcontext.debugdata.behaviors
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re
+- name: debugcontext.debugdata.logonlysecuritydata
+  label: Debugcontext.debugdata.logonlysecuritydata
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re

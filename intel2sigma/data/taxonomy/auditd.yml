@@ -11,98 +11,98 @@ logsource:
   product: linux
   service: auditd
 platforms:
-  - id: linux
-    product: linux
-    tier: primary
+- id: linux
+  product: linux
+  tier: primary
 synonyms: []
 fields:
-  - name: type
-    label: type
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: a0
-    label: a0
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: a1
-    label: a1
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: a2
-    label: a2
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: name
-    label: name
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: a3
-    label: a3
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: SYSCALL
-    label: SYSCALL
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: exe
-    label: exe
-    type: string
-    default_modifier: endswith
-    allowed_modifiers:
-      - endswith
-      - contains
-      - startswith
-      - exact
-      - re
-  - name: a4
-    label: a4
-    type: string
-    default_modifier: startswith
-    allowed_modifiers:
-      - startswith
-      - contains
-      - endswith
-      - exact
-      - re
+- name: type
+  label: Audit event type
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: a0
+  label: A0
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: a1
+  label: A1
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: a2
+  label: A2
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: name
+  label: Name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: a3
+  label: A3
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: SYSCALL
+  label: S Y S C A L L
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: exe
+  label: Executable path
+  type: string
+  default_modifier: endswith
+  allowed_modifiers:
+  - endswith
+  - contains
+  - startswith
+  - exact
+  - re
+- name: a4
+  label: A4
+  type: string
+  default_modifier: startswith
+  allowed_modifiers:
+  - startswith
+  - contains
+  - endswith
+  - exact
+  - re

@@ -11,69 +11,69 @@ logsource:
   product: windows
   service: system
 platforms:
-  - id: windows
-    product: windows
-    tier: primary
+- id: windows
+  product: windows
+  tier: primary
 synonyms: []
 fields:
-  - name: EventID
-    label: EventID
-    type: int
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - gt
-      - gte
-      - lt
-      - lte
-  - name: Provider_Name
-    label: Provider_Name
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: ImagePath
-    label: ImagePath
-    type: path
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - endswith
-      - startswith
-      - exact
-      - re
-      - base64offset
-  - name: ServiceName
-    label: ServiceName
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: param1
-    label: param1
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: Binary
-    label: Binary
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
+- name: EventID
+  label: Event ID
+  type: int
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - gt
+  - gte
+  - lt
+  - lte
+- name: Provider_Name
+  label: Provider name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: ImagePath
+  label: Service binary path
+  type: path
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - endswith
+  - startswith
+  - exact
+  - re
+  - base64offset
+- name: ServiceName
+  label: Service name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: param1
+  label: Param1
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: Binary
+  label: Binary
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re

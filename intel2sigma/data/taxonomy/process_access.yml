@@ -11,68 +11,68 @@ logsource:
   product: windows
   category: process_access
 platforms:
-  - id: windows
-    product: windows
-    tier: primary
+- id: windows
+  product: windows
+  tier: primary
 synonyms: []
 fields:
-  - name: SourceImage
-    label: SourceImage
-    type: path
-    default_modifier: endswith
-    allowed_modifiers:
-      - endswith
-      - contains
-      - startswith
-      - exact
-      - re
-  - name: TargetImage
-    label: TargetImage
-    type: path
-    default_modifier: endswith
-    allowed_modifiers:
-      - endswith
-      - contains
-      - startswith
-      - exact
-      - re
-  - name: GrantedAccess
-    label: GrantedAccess
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: CallTrace
-    label: CallTrace
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
-  - name: Provider_Name
-    label: Provider_Name
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: SourceUser
-    label: SourceUser
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
+- name: SourceImage
+  label: Source process path
+  type: path
+  default_modifier: endswith
+  allowed_modifiers:
+  - endswith
+  - contains
+  - startswith
+  - exact
+  - re
+- name: TargetImage
+  label: Target process path
+  type: path
+  default_modifier: endswith
+  allowed_modifiers:
+  - endswith
+  - contains
+  - startswith
+  - exact
+  - re
+- name: GrantedAccess
+  label: Granted access mask
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: CallTrace
+  label: Call trace
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re
+- name: Provider_Name
+  label: Provider name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: SourceUser
+  label: Source user
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re

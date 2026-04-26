@@ -11,48 +11,48 @@ logsource:
   product: macos
   category: process_creation
 platforms:
-  - id: macos
-    product: macos
-    tier: primary
+- id: macos
+  product: macos
+  tier: primary
 synonyms: []
 fields:
-  - name: Image
-    label: Image
-    type: path
-    default_modifier: endswith
-    allowed_modifiers:
-      - endswith
-      - contains
-      - startswith
-      - exact
-      - re
-  - name: CommandLine
-    label: CommandLine
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
-  - name: ParentImage
-    label: ParentImage
-    type: path
-    default_modifier: endswith
-    allowed_modifiers:
-      - endswith
-      - contains
-      - startswith
-      - exact
-      - re
-  - name: OriginalFileName
-    label: OriginalFileName
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
+- name: Image
+  label: Executable path
+  type: path
+  default_modifier: endswith
+  allowed_modifiers:
+  - endswith
+  - contains
+  - startswith
+  - exact
+  - re
+- name: CommandLine
+  label: Command line
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re
+- name: ParentImage
+  label: Parent process path
+  type: path
+  default_modifier: endswith
+  allowed_modifiers:
+  - endswith
+  - contains
+  - startswith
+  - exact
+  - re
+- name: OriginalFileName
+  label: Original filename (PE metadata)
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re

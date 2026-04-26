@@ -11,150 +11,150 @@ logsource:
   product: windows
   service: security
 platforms:
-  - id: windows
-    product: windows
-    tier: primary
+- id: windows
+  product: windows
+  tier: primary
 synonyms: []
 fields:
-  - name: EventID
-    label: EventID
-    type: int
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - gt
-      - gte
-      - lt
-      - lte
-  - name: ObjectName
-    label: ObjectName
-    type: string
-    default_modifier: endswith
-    allowed_modifiers:
-      - endswith
-      - contains
-      - startswith
-      - exact
-      - re
-  - name: ServiceFileName
-    label: ServiceFileName
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
-      - base64offset
-  - name: ObjectType
-    label: ObjectType
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: RelativeTargetName
-    label: RelativeTargetName
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: ShareName
-    label: ShareName
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: SubjectUserName
-    label: SubjectUserName
-    type: string
-    default_modifier: endswith
-    allowed_modifiers:
-      - endswith
-      - contains
-      - startswith
-      - exact
-      - re
-  - name: ProcessName
-    label: ProcessName
-    type: string
-    default_modifier: endswith
-    allowed_modifiers:
-      - endswith
-      - contains
-      - startswith
-      - exact
-      - re
-  - name: AccessMask
-    label: AccessMask
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: LogonType
-    label: LogonType
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: TargetUserName
-    label: TargetUserName
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: AccessList
-    label: AccessList
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
-  - name: AttributeLDAPDisplayName
-    label: AttributeLDAPDisplayName
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: IpAddress
-    label: IpAddress
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-      - cidr
+- name: EventID
+  label: Event ID
+  type: int
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - gt
+  - gte
+  - lt
+  - lte
+- name: ObjectName
+  label: Object name (path or registry key)
+  type: string
+  default_modifier: endswith
+  allowed_modifiers:
+  - endswith
+  - contains
+  - startswith
+  - exact
+  - re
+- name: ServiceFileName
+  label: Service file name
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re
+  - base64offset
+- name: ObjectType
+  label: Object type
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: RelativeTargetName
+  label: Relative target name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: ShareName
+  label: Share name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: SubjectUserName
+  label: Subject user name
+  type: string
+  default_modifier: endswith
+  allowed_modifiers:
+  - endswith
+  - contains
+  - startswith
+  - exact
+  - re
+- name: ProcessName
+  label: Process name
+  type: string
+  default_modifier: endswith
+  allowed_modifiers:
+  - endswith
+  - contains
+  - startswith
+  - exact
+  - re
+- name: AccessMask
+  label: Access mask
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: LogonType
+  label: Logon type
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: TargetUserName
+  label: Target user name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: AccessList
+  label: Access list
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re
+- name: AttributeLDAPDisplayName
+  label: Attribute L D A P display name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: IpAddress
+  label: IP address
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+  - cidr

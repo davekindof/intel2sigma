@@ -11,68 +11,68 @@ logsource:
   product: windows
   category: registry_event
 platforms:
-  - id: windows
-    product: windows
-    tier: primary
+- id: windows
+  product: windows
+  tier: primary
 synonyms: []
 fields:
-  - name: TargetObject
-    label: TargetObject
-    type: string
-    default_modifier: contains
-    allowed_modifiers:
-      - contains
-      - startswith
-      - endswith
-      - exact
-      - re
-  - name: Details
-    label: Details
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: Image
-    label: Image
-    type: path
-    default_modifier: endswith
-    allowed_modifiers:
-      - endswith
-      - contains
-      - startswith
-      - exact
-      - re
-  - name: EventType
-    label: EventType
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: NewName
-    label: NewName
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: EventID
-    label: EventID
-    type: int
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - gt
-      - gte
-      - lt
-      - lte
+- name: TargetObject
+  label: Target object (path or registry key)
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re
+- name: Details
+  label: Value details
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: Image
+  label: Executable path
+  type: path
+  default_modifier: endswith
+  allowed_modifiers:
+  - endswith
+  - contains
+  - startswith
+  - exact
+  - re
+- name: EventType
+  label: Registry operation type
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: NewName
+  label: New name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: EventID
+  label: Event ID
+  type: int
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - gt
+  - gte
+  - lt
+  - lte

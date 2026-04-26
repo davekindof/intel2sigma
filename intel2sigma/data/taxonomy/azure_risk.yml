@@ -11,18 +11,18 @@ logsource:
   product: azure
   service: riskdetection
 platforms:
-  - id: azure
-    product: azure
-    tier: primary
+- id: azure
+  product: azure
+  tier: primary
 synonyms: []
 fields:
-  - name: riskEventType
-    label: riskEventType
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
+- name: riskEventType
+  label: Risk event type
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re

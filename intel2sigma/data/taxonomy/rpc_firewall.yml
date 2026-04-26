@@ -11,48 +11,48 @@ logsource:
   product: rpc_firewall
   category: application
 platforms:
-  - id: rpc_firewall
-    product: rpc_firewall
-    tier: primary
+- id: rpc_firewall
+  product: rpc_firewall
+  tier: primary
 synonyms: []
 fields:
-  - name: EventID
-    label: EventID
-    type: int
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - gt
-      - gte
-      - lt
-      - lte
-  - name: EventLog
-    label: EventLog
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: InterfaceUuid
-    label: InterfaceUuid
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: OpNum
-    label: OpNum
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
+- name: EventID
+  label: Event ID
+  type: int
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - gt
+  - gte
+  - lt
+  - lte
+- name: EventLog
+  label: Event log
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: InterfaceUuid
+  label: Interface UUID
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: OpNum
+  label: Op num
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re

@@ -11,18 +11,18 @@ logsource:
   product: github
   service: audit
 platforms:
-  - id: github
-    product: github
-    tier: primary
+- id: github
+  product: github
+  tier: primary
 synonyms: []
 fields:
-  - name: action
-    label: action
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
+- name: action
+  label: Action
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re

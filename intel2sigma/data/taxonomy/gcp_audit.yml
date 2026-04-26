@@ -11,78 +11,78 @@ logsource:
   product: gcp
   service: gcp.audit
 platforms:
-  - id: gcp
-    product: gcp
-    tier: primary
+- id: gcp
+  product: gcp
+  tier: primary
 synonyms: []
 fields:
-  - name: gcp.audit.method_name
-    label: gcp.audit.method_name
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: data.protoPayload.authorizationInfo.granted
-    label: data.protoPayload.authorizationInfo.granted
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: data.protoPayload.authorizationInfo.permission
-    label: data.protoPayload.authorizationInfo.permission
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: data.protoPayload.logName
-    label: data.protoPayload.logName
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: data.protoPayload.methodName
-    label: data.protoPayload.methodName
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: data.protoPayload.resource.type
-    label: data.protoPayload.resource.type
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
-  - name: data.protoPayload.serviceName
-    label: data.protoPayload.serviceName
-    type: string
-    default_modifier: exact
-    allowed_modifiers:
-      - exact
-      - contains
-      - startswith
-      - endswith
-      - re
+- name: gcp.audit.method_name
+  label: Gcp.audit.method name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: data.protoPayload.authorizationInfo.granted
+  label: Data.proto payload.authorization info.granted
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: data.protoPayload.authorizationInfo.permission
+  label: Data.proto payload.authorization info.permission
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: data.protoPayload.logName
+  label: Data.proto payload.log name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: data.protoPayload.methodName
+  label: Data.proto payload.method name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: data.protoPayload.resource.type
+  label: Data.proto payload.resource.type
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
+- name: data.protoPayload.serviceName
+  label: Data.proto payload.service name
+  type: string
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  - contains
+  - startswith
+  - endswith
+  - re
