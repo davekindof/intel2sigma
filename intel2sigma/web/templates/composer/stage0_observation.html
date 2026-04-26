@@ -19,18 +19,21 @@ everything stays inline for I-6 compliance (no vendored helper).
     </p>
 </div>
 
-{% include "composer/_ioc_panel.html" %}
-
+{# Search box ABOVE the IOC panel — testers who already know what they
+   want shouldn't have to scroll past CTI tooling to start typing. #}
 <input type="search"
        id="observation-search"
        class="observation-search"
-       placeholder="Search observations (e.g. 'process launched')"
+       placeholder="Search observations (e.g. 'process launched', 'dns', 'registry')"
+       autocomplete="off"
        oninput="window.__intel2sigma_filter_observations(this.value)">
+
+{% include "composer/_ioc_panel.html" %}
 
 {% for group_id, group_label, entries in observation_groups %}
 <section class="observation-group" data-group="{{ group_id }}">
     <h3 class="observation-group-title">{{ group_label }}</h3>
-    <div class="card-grid">
+    <div class="card-grid card-grid-stage0">
         {% for entry in entries %}
         <button type="button"
                 class="observation-card"
@@ -39,7 +42,12 @@ everything stays inline for I-6 compliance (no vendored helper).
                 hx-include="#rule-state"
                 hx-vals='{"observation_id": "{{ entry.id }}"}'
                 hx-target="#composer-panel"
-                hx-swap="innerHTML">
+                hx-swap="innerHTML"
+                hx-disabled-elt="this"
+                {# A short tooltip listing the top fields users will see on
+                   Stage 1 — gives a peek at "what am I committing to" before
+                   click without crowding the card visually. #}
+                title="{{ entry.label }} — Stage 1 fields: {{ entry.field_preview }}">
             <div class="observation-card-label">{{ entry.label }}</div>
             <div class="observation-card-desc">{{ entry.description }}</div>
             <div class="observation-card-platforms">

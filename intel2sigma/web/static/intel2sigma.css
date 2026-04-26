@@ -315,18 +315,40 @@ button {
     gap: var(--space-3);
 }
 
+/* Stage 0 specifically uses a tighter grid — more cards visible without
+   scrolling so testers can scan the whole catalog faster. The 200px min
+   keeps cards readable on mobile while letting desktops fit 4-5 across. */
+.card-grid-stage0 {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-2);
+}
+
 .observation-card {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    padding: var(--space-4);
+    padding: var(--space-3);
     text-align: left;
     color: var(--color-text);
-    transition: border-color 150ms, background 150ms;
+    transition: border-color 150ms, background 150ms, opacity 150ms;
+    cursor: pointer;
 }
 .observation-card:hover {
     border-color: var(--color-accent);
     background: var(--color-surface-alt);
+}
+/* htmx adds .htmx-request to the source element while a request is in
+   flight. Dim + soft-pulse the card so the user gets immediate "we
+   heard you" feedback instead of staring at an unchanged grid for
+   200ms while the server responds. */
+.observation-card.htmx-request {
+    opacity: 0.55;
+    border-color: var(--color-accent);
+    cursor: wait;
+}
+.observation-card[disabled] {
+    cursor: wait;
+    opacity: 0.55;
 }
 
 .button-primary {
@@ -888,21 +910,35 @@ input[type="text"]:focus, textarea:focus, select:focus {
 
 .observation-group-title {
     font-size: 12px;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--color-text-muted);
-    margin: 0 0 var(--space-3);
+    /* Brighter than the previous --color-text-muted so the group label
+       reads as a navigational landmark, not background noise. */
+    color: var(--color-text);
+    margin: var(--space-4) 0 var(--space-2);
+    padding-bottom: var(--space-1);
+    border-bottom: 1px solid var(--color-border-muted);
 }
 
 .observation-card-label {
     font-weight: 600;
+    font-size: 13px;
     color: var(--color-text);
-    margin-bottom: 4px;
+    margin-bottom: 2px;
+    line-height: 1.3;
 }
 .observation-card-desc {
-    font-size: 13px;
+    font-size: 11px;
+    line-height: 1.4;
     color: var(--color-text-muted);
     margin-bottom: var(--space-2);
+    /* Cap to 2 lines so cards stay roughly the same height regardless
+       of description length — keeps the grid visually orderly. */
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
 }
 .observation-card-platforms {
     display: flex;

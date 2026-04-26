@@ -120,6 +120,10 @@ def _build_observation_groups(
         for obs_id in obs_ids:
             spec = taxonomy.get(obs_id)
             search_text = " ".join([spec.id, spec.label, *spec.synonyms, spec.description])
+            # Top fields listed in declaration order in the taxonomy YAML
+            # (frequency-ranked per the calibration). First 3 give the user
+            # a meaningful "what will Stage 1 ask me about" preview.
+            top_fields = ", ".join(f.name for f in spec.fields[:3])
             entries.append(
                 {
                     "id": spec.id,
@@ -127,6 +131,7 @@ def _build_observation_groups(
                     "description": spec.description,
                     "platforms": [p.id for p in spec.platforms],
                     "search_text": search_text,
+                    "field_preview": top_fields,
                 }
             )
         if entries:
