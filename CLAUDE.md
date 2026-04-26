@@ -36,11 +36,11 @@ No database. No sessions. No auth. No server-side per-user storage of any kind. 
 
 Rationale: Matches the deployment model (single Docker image, horizontally scalable, scale-to-zero). Adding state reverses all of those properties.
 
-### I-4: No YAML textarea in the primary flow
+### I-4: No user-editable YAML in the composer
 
-The canonical YAML is shown in a read-only preview pane. A user-editable YAML textarea may exist only as an explicit "advanced: edit raw YAML" escape hatch, gated behind a warning, and only in Expert mode. The Guided mode flow must never expose raw YAML editing.
+The canonical YAML is shown in a read-only preview pane. The composer never exposes a YAML textarea for the user to edit directly. The only YAML-as-input surface is the load modal's paste tab, which is a one-way translator (paste → parse → drop into the structured composer), not an editable view.
 
-Rationale: The target audience cannot be trusted (and should not have to be trusted) to edit YAML correctly. Exposing the textarea inverts the value proposition.
+Rationale: The target audience cannot be trusted (and should not have to be trusted) to edit YAML correctly. Exposing an editable textarea inverts the value proposition. The original SPEC envisioned an "Expert mode" with a gated raw-YAML escape hatch; that mode was pruned without ever shipping the textarea (see SPEC.md decision log) — the rule simplifies to "no editable YAML, period".
 
 ### I-5: Data-driven everything
 

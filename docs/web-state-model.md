@@ -8,7 +8,7 @@ Design doc for how the in-progress rule travels between htmx requests and stages
 2. **No JS build toolchain** (CLAUDE.md I-6): no React/Vue/npm; only htmx, server-rendered partials, server-side Pygments.
 3. **htmx is the sole JS dependency** — anything beyond htmx's vocabulary (`hx-post`, `hx-include`, `hx-target`, etc.) needs to be handwritten, vendored, and SRI-hashed.
 4. **Rule state is stateful but never complete** during composition. A stage-0 user has no title yet; a stage-1 user has no metadata; a stage-3 review has everything. The model must represent in-progress shapes without choking on missing fields.
-5. **Guided mode and Expert mode share state, not templates.** A user switching mode mid-session keeps their rule.
+5. **The rule state survives every navigation move.** Stage transitions, breadcrumb jumps, and "Build similar" / "New rule" buttons all preserve the parts of the draft they're meant to. (Originally framed as "Guided ↔ Expert mode share state"; Expert mode was pruned without shipping — see SPEC.md decision log.)
 
 ## Options considered
 
@@ -188,5 +188,5 @@ A realistic maxed-out rule is ~4 KB of canonical YAML. JSON-as-draft is ~1.3× t
 ## What this doc does NOT decide
 
 - Stage-partial template structure (covered by [docs/ui.md](docs/ui.md)).
-- How mode switching (Guided ↔ Expert) preserves state: same blob, different shell template. Confirmed here; detailed in the UI doc.
+- The state blob's per-region survival on Stage transitions, breadcrumb jumps, and "Build similar" / "New rule" actions is described in `docs/ui.md` and enforced by the regression tests in ``tests/test_composer_new_route.py``.
 - Client-side draft persistence across page reloads: **not in v1**. A reload wipes in-progress state. v1.1 could add `localStorage` hydration as a small follow-up if users complain, with a vendored single-file script.

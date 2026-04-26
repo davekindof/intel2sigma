@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-mode="{{ mode }}">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -25,12 +25,6 @@
             </div>
 
             <div class="app-header-right">
-                <div class="mode-toggle" role="group" aria-label="Composer mode">
-                    <a class="mode-toggle-option {% if mode == 'guided' %}active{% endif %}"
-                       href="{{ url_for('guided_home') }}">Guided</a>
-                    <a class="mode-toggle-option {% if mode == 'expert' %}active{% endif %}"
-                       href="{{ url_for('expert_home') }}">Expert</a>
-                </div>
                 <button class="header-button" type="button"
                         hx-get="{{ url_for('composer_load_modal') }}"
                         hx-target="#load-modal-region"

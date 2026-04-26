@@ -77,20 +77,30 @@ def create_app() -> FastAPI:
 
     @app.get("/", response_class=HTMLResponse)
     async def root(request: Request) -> RedirectResponse:
-        """Default landing: send first-time users to Guided mode.
-
-        In v1.1 this will consult the mode preference cookie or localStorage;
-        for now it's a fixed redirect.
-        """
+        """Default landing: send to the composer."""
         return RedirectResponse(url=request.url_for("guided_home"))
 
     @app.get("/mode/guided", response_class=HTMLResponse, name="guided_home")
     async def guided_home(request: Request) -> HTMLResponse:
-        return templates.TemplateResponse(request, "base.html", _shell_context(request, "guided"))
+        """Render the composer shell.
 
-    @app.get("/mode/expert", response_class=HTMLResponse, name="expert_home")
-    async def expert_home(request: Request) -> HTMLResponse:
-        return templates.TemplateResponse(request, "base.html", _shell_context(request, "expert"))
+        Originally one of two modes (Guided / Expert). The dual-mode
+        story was deferred without a tester ask, then formally pruned —
+        the breadcrumb (commit ``04d2a2a``), freeform observation entry
+        (``f9bc057``), and SigmaHQ corpus browse (``0b40988``) cover
+        the "power user" cases the docs envisioned for Expert mode.
+        See SPEC.md decision log for the full rationale.
+
+        ``/mode/guided`` is kept as the canonical URL since it's been
+        public; ``/mode/expert`` redirects here so old bookmarks still
+        work.
+        """
+        return templates.TemplateResponse(request, "base.html", _shell_context(request))
+
+    @app.get("/mode/expert")
+    async def expert_redirect(request: Request) -> RedirectResponse:
+        """Backward-compatible redirect for the now-removed Expert mode."""
+        return RedirectResponse(url=request.url_for("guided_home"), status_code=301)
 
     @app.get("/rule/download", name="rule_download")
     async def rule_download(rule_state: str = "") -> PlainTextResponse:
@@ -104,13 +114,12 @@ def create_app() -> FastAPI:
     return app
 
 
-def _shell_context(request: Request, mode: str) -> dict[str, Any]:
+def _shell_context(request: Request) -> dict[str, Any]:
     """Variables passed to every shell render. Kept in one place so stage
     partials that inherit from ``base.html`` get the same defaults.
     """
     initial = composer_routes.initial_composer_context(request, request.app.state.taxonomy)
     return {
-        "mode": mode,
         "version": __version__,
         "initial_composer_html": initial["initial_composer_html"],
         "initial_state_json": initial["initial_state_json"],

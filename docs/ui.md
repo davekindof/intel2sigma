@@ -2,27 +2,14 @@
 
 Contract for the presentation layer. Backend behavior is specified in SPEC.md and docs/architecture.md; this document specifies screen regions, interactions, and visual design.
 
-## Modes
+## Single-mode composer
 
-Two modes, same state, same endpoints, different shell templates.
+One mode: a five-stage flow with structured input on the left, live YAML preview on the right. Earlier drafts of this doc described two modes (Guided / Expert); the dual-mode story was pruned without ever shipping the second mode — see SPEC.md decision log entry dated 2026-04-26. Power-user paths that Expert mode would have served are now covered by:
 
-### Guided mode (default for first-time users)
-
-One stage at a time. Header shows "Step 2 of 5" and the stage name. Next and Back buttons at the bottom. Preview panel on the right is present but secondary. Health drawer collapsed by default, expands automatically when there is a critical-severity warning.
-
-Target: users who have never written a Sigma rule and want to be walked through.
-
-### Expert mode
-
-All five stages stacked in a scrollable left column. Preview panel on the right is prominent and always updating. Health drawer collapsed by default with counts always visible in the bar.
-
-Target: users who already know what they want and need the composer to stay out of their way.
-
-### Mode switch
-
-Prominent toggle in the header, labeled "Guided / Expert" with the current mode visually indicated. Clicking switches mode immediately, preserving current rule state. Preference persists in localStorage under the key `intel2sigma:mode`.
-
-First-time users land in Guided. Returning users (localStorage key set) land in their last mode.
+* The breadcrumb at the top of every stage — click any reachable stage to jump there directly without going through Next/Back.
+* The freeform observation entry on Stage 0 — bypass the catalog when your logsource is unusual.
+* The SigmaHQ corpus browse tab on the load modal — search ~3700 vetted rules and edit one in place of starting from scratch.
+* The CLI (``intel2sigma convert rule.yml --backend kusto``) — text-editor-driven workflow for users who'd rather not touch a UI.
 
 ## Screen regions
 
@@ -33,28 +20,25 @@ Three logical regions plus the app header.
 Fixed to the top. Contains:
 
 - **Left**: wordmark "intel2sigma" and a compact version tag
-- **Center**: breadcrumb of current stage (Guided) or nothing (Expert)
-- **Right**: mode toggle, "New rule" button (confirms if current rule is non-empty), help link
+- **Right**: "Load rule" button (opens load modal), "New rule" button (confirms if current rule is non-empty), help link
 
 Height: 48px. Background: `--color-surface`. Border-bottom: 1px `--color-border`.
 
 ### Composer panel (left)
 
-In Guided mode: single stage partial, centered, max-width ~720px. Below the partial: Back button (left-aligned) and Next button (right-aligned, primary color). Back is disabled on stage 0; Next is disabled until the stage's required inputs are valid.
-
-In Expert mode: all five stage partials stacked in a scrollable column. Width: 50% of viewport (minimum 480px). Each stage has a collapsible header showing completion state.
+Stage breadcrumb at top — five clickable steps with the current one highlighted in accent green. Then the active stage partial: single stage at a time, centered, max-width ~720px. Below the partial: Back button (left-aligned) and Next button (right-aligned, primary color). Back is disabled on Stage 0; Next is disabled until the stage's prerequisites are met.
 
 ### Preview panel (right)
 
-Always visible in Expert mode; collapsible in Guided mode (starts visible on stage ≥3, collapsed on stages 0–2 where there's little to preview).
+Always visible. Updates on every keystroke (300ms debounce) so the user sees the rule taking shape live, not as a finale.
 
 Contains:
 
-- **Primary pane**: canonical Sigma YAML, syntax-highlighted via Pygments, monospace. Copy button in the top right. Download button.
-- **Conversion tabs**: one tab per target backend (Sentinel KQL, MDE KQL, Splunk SPL, Elastic ES|QL, CrowdStrike FQL). The last-used tab is remembered in localStorage. Each tab shows the converted query with a copy button and a small "Pipeline: microsoft_xdr" indicator.
-- **Plain-English summary** (review stage onward): one-paragraph prose describing what the rule matches.
+- **Primary pane**: canonical Sigma YAML, syntax-highlighted via Pygments, monospace. When the draft is incomplete, a best-effort "partial YAML" renders alongside the tier-1 issue list — better than a blank pane.
+- **Conversion tabs**: one tab per target backend (Sentinel KQL, MDE KQL, Splunk SPL, Elastic Lucene, CrowdStrike LogScale). Each tab shows the converted query; populated only once the rule is fully valid (tier-1 + tier-2 clean).
+- **Plain-English summary**: also shown inside Stage 1 and Stage 3 partials so users see "what does this rule do" without reading YAML.
 
-Width in Expert mode: 50% of viewport. In Guided mode: 40% of viewport when visible.
+Width: 40% of viewport.
 
 ### Health drawer (bottom)
 
@@ -68,7 +52,7 @@ IDE-style collapsible drawer spanning the full width of the viewport. Fixed to t
 
 Zero issues: shows `✓ Rule is clean` in accent color.
 
-**Expanded state**: 240px tall (resizable in Expert mode). Scrollable list grouped by severity, critical first. Each row:
+**Expanded state**: 240px tall. Scrollable list grouped by severity, critical first. Each row:
 
 - Severity icon
 - Heuristic ID (e.g., `h-011`)
@@ -134,7 +118,7 @@ Two stacked regions: **Match blocks** and **Filter blocks** (except-when). Each 
 
 Field dropdown is populated from the taxonomy for the chosen observation type. Core fields shown by default; "Show advanced fields" expander adds the rest. Modifier dropdown is populated from the field's `allowed_modifiers` list. Value input is type-aware: paths get path normalization hints, hashes get length validation, IPs get IP validation, regex gets a "regex mode — backend-dependent dialect" warning.
 
-Auto-composed condition is shown below the blocks as read-only prose ("Match when all of `match_1`'s items are true, except when any of `filter_1`'s items are true"). An "edit condition manually" escape hatch exists in Expert mode only.
+Auto-composed condition is shown below the blocks as read-only prose ("Match when all of `match_1`'s items are true, except when any of `filter_1`'s items are true"). The composer never exposes a manually-editable condition string per CLAUDE.md I-4 — the structured block view is the source of truth.
 
 ### Stage 2 — Metadata
 
@@ -148,7 +132,7 @@ Read-only rendering of the rule in prose ("This rule matches when…") with clic
 
 ### Stage 4 — Output
 
-Expands the preview pane to full width (Guided mode) or highlights it (Expert mode). Focus on copy/download actions. "Build another rule" and "Export as…" buttons.
+Expands the preview pane to full width. Focus on copy/download actions. "Build another rule" and "Build similar rule" buttons.
 
 ## Color palette
 
@@ -215,7 +199,7 @@ Light mode is not supported in v1. Target audience works in dark environments; l
 
 ## Responsive behavior
 
-- **≥1280px**: default layout, both panels and drawer fully visible in Expert mode
+- **≥1280px**: default layout, both panels and drawer fully visible
 - **1024px – 1279px**: narrower preview panel, composer remains workable
 - **768px – 1023px**: stacked layout (composer above, preview below) with a notice explaining the tool is designed for larger screens
 - **<768px**: full-page notice: "intel2sigma is a desktop tool. Please resize your window or use a larger screen."
@@ -244,8 +228,7 @@ Deferred from v1. Planned:
 - `Ctrl+K` — focus observation search in stage 0 / open observation picker
 - `Ctrl+D` — download canonical YAML
 - `` Ctrl+` `` — toggle health drawer
-- `Ctrl+/` — toggle Guided/Expert mode
-- `Ctrl+Enter` — advance to next stage (Guided mode)
+- `Ctrl+Enter` — advance to next stage
 
 Standard browser shortcuts (Ctrl+F, Ctrl+C, Ctrl+V) are never intercepted.
 

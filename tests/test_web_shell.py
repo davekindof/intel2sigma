@@ -39,22 +39,24 @@ def test_root_redirects_to_guided(client: TestClient) -> None:
     assert r.headers["location"].endswith("/mode/guided")
 
 
-def test_guided_mode_renders_shell(client: TestClient) -> None:
+def test_guided_renders_shell(client: TestClient) -> None:
     r = client.get("/mode/guided")
     assert r.status_code == 200
     body = r.text
     assert "intel2" in body and "sigma" in body  # wordmark
-    assert 'data-mode="guided"' in body
     assert "app-header" in body
     assert "composer-panel" in body
     assert "preview-panel" in body
     assert "health-drawer" in body
 
 
-def test_expert_mode_renders_shell(client: TestClient) -> None:
-    r = client.get("/mode/expert")
-    assert r.status_code == 200
-    assert 'data-mode="expert"' in r.text
+def test_expert_url_redirects_to_guided(client: TestClient) -> None:
+    """``/mode/expert`` was the now-pruned dual-mode toggle. Old bookmarks
+    should redirect, not 404 — preserves any tester URL.
+    """
+    r = client.get("/mode/expert", follow_redirects=False)
+    assert r.status_code == 301
+    assert r.headers["location"].endswith("/mode/guided")
 
 
 def test_shell_includes_all_five_conversion_tabs(client: TestClient) -> None:

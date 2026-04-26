@@ -30,7 +30,7 @@ Phased delivery plan. Each phase has an exit gate. Do not start the next phase u
 - ✅ `core/validate/tier3.py` — runs the heuristic registry over a complete rule, returns advisories as `ValidationIssue` records with `H_<SEVERITY>_<id>` codes. Composer Stage 3 renders them with severity-coloured borders.
 - ✅ `web/` — FastAPI app with htmx + Jinja2
   - ✅ Guided mode (Stage 0 → 4)
-  - ⏸️ Expert mode polish — basic shell exists, refinement deferred
+  - 🪦 Expert mode — pruned (see SPEC.md decision log 2026-04-26); the breadcrumb, freeform observation entry, and SigmaHQ corpus browse cover the use cases Expert was envisioned for
   - ✅ 5-stage composer flow
   - ✅ Rule health bottom drawer
   - ✅ Primary YAML pane + tabbed conversion outputs

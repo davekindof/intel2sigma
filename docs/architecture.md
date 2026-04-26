@@ -22,19 +22,15 @@ How the pieces fit at runtime. SPEC.md describes the logical structure; this des
 
 The full rule model travels with every request (hidden form fields, htmx `hx-vals`). Server is stateless.
 
-## Request flow — Expert mode composer
-
-Same state, same endpoints, different shell. Expert mode renders all stage partials in a scrollable left column and the preview panel on the right. Each field edit triggers an htmx partial update targeting the preview pane, so conversions update live as the user types.
-
-Mode switch (`GET /mode/guided` or `GET /mode/expert`) returns a full-page re-render because the shell structure differs. The rule state travels in the query string or a POST body so no data is lost.
-
 ## Presentation regions
 
-Three logical regions, present in both modes:
+Three logical regions:
 
-1. **Composer panel** (left): the stages. In Guided, one at a time. In Expert, all stacked.
-2. **Preview panel** (right): primary YAML pane + tabbed conversion outputs + plain-English summary.
+1. **Composer panel** (left): stage breadcrumb at top, then the active stage partial. One stage at a time.
+2. **Preview panel** (right): primary YAML pane + tabbed conversion outputs + plain-English summary. Updates per keystroke (300ms debounce); partial YAML renders alongside tier-1 issues for incomplete drafts.
 3. **Health drawer** (bottom, collapsible): heuristic warnings grouped by severity.
+
+The original SPEC envisioned a separate Expert mode with a different shell layout; that was pruned without ever shipping (see SPEC.md decision log entry dated 2026-04-26). ``/mode/expert`` 301-redirects to ``/mode/guided`` for any old bookmarks.
 
 See `docs/ui.md` for complete region specifications and markup contracts.
 

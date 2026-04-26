@@ -111,7 +111,7 @@ fields:
 
 ### Field ordering
 
-Fields within an observation type are listed in real-world frequency order, derived from the SigmaHQ corpus via `scripts/analyze_taxonomy.py`. The composer consumes this ordering to decide which fields to surface prominently — Guided mode will typically show the top few fields above an expander, Expert mode will show all fields in a searchable picker. The catalog doesn't commit to a binary tier classification; the UI decides its own threshold.
+Fields within an observation type are listed in real-world frequency order, derived from the SigmaHQ corpus via `scripts/analyze_taxonomy.py`. The composer consumes this ordering for the Stage 1 field dropdown — most-frequent fields appear first, so the common-case selection is one click away. The catalog doesn't commit to a binary tier classification; the dropdown surfaces the full list in a single ordered control.
 
 ### `type`
 
