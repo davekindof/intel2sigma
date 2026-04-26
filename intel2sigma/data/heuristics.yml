@@ -9,13 +9,30 @@
 # Re-tuning is a data-only PR per CLAUDE.md I-5. The catalog and the
 # function signatures stay in code; what fires and how loudly stays here.
 #
-# v1.0 ships an MVP set of 8 heuristics. Remaining catalog entries are
-# tracked in docs/heuristics.md and will be added quarterly per
-# docs/recalibration.md.
+# v1.0 shipped an MVP set of 8 heuristics. v1.7 (in progress) is filling
+# out the catalog — the remaining entries are tracked in
+# docs/heuristics.md and added in semantic batches per ROADMAP §v1.7.
 
 heuristics:
   # ----- IOC vs behavior --------------------------------------------------
   h-001:
+    severity: warn
+    enabled: true
+  h-002:
+    severity: info
+    enabled: true
+  h-003:
+    severity: info
+    enabled: true
+
+  # ----- Overbroad selection ----------------------------------------------
+  h-010:
+    severity: warn
+    enabled: true
+  h-011:
+    severity: warn
+    enabled: true
+  h-012:
     severity: warn
     enabled: true
 
@@ -23,9 +40,15 @@ heuristics:
   h-021:
     severity: warn
     enabled: true
+  h-022:
+    severity: warn
+    enabled: true
 
   # ----- Path specificity -------------------------------------------------
   h-030:
+    severity: warn
+    enabled: true
+  h-032:
     severity: warn
     enabled: true
 

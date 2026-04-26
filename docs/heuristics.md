@@ -79,17 +79,17 @@ The **Status** column is the load-bearing backlog tracker. Every heuristic in th
 
 | ID | Default | Status | Description |
 |---|---|---|---|
-| h-001 | warn | v1.0 | IOC-only rule (no behavioral context) |
-| h-002 | info | v1.0 | Hash field without behavioral context |
-| h-003 | info | v1.0 | IP/domain-only rule |
+| h-001 | warn | shipped | IOC-only rule (no behavioral context) |
+| h-002 | info | shipped | Hash-only match block (per-block, fires inside mixed rules) |
+| h-003 | info | shipped | All-network-indicator rule (suggests sibling process rule) |
 
 ### Overbroad selection
 
 | ID | Default | Status | Description |
 |---|---|---|---|
-| h-010 | warn | v1.0 | Single-field selection on high-cardinality field |
-| h-011 | warn | v1.0 | Single common keyword (e.g., `CommandLine|contains: powershell` alone) |
-| h-012 | warn | v1.0 | `Image|endswith` with value <5 characters |
+| h-010 | warn | shipped | Single substring item on a high-cardinality field, no other detection logic |
+| h-011 | warn | shipped | Sole match value is a famous-utility keyword (`powershell`, `rundll32`, …) |
+| h-012 | warn | shipped | `Image|endswith` value under 5 characters |
 | h-013 | warn | v1.1 | `User|contains` with fragment <3 characters |
 | h-014 | info | v1.1 | Selection matches >50% of a sampled corpus (when corpus available) |
 
@@ -98,8 +98,8 @@ The **Status** column is the load-bearing backlog tracker. Every heuristic in th
 | ID | Default | Status | Description |
 |---|---|---|---|
 | h-020 | warn | v1.1 | Path contains apparent researcher handle or username |
-| h-021 | warn | v1.0 | Value contains RFC1918 IP address |
-| h-022 | warn | v1.0 | Hostname matches sandbox patterns (`DESKTOP-`, `WIN-`, VM prefixes) |
+| h-021 | warn | shipped | Match value is an RFC1918 / loopback / link-local IP |
+| h-022 | warn | shipped | Hostname value matches sandbox / VM patterns (DESKTOP-/WIN-/cuckoo/cape/vbox/…) |
 | h-023 | warn | v1.1 | Hash matches known-benign corpus (when corpus available) |
 | h-024 | info | v1.1 | Path references common researcher-lab paths (`\tools\`, `\analysis\`) |
 
@@ -107,9 +107,9 @@ The **Status** column is the load-bearing backlog tracker. Every heuristic in th
 
 | ID | Default | Status | Description |
 |---|---|---|---|
-| h-030 | warn | v1.0 | User-profile path without wildcard (`C:\Users\name\` vs `C:\Users\*\`) |
+| h-030 | warn | shipped | User-profile path without wildcard (`C:\Users\name\` vs `C:\Users\*\`) |
 | h-031 | info | v1.1 | Program Files path without architecture wildcard |
-| h-032 | warn | v1.0 | Drive letter other than `C:` hardcoded (portability concern) |
+| h-032 | warn | shipped | Drive letter other than `C:` hardcoded at start of a path |
 | h-033 | info | v1.1 | Absolute path where env-var expansion would be more portable |
 
 ### Known FP-prone patterns

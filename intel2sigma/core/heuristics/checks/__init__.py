@@ -15,6 +15,7 @@ from intel2sigma.core.heuristics.checks import (
     ioc_vs_behavior,
     lab_artifacts,
     metadata_completeness,
+    overbroad_selection,
     path_specificity,
 )
 
@@ -23,5 +24,6 @@ __all__ = [
     "ioc_vs_behavior",
     "lab_artifacts",
     "metadata_completeness",
+    "overbroad_selection",
     "path_specificity",
 ]
