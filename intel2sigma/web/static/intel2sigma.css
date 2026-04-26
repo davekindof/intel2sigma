@@ -486,14 +486,19 @@ input[type="text"]:focus, textarea:focus, select:focus {
     border-color: var(--color-accent);
     color: var(--color-accent);
 }
+/* Current stage — solid accent fill so "you are here" pops against
+   the outlined reachable steps. Bold weight + inverted text gives a
+   clear focal point even at a glance. */
 .stage-step-current {
-    background: var(--color-accent-muted);
-    color: var(--color-accent);
+    background: var(--color-accent);
+    color: var(--color-bg);
     border-color: var(--color-accent);
+    font-weight: 600;
+    box-shadow: 0 0 0 1px var(--color-accent) inset;
 }
 .stage-step-current .stage-step-num,
 .stage-step-current .stage-step-label {
-    color: inherit;
+    color: var(--color-bg);
 }
 .stage-step-locked {
     opacity: 0.5;
