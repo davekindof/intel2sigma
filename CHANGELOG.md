@@ -24,6 +24,48 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.2.11 — 2026-04-27
+
+Patch bump. **F-series helper-UI plan complete.**
+
+### Shipped
+
+- **F4** (`b84f1d1`) — docs catch-up. New `docs/ui.md` § "Field-row
+  helper tooltip (F3)" documents the full F3 contract: source of
+  truth, render rules, behaviour, accessibility, design rationale.
+  Existing Stage-1 paragraph updated to mention F2's modifier
+  dropdown labels and per-option tooltips. ROADMAP entry for the
+  shipped helper-UI work marked 🪦 *shipped* with cross-references
+  to the F1 → F2 → F3 commits, plus a new future-state entry for
+  "Learn more →" definition links (post-v1.1) — link tooltips out
+  to MITRE ATT&CK, SigmaHQ field reference, or an internal glossary
+  page once curation is justified.
+
+### F-series totals (0.2.6 → 0.2.11)
+
+- **F1** — verbiage audit: 36 / 36 observations meet the
+  `docs/taxonomy.md` contract; 6 regression tests lock it.
+- **F2** — modifier dropdown shows plain-English labels;
+  per-option `title=` tooltips; 8 tests for completeness vs.
+  `ValueModifier` Literal.
+- **F3** — hover tooltips on Stage 1 field rows surface the
+  hand-curated note + corpus-mined example for every populated
+  top-3 field; 4 structural tests.
+- **F4** — `docs/ui.md` and `ROADMAP.md` catch-up.
+
+The non-SIEM-audience product thesis is materially advanced: a
+user who's never written a Sigma rule can now hover any populated
+field and read what it actually means without leaving the
+composer.
+
+### Coming next
+
+- **L1/L2/L3 load-path corpus-wide hardening sweep** (per ROADMAP
+  §v1.x) — strategic answer to the load-rule bug-of-the-week
+  pattern. L1 audit script first.
+- **B2d–B2g** — 10 remaining heuristics (FP-prone patterns,
+  condition integrity, metadata, value quality).
+
 ## 0.2.10 — 2026-04-27
 
 Patch bump.
