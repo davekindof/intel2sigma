@@ -24,6 +24,47 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.2.10 — 2026-04-27
+
+Patch bump.
+
+### Shipped
+
+- **F3** (`f75423b`) — **hover tooltips on Stage 1 field rows**. The
+  marquee feature the F1 verbiage audit + F2 modifier-label work was
+  building toward. Hover any detection-item row → small dark-themed
+  tooltip appears below showing the field's note text and an Example
+  chip with a corpus-derived value.
+  - Pure CSS via `:hover` and `:focus-within` on `.detection-item`.
+    Keyboard-accessible (tabbing reveals the tooltip on the focused
+    row).
+  - 300ms appearance delay, immediate fade-out. Asymmetric
+    `transition-delay` produces the show-delay / hide-immediate
+    behaviour with a single property — no JS.
+  - `pointer-events: none` so tooltips never block clicks on
+    adjacent rows.
+  - Tooltip renders only when the field has a populated note OR
+    example — empty tooltips would be a hollow promise.
+  - Freeform-logsource path renders zero tooltips (no field
+    catalogue → no helper text). Correct degradation.
+  - 4 new structural tests in `tests/test_field_tooltips.py`.
+  - Smoke-tested server-side: tooltips for `process_creation`'s
+    `Image|endswith` and `CommandLine|contains` items contain the
+    expected hand-curated note text and example values from
+    `data/taxonomy/process_creation.yml`.
+
+### Coming next
+
+- **F4** — docs/ui.md update describing the field-tooltip contract +
+  ROADMAP entry for a "Learn more" definition-links future-state
+  enhancement (link tooltips out to MITRE ATT&CK / SigmaHQ field
+  reference / internal glossary, post-v1.1).
+- **L1/L2/L3 load-path corpus-wide hardening sweep** (per ROADMAP
+  §v1.x) — the strategic answer to the load-rule bug-of-the-week
+  pattern. Subsumes the three currently-open load follow-ups
+  (filter-only Stage-2 inaccessible, missing-category P2 regression,
+  Stage-2 metadata edits don't refresh preview).
+
 ## 0.2.9 — 2026-04-26
 
 Patch bump.
