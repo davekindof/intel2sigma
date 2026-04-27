@@ -60,10 +60,15 @@
                  aria-label="Resize composer / preview panes"
                  title="Drag to resize"></div>
 
-            <section class="preview-panel" aria-label="Preview">
+            <section class="preview-panel" id="preview-panel" aria-label="Preview">
                 <div class="preview-pane-primary" id="preview-pane">
                     {% include "partials/preview_pane.html" %}
                 </div>
+
+                <div class="preview-row-splitter" id="preview-row-splitter"
+                     role="separator" aria-orientation="horizontal"
+                     aria-label="Resize YAML / conversion-tabs regions"
+                     title="Drag to resize · double-click to reset"></div>
 
                 <div id="conversion-tabs-region">
                     {% include "partials/conversion_tabs.html" %}
@@ -165,6 +170,89 @@
             // for users who drag too far and want a fresh start.
             splitter.addEventListener("dblclick", function () {
                 applyPct(50);
+                try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+            });
+        })();
+    </script>
+
+    {# Inline splitter for the YAML / conversion-tabs row divider inside the
+       preview panel. Parallel to the column splitter above — same shape,
+       different axis (clientY instead of clientX, --tabs-height on
+       .preview-panel instead of --composer-width on .app-main). Per-IIFE
+       local ``dragging`` flag means it can't interfere with the column
+       splitter's mousemove/mouseup handlers (only one mouse, only one
+       splitter active at a time). #}
+    <script>
+        (function () {
+            var STORAGE_KEY = "intel2sigma:tabs-pct";
+            var MIN_PX = 80;             // each region stays at least this tall
+            var SPLITTER_PX = 6;
+            var panel = document.getElementById("preview-panel");
+            var splitter = document.getElementById("preview-row-splitter");
+            if (!panel || !splitter) return;
+
+            function applyPct(pct) {
+                // Clamp to [10%, 80%] — at the extremes one region becomes
+                // unusable, but we still let the user push close to either
+                // edge. The per-axis MIN_PX guard above caps the same thing
+                // in pixels for very short viewports.
+                var clampedPct = Math.max(10, Math.min(80, pct));
+                panel.style.setProperty("--tabs-height", clampedPct + "%");
+            }
+
+            // Restore preference on load.
+            try {
+                var saved = parseFloat(localStorage.getItem(STORAGE_KEY));
+                if (!isNaN(saved)) applyPct(saved);
+            } catch (e) { /* private mode etc. — ignore */ }
+
+            var dragging = false;
+            splitter.addEventListener("mousedown", function (e) {
+                dragging = true;
+                splitter.classList.add("dragging");
+                document.body.style.userSelect = "none";
+                document.body.style.cursor = "row-resize";
+                e.preventDefault();
+            });
+
+            document.addEventListener("mousemove", function (e) {
+                if (!dragging) return;
+                var rect = panel.getBoundingClientRect();
+                var totalPx = rect.height - SPLITTER_PX;
+                if (totalPx <= 0) return;
+                // The splitter sits between the YAML pane (top) and the
+                // conversion-tabs region (bottom). Cursor Y measured from
+                // the panel's top gives the YAML pane's height; subtract
+                // from total to get the tabs region's height. We persist
+                // the *tabs* percentage because the CSS variable drives
+                // the bottom region directly.
+                var yamlPx = e.clientY - rect.top;
+                var tabsPx = Math.max(
+                    MIN_PX,
+                    Math.min(totalPx - MIN_PX, totalPx - yamlPx)
+                );
+                var pct = (tabsPx / totalPx) * 100;
+                applyPct(pct);
+            });
+
+            document.addEventListener("mouseup", function () {
+                if (!dragging) return;
+                dragging = false;
+                splitter.classList.remove("dragging");
+                document.body.style.userSelect = "";
+                document.body.style.cursor = "";
+                try {
+                    var current = panel.style.getPropertyValue("--tabs-height");
+                    var pct = parseFloat(current);
+                    if (!isNaN(pct)) {
+                        localStorage.setItem(STORAGE_KEY, String(pct));
+                    }
+                } catch (e) { /* ignore */ }
+            });
+
+            // Double-click resets to the CSS default (40%) — escape hatch.
+            splitter.addEventListener("dblclick", function () {
+                panel.style.removeProperty("--tabs-height");
                 try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
             });
         })();

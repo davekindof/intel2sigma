@@ -248,19 +248,22 @@ button {
     border-bottom: 1px solid var(--color-border);
 }
 
-/* Conversion tabs region must also play by the flex rules. Cap at 50%
-   of the parent so a tall tab body (e.g. a multi-line KQL query) can't
-   crowd out the YAML pane above; the tab body itself scrolls internally.
-   Originally 45% (slight lean toward the YAML side as the canonical
-   artifact); bumped to 50% per dogfood feedback that the SIEM/EDR
-   output region wanted a smidge more height — the parity split reads
-   better when the converted query has more than two lines. */
+/* Conversion tabs region: user-resizable via the row splitter below.
+   ``flex: 0 0 var(--tabs-height, 40%)`` — fixed basis, no grow, no
+   shrink. The YAML pane above (.preview-pane-primary) takes whatever
+   remains via ``flex: 1 1 0``. The row-drag JS in base.html updates
+   the CSS variable on .preview-panel, so the user can dial the split
+   to whatever they want for the rule they're looking at.
+   Default 40% leans toward the YAML side — canonical YAML is the
+   primary artifact (CLAUDE.md I-2) — but generous-enough that the
+   tab body is useful out of the box. Earlier iterations used a
+   hardcoded ``max-height: 45/50%`` cap with no user control; the
+   draggable splitter replaces that guess with self-service. */
 #conversion-tabs-region {
     display: flex;
     flex-direction: column;
-    flex: 0 1 auto;
+    flex: 0 0 var(--tabs-height, 40%);
     min-height: 0;
-    max-height: 50%;
     overflow: hidden;
 }
 .preview-pane-tabs {
@@ -270,6 +273,28 @@ button {
     flex: 1 1 0;
     min-height: 0;
     overflow: auto;
+}
+
+/* Row-direction splitter between the YAML pane and the conversion
+   tabs region. Mirrors .pane-splitter (the column-direction splitter
+   between composer + preview) — same colour tokens, same hover/drag
+   accent, same generous invisible hit area via ::before. The drag
+   logic in base.html owns the math; this CSS owns the looks. */
+.preview-row-splitter {
+    flex: 0 0 6px;
+    background: var(--color-border);
+    cursor: row-resize;
+    transition: background 120ms;
+    position: relative;
+}
+.preview-row-splitter::before {
+    content: "";
+    position: absolute;
+    inset: -3px 0;
+}
+.preview-row-splitter:hover,
+.preview-row-splitter.dragging {
+    background: var(--color-accent);
 }
 
 /* Pygments emits the rule into <pre class="highlight"><code>…</code></pre>.
