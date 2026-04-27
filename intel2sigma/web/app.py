@@ -36,6 +36,21 @@ _TEMPLATES_DIR = _WEB_DIR / "templates"
 
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
+# Hardcoded redirect target for ``/`` and the legacy ``/mode/expert`` route.
+# An earlier form passed ``request.url_for("guided_home")`` to
+# ``RedirectResponse(url=...)`` — which is *safe* because ``url_for`` resolves
+# a literal route name (not user input) — but Snyk's static analysis flags
+# any ``RedirectResponse(url=<computed>)`` call as a potential open-redirect
+# because it can't tell route-name lookups apart from user-controlled URLs.
+# Hardcoding eliminates the false positive AND adds a layer of defence-in-
+# depth: a future contributor can't accidentally parameterise the route name
+# without realising it. Burp / pen-test threat model: with the redirect
+# destination fixed in code, no request manipulation (query, headers,
+# Host header injection, CRLF in headers) can change where the browser
+# is sent. If the canonical composer URL ever changes, both sites
+# (root and expert_redirect) need updating in lockstep.
+_COMPOSER_URL = "/mode/guided"
+
 
 def create_app() -> FastAPI:
     """Application factory. Kept separate from module-level ``app`` so tests
@@ -76,9 +91,9 @@ def create_app() -> FastAPI:
         return JSONResponse(version_payload())
 
     @app.get("/", response_class=HTMLResponse)
-    async def root(request: Request) -> RedirectResponse:
+    async def root() -> RedirectResponse:
         """Default landing: send to the composer."""
-        return RedirectResponse(url=request.url_for("guided_home"))
+        return RedirectResponse(url=_COMPOSER_URL)
 
     @app.get("/mode/guided", response_class=HTMLResponse, name="guided_home")
     async def guided_home(request: Request) -> HTMLResponse:
@@ -98,9 +113,9 @@ def create_app() -> FastAPI:
         return templates.TemplateResponse(request, "base.html", _shell_context(request))
 
     @app.get("/mode/expert")
-    async def expert_redirect(request: Request) -> RedirectResponse:
+    async def expert_redirect() -> RedirectResponse:
         """Backward-compatible redirect for the now-removed Expert mode."""
-        return RedirectResponse(url=request.url_for("guided_home"), status_code=301)
+        return RedirectResponse(url=_COMPOSER_URL, status_code=301)
 
     @app.get("/rule/download", name="rule_download")
     async def rule_download(rule_state: str = "") -> PlainTextResponse:
