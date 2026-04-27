@@ -36,6 +36,21 @@ _TEMPLATES_DIR = _WEB_DIR / "templates"
 
 templates = Jinja2Templates(directory=str(_TEMPLATES_DIR))
 
+# Register the modifier-label helpers as Jinja globals so any template
+# (Stage 1 detection editor, future field-helper tooltips) can call
+# ``{{ modifier_label(mod) }}`` / ``{{ modifier_tooltip(mod) }}``
+# without each route having to thread the dicts through context.
+# Imported here rather than at module top so the import order stays
+# tight (core → web, never the reverse — the import shape mirrors
+# the architectural-invariant graph in CLAUDE.md I-7).
+from intel2sigma.core.taxonomy.modifier_labels import (  # noqa: E402
+    modifier_label,
+    modifier_tooltip,
+)
+
+templates.env.globals["modifier_label"] = modifier_label
+templates.env.globals["modifier_tooltip"] = modifier_tooltip
+
 # Hardcoded redirect target for ``/`` and the legacy ``/mode/expert`` route.
 # An earlier form passed ``request.url_for("guided_home")`` to
 # ``RedirectResponse(url=...)`` — which is *safe* because ``url_for`` resolves

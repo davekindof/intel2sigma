@@ -113,10 +113,20 @@ Included from stage1_detection.html per match/filter block. Expects:
                 {% set allowed = field_spec.allowed_modifiers
                                  if field_spec
                                  else ["contains", "startswith", "endswith", "exact", "re"] %}
+                {# Render the user-facing label ("ends with") rather than
+                   the raw Sigma modifier name ("endswith"). The submitted
+                   value is still the canonical Sigma string — only the
+                   display text changes. The ``title=`` attribute carries
+                   the longer explanation as an OS-native tooltip when
+                   the user hovers an option in the open dropdown
+                   (custom hover tooltips can't render over a native
+                   ``<select>`` overlay, so ``title=`` is the only
+                   styling-free path to per-option help). #}
                 {% for mod in allowed %}
                 <option value="{{ mod }}"
+                        title="{{ modifier_tooltip(mod) }}"
                         {% if item.modifiers and item.modifiers[0] == mod %}selected{% endif %}>
-                    {{ mod }}
+                    {{ modifier_label(mod) }}
                 </option>
                 {% endfor %}
                 {% else %}
