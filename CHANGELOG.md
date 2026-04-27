@@ -24,6 +24,44 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.2.8 — 2026-04-26
+
+Patch bump. **F1 verbiage audit complete.** All 36 observation types
+now meet the contract documented in `docs/taxonomy.md`, and the
+contract is machine-enforced going forward.
+
+### Shipped
+
+- **F1d-γ** — verbiage hand-review of 5 small-issue files (proxy,
+  ps_module, wmi_event, network_connection, raw_access_thread). The
+  proxy file got the biggest rework: full W3C-ELF-prefix label
+  cleanup, header decoder, top-3 corpus-mined examples (TruffleHog /
+  sqlmap user-agents, CONNECT-method-as-tunnel-signal).
+- **F1d-δ** — consistency pass on the 11 originally-curated taxonomies
+  (create_remote_thread, create_task, dns_query, driver_load,
+  file_event, file_event_linux, image_load, pipe_created, ps_script,
+  registry_set + a missing example on gcp_audit's alt-form
+  method_name field). Every multi-field observation now has top-3
+  notes + examples per the contract.
+- **F1e** — six regression tests in `tests/test_taxonomy_verbiage.py`
+  that lock the contract: label-pattern compliance, "Use " description
+  prefix, synonyms ≥ 3, no PascalCase field labels, top-3 notes
+  populated, top-3 non-enum examples populated. Future contributions
+  that drift fail at test time.
+
+### F1 totals
+
+- 21 auto-generated taxonomies fully hand-reviewed (F1d-α / -β / -γ).
+- 11 hand-curated taxonomies polished to the contract (F1d-δ).
+- 36 / 36 observations pass the verbiage gate.
+- 6 new regression tests; total suite at 326 tests.
+
+### Coming next
+
+- F2 — modifier label table (`endswith` → "ends with") + dropdown.
+- F3 — hover tooltips on field rows (the actual helper UI).
+- F4 — docs/ui.md update + ROADMAP definition-links future-state.
+
 ## 0.2.7 — 2026-04-26
 
 Patch bump per the small-changes-bump-patch versioning policy.
