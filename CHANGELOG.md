@@ -24,6 +24,27 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.2.7 — 2026-04-26
+
+Patch bump per the small-changes-bump-patch versioning policy.
+
+### Shipped
+
+- **F1d-α** (`22bafb8`) — verbiage hand-review of 10 OS event-log + Linux/macOS observation types (security_log, process_creation_linux, auditd, system_log, defender_log, application_log, process_access, registry_event, linux_misc, process_creation_macos). 59 synonyms, 31 notes, 29 examples. Fixes auditd's `a0`/`a1`/`a2` → "Syscall argument N" and `SYSCALL` → "Syscall name" labels that the F1c camel-splitter mangled. Adds `comm` field to auditd (used in real corpus rules but missing from auto-generated field list).
+- **F1d-β** (`86f4f9d`) — verbiage hand-review of 10 cloud/SaaS observation types (cloudtrail, azure_activity, azure_audit, azure_signin, azure_risk, gcp_audit, okta, github_audit, opencanary, rpc_firewall). 64 synonyms, 24 notes, 23 examples — every example mined from real corpus rules. Renames "Azure AD" → "Azure AD / Entra ID" in labels for the modern Microsoft branding. Adds `gcp.audit.service_name` field (ECS-flattened pair to `data.protoPayload.serviceName` that most rules use).
+- **Snyk false-positive cleanup** (`e815963`) — hardcode redirect destination in `web/app.py` to silence the open-redirect static-analysis flag. Threat model documented inline.
+- **Roadmap entries** — draggable YAML/conversion-tabs row splitter (`8fe7e01`); supersedes the older "bump conversion-tabs cap" follow-up.
+
+### Known follow-ups
+
+- F1d-γ — 5 more YAMLs to hand-review (ps_module, wmi_event, network_connection, raw_access_thread, proxy).
+- F1e — regression tests locking the verbiage contract.
+- F2 + F3 — modifier labels + hover tooltips on field rows (the actual helper UI).
+- B2d–B2g — 10 remaining heuristics.
+- Stage 2 metadata edits don't refresh the YAML preview pane.
+- Filter-only loaded rules make Stage 2 (Metadata) inaccessible (repro: SigmaHQ rule `db809f10-56ce-4420-8c86-d6a7d793c79c`).
+- Draggable YAML/conversion-tabs row splitter (plan in ROADMAP §v1.x).
+
 ## 0.2.6 — 2026-04-26
 
 First version bump since the project started at `0.1.0`. Captures the
