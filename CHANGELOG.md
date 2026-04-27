@@ -24,6 +24,40 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.2.12 — 2026-04-27
+
+Patch bump.
+
+### Shipped
+
+- **Draggable YAML / conversion-tabs row splitter** (`cd710d4`) — closes
+  the row-splitter follow-up tracked since 2026-04-26. Mirrors the
+  existing column splitter between composer + preview: a 6px drag
+  handle between the YAML pane and the SIEM/EDR conversion-tabs region,
+  with the position persisted in `localStorage["intel2sigma:tabs-pct"]`
+  and a double-click reset to the 40% default. Replaces the hardcoded
+  `max-height: 50%` cap with user-controlled drag — every analyst's
+  monitor / rule-length combination wants a different ratio, so
+  self-service beats a guessed-at constant.
+
+  Per-IIFE local `dragging` flag means the row splitter and column
+  splitter can't interfere with each other (only one mouse active at
+  a time anyway). The 943f131 oob-swap class-preservation work still
+  covers `#preview-pane` and `#conversion-tabs-region`; the splitter
+  sits between them as a static sibling that's never an oob target.
+
+  Empty-state UX caveat (acknowledged in the ROADMAP entry): with
+  `flex: 0 0 40%` the tabs region is always 40% even when no rule is
+  loaded, so Stage 0 shows a slightly larger empty-placeholder area
+  at the bottom of the preview panel. Accepted tradeoff because the
+  loaded-rule state matters more for actual use.
+
+### Coming next
+
+- **L1/L2/L3 load-path corpus-wide hardening sweep** — strategic answer
+  to the load-rule bug-of-the-week pattern. L1 audit script first.
+- **B2d–B2g** — 10 remaining heuristics.
+
 ## 0.2.11 — 2026-04-27
 
 Patch bump. **F-series helper-UI plan complete.**
