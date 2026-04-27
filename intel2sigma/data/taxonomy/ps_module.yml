@@ -30,11 +30,13 @@ fields:
       type: string
       default_modifier: contains
       allowed_modifiers: [contains, all, re, endswith, startswith, exact]
-      note: "Arguments and output captured by the module-logging channel."
+      example: "System.Reflection.Assembly]::Load"
+      note: "Arguments and output captured by the module-logging channel. Watch for reflective .NET loads, Add-Type, and DownloadString-style patterns."
 
     - name: ContextInfo
       label: "Invocation context"
       type: string
       default_modifier: contains
       allowed_modifiers: [contains, all, endswith, startswith, exact]
-      note: "Host, user, command-name, and other execution-context metadata."
+      example: "HostApplication=powershell.exe -EncodedCommand"
+      note: "Host, user, command-name, and other execution-context metadata in `key=value` form. Useful for identifying the launching command and host process."

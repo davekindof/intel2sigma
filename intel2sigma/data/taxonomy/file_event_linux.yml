@@ -36,3 +36,4 @@ fields:
       default_modifier: endswith
       allowed_modifiers: [endswith, contains, startswith, re, exact]
       example: "/usr/bin/curl"
+      note: "Process that performed the write. Common malicious patterns: curl/wget writing to /etc/cron.* or /usr/local/bin/, sh/bash dropping into /tmp or /var/tmp, sshd writing authorized_keys outside ~/.ssh/."

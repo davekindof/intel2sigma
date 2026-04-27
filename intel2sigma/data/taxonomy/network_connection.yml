@@ -28,6 +28,7 @@ fields:
       default_modifier: endswith
       allowed_modifiers: [endswith, contains, startswith, re, exact]
       example: '\powershell.exe'
+      note: "Highest-signal field — most network-connection rules pivot on which process is making the connection. Use the `\\name.exe` suffix idiom to catch the binary regardless of directory."
 
     - name: Initiated
       label: "Outbound connection?"
@@ -43,6 +44,7 @@ fields:
       default_modifier: endswith
       allowed_modifiers: [endswith, contains, startswith, exact, re]
       example: "c2.evil.invalid"
+      note: "DNS name the connection went to (when Sysmon resolves the destination). For a TLD/SLD suffix match include the leading dot — `.evil.invalid` matches sub.evil.invalid but not nameevil.invalid."
 
     - name: DestinationIp
       label: "Destination IP"

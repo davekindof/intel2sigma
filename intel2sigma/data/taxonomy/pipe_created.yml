@@ -33,3 +33,5 @@ fields:
       type: path
       default_modifier: endswith
       allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\rundll32.exe'
+      note: "The process that created the pipe. LOLbins (rundll32, regsvr32, dllhost) creating named pipes is unusual — combine with PipeName regex to filter to known-malicious naming patterns."

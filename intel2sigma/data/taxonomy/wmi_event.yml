@@ -31,6 +31,7 @@ fields:
       default_modifier: exact
       allowed_modifiers: [exact]
       values: [Created, Modified, Deleted]
+      note: "Lifecycle action on the WMI subscription object. 'Created' is the highest-signal value — adversaries register a subscription once for persistence and rarely modify or delete it after."
 
     - name: EventType
       label: "WMI event type"
@@ -45,6 +46,8 @@ fields:
       type: string
       default_modifier: contains
       allowed_modifiers: [contains, endswith, startswith, exact, re]
+      example: "BVTFilter"
+      note: "User-supplied name for the WMI filter or consumer. Watch for names mimicking legit Windows components (`BVTConsumer` / `BVTFilter` are SecBVT-implant markers; `SCM Event Log Consumer` is real)."
 
     - name: Query
       label: "WQL query"

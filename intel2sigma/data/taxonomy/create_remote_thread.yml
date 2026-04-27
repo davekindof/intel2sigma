@@ -37,14 +37,16 @@ fields:
       type: path
       default_modifier: endswith
       allowed_modifiers: [endswith, contains, startswith, exact]
-      note: "The process that called CreateRemoteThread."
+      example: '\powershell.exe'
+      note: "The process that called CreateRemoteThread. Watch for unsigned or LOLbin processes (powershell, rundll32, msbuild) injecting into trusted processes."
 
     - name: StartModule
       label: "Start module"
       type: path
       default_modifier: exact
       allowed_modifiers: [exact, endswith, contains]
-      note: "The DLL containing the thread start address, if known."
+      example: 'C:\Windows\System32\kernel32.dll'
+      note: "The DLL containing the thread start address, if known. Common legit value is kernel32.dll for LoadLibraryA-based injection."
 
     - name: StartFunction
       label: "Start function name"

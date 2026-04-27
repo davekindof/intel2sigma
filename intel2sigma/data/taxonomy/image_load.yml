@@ -27,6 +27,7 @@ fields:
       default_modifier: endswith
       allowed_modifiers: [endswith, startswith, contains, re, exact]
       example: '\amsi.dll'
+      note: "Highest-signal field — most rules pivot on which DLL was loaded. Watch for DLL hijacking patterns (system32 names loaded from non-system paths) and direct loads of `amsi.dll`, `clr.dll`, `dbghelp.dll` into unusual processes."
 
     - name: Image
       label: "Loading process path"
@@ -34,6 +35,7 @@ fields:
       default_modifier: endswith
       allowed_modifiers: [endswith, startswith, contains, re, exact]
       example: '\rundll32.exe'
+      note: "The process loading the DLL. LOLbins (rundll32, regsvr32, mshta) loading payload DLLs is a high-signal pattern; pair with ImageLoaded to scope to the specific module."
 
     - name: Signed
       label: "Module is code-signed?"
@@ -41,7 +43,8 @@ fields:
       default_modifier: exact
       allowed_modifiers: [exact]
       values: ["true", "false"]
-      note: "'false' narrows to unsigned DLLs — common for malware payloads."
+      example: "false"
+      note: "'false' narrows to unsigned DLLs — common for malware payloads, especially when paired with a non-system load path."
 
     - name: SignatureStatus
       label: "Signature status"

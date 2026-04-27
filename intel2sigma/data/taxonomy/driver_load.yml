@@ -28,13 +28,15 @@ fields:
       default_modifier: endswith
       allowed_modifiers: [endswith, contains, startswith, re, exact]
       example: '\dbutil_2_3.sys'
+      note: "Full path to the .sys driver file. The `\\name.sys` suffix idiom catches the driver regardless of where it was dropped (Temp, ProgramData, Windows\\Temp, etc.)."
 
     - name: Hashes
       label: "Driver hashes"
       type: hash
       default_modifier: contains
       allowed_modifiers: [contains, exact]
-      note: "Sigma expects a comma-separated string with algorithm prefixes (MD5=..., SHA256=...). Hash match is the standard BYOVD detection mechanic."
+      example: 'SHA256=a4ad62d4c8a93c1a96cb6a40edb4d7eb8c5ef3a2c1d29cf'
+      note: "Sigma expects a comma-separated string with algorithm prefixes (MD5=..., SHA256=...). Hash match is the standard BYOVD detection mechanic — pin known-vulnerable driver hashes from project sources like LOLDrivers."
 
     - name: Signed
       label: "Driver is code-signed?"
@@ -42,6 +44,8 @@ fields:
       default_modifier: exact
       allowed_modifiers: [exact]
       values: ["true", "false"]
+      example: "false"
+      note: "Most kernel drivers must be signed to load on modern Windows; `false` here is high-signal — usually means test-signing or DSE bypass."
 
     - name: SignatureStatus
       label: "Signature status"

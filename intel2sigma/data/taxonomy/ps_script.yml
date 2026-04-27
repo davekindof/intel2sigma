@@ -40,4 +40,5 @@ fields:
       type: path
       default_modifier: startswith
       allowed_modifiers: [startswith, endswith, contains, exact]
-      note: "Path of the script file on disk, if the script was loaded from a file rather than inline."
+      example: 'C:\Users\Public\update.ps1'
+      note: "Path of the script file on disk, if the script was loaded from a file rather than inline. Watch for scripts under user-writable paths (Public, AppData, Temp, ProgramData) — common payload-staging locations."

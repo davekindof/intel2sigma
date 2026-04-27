@@ -51,6 +51,7 @@ fields:
   - startswith
   - endswith
   - re
+  example: io.k8s.authorization.rbac.v*.clusterrolebindings.create
   note: "Same value as gcp.audit.method_name but in the raw nested protoPayload form. Use this only if your pipeline preserves the original GCP audit log structure rather than the ECS-flattened form."
 - name: gcp.audit.service_name
   label: GCP service name

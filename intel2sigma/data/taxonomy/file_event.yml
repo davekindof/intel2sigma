@@ -46,6 +46,8 @@ fields:
       type: string
       default_modifier: contains
       allowed_modifiers: [contains, startswith, endswith, all, re, exact]
+      example: "/c copy \\\\share\\evil.exe %TEMP%"
+      note: "Full argv of the writing process. Combine with TargetFilename to filter on both 'what wrote' and 'what was written' — common pattern for staged-payload detection."
 
     - name: ParentImage
       label: "Parent of writing process"

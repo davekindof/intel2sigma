@@ -37,14 +37,16 @@ fields:
       type: string
       default_modifier: contains
       allowed_modifiers: [contains, all, re, endswith, startswith]
-      note: "Full XML definition of the scheduled task, including the Actions element that specifies what runs."
+      example: "<Command>powershell.exe</Command>"
+      note: "Full XML definition of the scheduled task, including the Actions element that specifies what runs. 'contains' on `<Command>` or `<Arguments>` is the typical idiom."
 
     - name: Path
       label: "Task executable path"
       type: path
       default_modifier: endswith
       allowed_modifiers: [endswith, contains, startswith, exact]
-      note: "Extracted from the task's Exec/Command element."
+      example: '\powershell.exe'
+      note: "Extracted from the task's Exec/Command element. Watch for tasks running LOLbins from %APPDATA% / %TEMP% / %PUBLIC% — common persistence pattern."
 
     - name: User
       label: "Creating user account"

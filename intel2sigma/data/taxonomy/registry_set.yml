@@ -43,4 +43,5 @@ fields:
       type: path
       default_modifier: endswith
       allowed_modifiers: [endswith, contains, startswith, exact]
-      note: "The process that performed the registry write."
+      example: '\reg.exe'
+      note: "The process that performed the registry write. reg.exe / regedit.exe / WMIC are explicit; PowerShell, msiexec, and trusted-installer abuse are stealthier. Watch for non-system processes writing to autorun paths."

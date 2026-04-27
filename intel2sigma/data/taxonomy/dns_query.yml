@@ -33,3 +33,4 @@ fields:
       default_modifier: endswith
       allowed_modifiers: [endswith, contains, startswith, re, exact]
       example: '\powershell.exe'
+      note: "The process making the DNS request. High-signal pairing with QueryName — most rules want both the suspicious domain AND an unexpected process resolving it (e.g. `mshta.exe` resolving anything is rare)."

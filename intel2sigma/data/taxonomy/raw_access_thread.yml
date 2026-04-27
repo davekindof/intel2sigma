@@ -28,6 +28,8 @@ fields:
       type: path
       default_modifier: endswith
       allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\dd.exe'
+      note: "Process performing the raw read. Watch for forensic / hex-editor tools (dd.exe, FTK Imager, WinHex) running outside an IR window; mimikatz also raw-reads volumes for SAM/SYSTEM hive extraction."
 
     - name: Device
       label: "Device path"
