@@ -24,6 +24,42 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.2.9 — 2026-04-26
+
+Patch bump.
+
+### Shipped
+
+- **F2** (`0555433`) — friendly modifier labels in the Stage 1 dropdown.
+  Replaces raw Sigma modifier names (`endswith`, `windash`, `base64offset`)
+  with plain-English labels per `docs/taxonomy.md` § "Modifier labels"
+  (`ends with`, `Windows dash variants (-, /, –)`, `contains base64-encoded
+  substring (offset-safe)`). Browser-native `title=` tooltips on each
+  `<option>` carry longer hover-revealing explanations. Submitted form
+  values stay canonical Sigma — display-only change. New helpers in
+  `intel2sigma/core/taxonomy/modifier_labels.py` registered as Jinja
+  globals; 8 new tests covering completeness against `ValueModifier`
+  Literal + end-to-end Stage 1 render.
+- **ROADMAP** — captured the **load-path corpus-wide hardening sweep**
+  as a coherent v1.x milestone (L1 audit script → L2 fix list → L3
+  user-facing surfacing). Replaces the patch-when-found cadence on
+  load-rule bugs with a single corpus-wide audit pass that runs every
+  bundled rule through the loader and categorises desyncs / exceptions
+  / clean-loads. CI-gated via a slow regression test once L1 lands.
+
+### Known follow-ups (rolled into the L2 fix list)
+
+- Filter-only loaded rules make Stage 2 (Metadata) inaccessible
+  (repro: SigmaHQ rule `db809f10-56ce-4420-8c86-d6a7d793c79c`).
+- Logsource with no category (only product/service) escapes the
+  `_freeform` fallback (repro: `34d81081-03c9-4a7f-91c9-5e46af625cde`,
+  Bitbucket Unauthorized Full Data Export Triggered).
+- Stage 2 metadata edits don't refresh the YAML preview pane.
+
+These three are no longer "fix individually next" — they're inputs
+to the L1 audit. Don't patch them piecemeal; the sweep will catch
+them and any siblings as a coherent fix.
+
 ## 0.2.8 — 2026-04-26
 
 Patch bump. **F1 verbiage audit complete.** All 36 observation types

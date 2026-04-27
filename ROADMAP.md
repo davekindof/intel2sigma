@@ -157,6 +157,71 @@ Approach: every quarterly recalibration cycle (already scheduled for taxonomy fr
 
 Tracked here so the work doesn't get lost. No specific exit gate — it's recurring maintenance.
 
+## v1.x — Load-path corpus-wide hardening sweep
+
+The "load any SigmaHQ rule" feature has produced bugs at a steady drip — one
+or two per dogfood session — because each rule shape that breaks is a different
+combination of (logsource shape × condition shape × field-name leak × multi-
+value items × oob-swap class survival × stage gating × …). Patch-when-found is
+no longer the right cadence. The sweep audits every corpus rule programmatically
+once and produces a single coherent fix-list, plus catches anything that still
+breaks at runtime instead of letting the user discover it.
+
+Three phases, each shippable independently:
+
+**L1 — Audit script (one-shot, kept).** New `scripts/audit_corpus_loads.py`
+walks every entry in `intel2sigma/data/sigmahq_corpus.json` (3,708 rules at
+the current pin), runs each through `web/load.draft_from_yaml`, and categorises
+outcomes:
+  * **clean** — loads, lands at the expected stage, all internal state
+    consistent (observation_id non-empty AND `_render_composer_panel` would
+    render the current-stage markup, not the Stage-0 fallback).
+  * **degraded but rendered** — loads with `LOAD_*` issues; the issue list
+    surfaces in the preview pane and the user sees a usable draft. Acceptable.
+  * **silently desynced** — `observation_id == ""` AND `draft.stage > 0`, OR
+    the breadcrumb's reachable list doesn't match the rendered stage. The user-
+    visible symptom is "breadcrumb says X, content shows Y" — exactly the
+    bitbucket / filter-only / antivirus failure shape.
+  * **exception** — any code path that throws (currently bug, should be 0).
+
+Output: `reports/corpus_load_audit.json` with per-rule outcome + a summary
+breakdown. Exit non-zero if anything is in the desynced or exception buckets.
+Hooked into CI as a `@pytest.mark.slow` regression test so future loader
+changes can't introduce new breakage without us seeing it.
+
+**L2 — Fix every failure category surfaced by L1.** Most of these will
+resolve to the same shape of fix as the existing P2 patch — extend the
+loader's "no taxonomy match → freeform" path to handle every escape route
+(missing category, missing product, dotted service names, etc.). A small
+number may need genuine model work (multi-condition rules, sub-group
+flattening that already issues `LOAD_NESTED_SUBGROUPS_FLATTENED`). Each
+fix lands as a separate commit referencing a category from the L1 report.
+
+**L3 — User-facing surfacing.** After L1/L2 there's still a residual class
+of rules that load but with known fidelity loss (e.g. condition shape we
+collapse to `all of selection_*`). Two options:
+
+  * Pre-load: corpus-search results carry a small "compatibility: clean /
+    partial / degraded" chip so the user sees what they're getting into
+    before they click Load. The audit JSON computes this.
+  * Post-load: the existing `LOAD_*` issue list (already surfaced in the
+    preview pane) is the canonical view; add a one-line summary at the top
+    of Stage 1 if any `LOAD_*` issue is `tier=1` so the user can't miss it.
+
+  My lean: Post-load is enough for v1.x — the issue list already exists.
+  Pre-load chips are nice but extra UI surface, defer to v2 unless tester
+  feedback specifically asks for it.
+
+**Sequencing**: L1 must precede L2 (the audit feeds the fix list).
+L3 is independent and small; can ship anytime. The whole sweep
+constitutes a coherent v1.x milestone — bumps minor (`0.3.0`) on
+completion per the versioning policy in CHANGELOG.md.
+
+The next-three patches' worth of "load XYZ rule and breadcrumb desyncs"
+follow-ups in the todo list (filter-only Stage-2-inaccessible, missing-
+category P2 regression, etc.) all roll up into L2's fix list. Don't fix
+them piecemeal; they're the input to the audit, not the output.
+
 ## v1.x — Smaller post-v1.0 polish
 
 Doesn't fit a milestone:
