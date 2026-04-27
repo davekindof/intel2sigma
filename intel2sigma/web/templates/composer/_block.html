@@ -164,6 +164,25 @@ Included from stage1_detection.html per match/filter block. Expects:
                     hx-swap="innerHTML">
                 ✕
             </button>
+
+            {# Field-row helper tooltip. Only renders when the field has
+               a populated note or example — empty tooltips would be a
+               hollow promise. Pure CSS show/hide via :hover and
+               :focus-within on .detection-item, with pointer-events:
+               none so the tooltip never blocks clicks on adjacent rows.
+               300ms appearance delay (set in the CSS transition) so
+               quick mouse-overs don't flicker. The freeform path (no
+               observation_spec) just doesn't render tooltips since
+               there's no field catalog to draw helper text from. #}
+            {% if observation_spec and item.field %}
+              {% set _help_spec = field_specs_by_name.get(item.field) %}
+              {% if _help_spec and (_help_spec.note or _help_spec.example) %}
+              <span class="field-tooltip" role="tooltip">
+                {% if _help_spec.note %}<span class="field-tooltip-note">{{ _help_spec.note }}</span>{% endif %}
+                {% if _help_spec.example %}<code class="field-tooltip-example">Example: {{ _help_spec.example }}</code>{% endif %}
+              </span>
+              {% endif %}
+            {% endif %}
         </div>
         {% endfor %}
     </div>

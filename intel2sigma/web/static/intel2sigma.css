@@ -1312,12 +1312,88 @@ input[type="text"]:focus, textarea:focus, select:focus {
        modifier dropdowns at the first row of text rather than vertical-
        centering and dragging the whole row tall. */
     align-items: baseline;
+    /* position: relative anchors the .field-tooltip below; required
+       for the absolutely-positioned tooltip's top:100% to refer to
+       this row's bottom edge. Layout-neutral when no tooltip is
+       hovered. */
+    position: relative;
 }
 
 .item-field,
 .item-modifier,
 .item-value {
     font-size: 13px;
+}
+
+/* ---- Stage 1 field-row helper tooltip (F3) -------------------------------
+ *
+ * Hover any detection-item row → small dark-themed tooltip appears below
+ * showing the field's note + an Example chip. Pure CSS show/hide via
+ * :hover and :focus-within (keyboard accessible). Pointer-events: none
+ * so the tooltip overlays adjacent rows visually but never blocks clicks
+ * — the user can move the cursor across the form unimpeded.
+ *
+ * Show / hide timing:
+ *   * Show: 300ms delay (intentional-hover threshold) + 120ms fade-in.
+ *     Quick mouse-overs across the form don't flicker the tooltip on.
+ *   * Hide: 0ms delay + 120ms fade-out. Snappy departure.
+ * The asymmetric ``transition-delay`` between :hover and the default
+ * state is the trick that produces the show-delay / hide-immediate
+ * behavior with a single CSS property.
+ *
+ * Tooltips render only when the field's note OR example is populated
+ * (template-side guard in _block.html). Empty tooltips would be a
+ * hollow promise to the user. The freeform-logsource path renders no
+ * tooltips at all since there's no field catalog to draw helper text
+ * from — correct degradation.
+ */
+.field-tooltip {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 10;
+    max-width: min(480px, 100%);
+    padding: var(--space-2) var(--space-3);
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    line-height: 1.45;
+    box-shadow: var(--shadow-md);
+    pointer-events: none;
+    /* Default state: hidden, fast fade-out (no delay) so tooltip
+       disappears the moment the cursor leaves. */
+    opacity: 0;
+    transition: opacity 120ms ease;
+}
+
+.detection-item:hover .field-tooltip,
+.detection-item:focus-within .field-tooltip {
+    opacity: 1;
+    /* On hover/focus: 300ms delay before fade-in, then 120ms fade. */
+    transition: opacity 120ms ease 300ms;
+}
+
+.field-tooltip-note {
+    display: block;
+    margin-bottom: var(--space-1);
+    color: var(--color-text);
+}
+
+.field-tooltip-example {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-accent);
+    background: var(--color-code-bg);
+    padding: 2px 6px;
+    margin-top: var(--space-1);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-code-border);
+    /* Allow long example values to wrap rather than overflow horizontally. */
+    word-break: break-word;
+    max-width: 100%;
 }
 
 /* Multi-value items get a textarea so a loaded rule like
