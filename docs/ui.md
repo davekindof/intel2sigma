@@ -116,9 +116,51 @@ Two stacked regions: **Match blocks** and **Filter blocks** (except-when). Each 
 - A list of detection items, each a row with: field dropdown → modifier dropdown → value input(s)
 - An "Add item" button
 
-Field dropdown is populated from the taxonomy for the chosen observation type. Core fields shown by default; "Show advanced fields" expander adds the rest. Modifier dropdown is populated from the field's `allowed_modifiers` list. Value input is type-aware: paths get path normalization hints, hashes get length validation, IPs get IP validation, regex gets a "regex mode — backend-dependent dialect" warning.
+Field dropdown is populated from the taxonomy for the chosen observation type. Core fields shown by default; "Show advanced fields" expander adds the rest. Modifier dropdown shows **plain-English labels** ("ends with" instead of `endswith`) per the table in `docs/taxonomy.md` § "Modifier labels"; the canonical Sigma string is still the submitted form value. Each `<option>` carries a `title=` attribute with a one-sentence explanation as a browser-native tooltip (the only path to per-option help text inside a native `<select>` overlay).
+
+Value input is type-aware: paths get path normalization hints, hashes get length validation, IPs get IP validation, regex gets a "regex mode — backend-dependent dialect" warning.
 
 Auto-composed condition is shown below the blocks as read-only prose ("Match when all of `match_1`'s items are true, except when any of `filter_1`'s items are true"). The composer never exposes a manually-editable condition string per CLAUDE.md I-4 — the structured block view is the source of truth.
+
+#### Field-row helper tooltip (F3)
+
+Hovering any populated detection-item row reveals a small dark-themed tooltip below it showing the field's plain-English explanation and a real-looking example value. The tooltip is the user-facing payoff of the F1 verbiage audit and drives the non-SIEM-audience product thesis: a user who's never written a Sigma rule can hover any field and read what it actually means without leaving the composer.
+
+**Source of truth.** Each tooltip's content comes from the field's `note` and `example` entries in `data/taxonomy/<id>.yml`. The F1b contract requires every observation's top-3 fields (the most-used per corpus calibration) to populate both; lower-frequency fields populate them as quality permits. Tests in `tests/test_taxonomy_verbiage.py` enforce the contract — adding a field to a top-3 slot without populating the helper data fails CI.
+
+**Render rules.**
+
+- Tooltip renders only when the field has a populated `note` OR `example`. Empty tooltips are a hollow promise; graceful skip is correct.
+- Freeform-logsource path (no observation_spec) renders no tooltips — there's no field catalog to draw helper text from.
+- Composer-default rows (`match_1` with no field picked yet) render no tooltip — the user hasn't committed to a field, there's nothing to explain.
+
+**Behaviour.**
+
+- Pure CSS show/hide via `:hover` and `:focus-within` on `.detection-item`. No JS. Keyboard-accessible — tabbing onto the field / modifier / value reveals the tooltip via focus-within.
+- 300ms appearance delay (intentional-hover threshold) before fade-in; immediate fade-out on mouse leave. Asymmetric `transition-delay` on the `:hover` rule produces this with one CSS property.
+- `pointer-events: none` on the tooltip — it overlays adjacent rows visually but never blocks clicks. The user can move the cursor across the form unimpeded.
+- Tooltip anchored `top: calc(100% + 4px); left: 0` of its row — appears below the row, indented to the row's left edge. `max-width: min(480px, 100%)` so it can't push past the panel edge.
+
+**Visual.**
+
+```
+┌───────────────────────────────────────────┐
+│ [Image ▾]  [ends with ▾]  [\powershell.exe]  ✕│
+└───────────────────────────────────────────┘
+   ┌────────────────────────────────────────┐
+   │ Path suffix with leading backslash     │
+   │ matches the executable regardless of   │
+   │ directory.                             │
+   │                                        │
+   │ ┌──────────────────────┐               │
+   │ │ Example: \powershell.exe │  ← accent green chip
+   │ └──────────────────────┘               │
+   └────────────────────────────────────────┘
+```
+
+**Accessibility.** Keyboard users get the same tooltip on focus via `:focus-within`. The tooltip's `role="tooltip"` is semantic-only (no `aria-describedby` link to the input — adding that is a future enhancement; tracked in the "Stage 1 field helpers — definition links" ROADMAP entry). Screen readers fall back to the field's existing `aria-label` ("Field" / "Modifier" / "Value(s) — one per line").
+
+**Why hover instead of click-to-expand.** Earlier drafts proposed a click-to-expand `ⓘ` icon next to each field with a persistent expand-state in localStorage. Pruned in favour of hover because: (1) hover is more discoverable than icons, (2) zero DOM cost when not engaged means veterans never see the helper, (3) no state to persist (every htmx swap re-renders fresh), (4) `:focus-within` covers keyboard users. The icon-click approach is a fallback if user testing finds the hover threshold too short / too long.
 
 ### Stage 2 — Metadata
 
