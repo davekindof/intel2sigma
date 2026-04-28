@@ -54,7 +54,15 @@ class DetectionItemDraft(_Model):
     ``values`` is always list[str] for draft purposes — coercion to int/bool
     happens at to_sigma_rule() time, since the composer widgets are text
     inputs regardless of the underlying field type.
+
+    Overrides the project-wide ``str_strip_whitespace=True`` to ``False``
+    so detection values containing meaningful whitespace
+    (``CommandLine|endswith: ' '`` etc.) round-trip without mutation.
+    See ``DetectionItem`` in core/model.py for the full rationale and
+    the corpus rules that drove the change.
     """
+
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=False)
 
     field: str = ""
     modifiers: list[ValueModifier] = Field(default_factory=list)
@@ -573,7 +581,16 @@ class RuleDraft(_Model):
         strict_items: list[DetectionItem] = []
         for item_idx, item in enumerate(draft.items):
             field_set = bool(item.field.strip())
-            values_set = bool(item.values) and any(str(v).strip() for v in item.values)
+            # ``values_set`` deliberately checks ``v != ""`` (length == 0)
+            # rather than ``v.strip() != ""`` (whitespace-empty). A user
+            # whose Sigma rule includes ``CommandLine|endswith: ' '`` —
+            # the masquerading-via-trailing-space pattern at SigmaHQ rule
+            # b6e2a2e3-… — has typed a meaningful value (a single space).
+            # Stripping would silently nuke it. The L1 corpus audit
+            # (e9a040b) found 55+ corpus rules failing this validator
+            # for that reason. ``field_set`` keeps the strip semantic
+            # because a whitespace-only field NAME is always a typo.
+            values_set = bool(item.values) and any(str(v) != "" for v in item.values)
             # Both empty → treat as an in-progress placeholder, not a
             # validation failure. The composer adds blank rows for the
             # user to fill in; complaining about them while they're being

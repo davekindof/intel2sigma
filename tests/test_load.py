@@ -589,3 +589,62 @@ def test_stage1_set_value_splits_textarea_lines(client: TestClient) -> None:
     new_item = new_block["items"][0]
     # Three real values, no phantom empty entry from the trailing newline.
     assert new_item["values"] == ["Mimikatz", "CobaltStrike", "Empire"]
+
+
+# ---------------------------------------------------------------------------
+# L2-P1a regression: literal whitespace values survive load
+# ---------------------------------------------------------------------------
+
+
+def test_load_preserves_literal_whitespace_value() -> None:
+    """A SigmaHQ rule with ``CommandLine|endswith: ' '`` round-trips intact.
+
+    The macOS masquerading-via-trailing-space pattern at SigmaHQ
+    rule b6e2a2e3-2d30-43b1-a4ea-071e36595690 ("Space After Filename")
+    intentionally matches values that end with a literal space. The
+    original draft model had ``str_strip_whitespace=True`` from the
+    project-wide _Model config, which silently nuked the space before
+    it reached the strict SigmaRule. Tier-1 then fired
+    DRAFT_ITEM_VALUES_MISSING because the values list was effectively
+    empty.
+
+    The L1 corpus audit (e9a040b) found 55+ corpus rules failing
+    this way. L2-P1a fixed it by overriding str_strip_whitespace to
+    False on DetectionItem and DetectionItemDraft, plus relaxing the
+    tier-1 ``values_set`` check from ``v.strip() != ""`` to
+    ``v != ""`` so genuine empty strings still trip but meaningful
+    whitespace doesn't.
+
+    This test loads the literal Sigma corpus rule shape and asserts
+    the value survives all the way to to_sigma_rule().
+    """
+    yaml_text = """
+title: Space After Filename - macOS
+id: b6e2a2e3-2d30-43b1-a4ea-071e36595690
+status: test
+description: Detects masquerade-by-trailing-space.
+author: tests
+date: 2021-11-20
+tags: [attack.defense-evasion, attack.t1036.006]
+logsource:
+    category: process_creation
+    product: macos
+detection:
+    selection1:
+        CommandLine|endswith: ' '
+    selection2:
+        Image|endswith: ' '
+    condition: 1 of selection*
+falsepositives: [Mistyped commands]
+level: low
+"""
+    draft, _issues = draft_from_yaml(yaml_text)
+    assert draft is not None
+    # Literal space preserved at the draft level.
+    assert draft.detections[0].items[0].values == [" "]
+    assert draft.detections[1].items[0].values == [" "]
+    # And survives the round-trip through to_sigma_rule strict coercion.
+    sigma = draft.to_sigma_rule()
+    assert not isinstance(sigma, list), f"to_sigma_rule failed: {sigma}"
+    assert sigma.detections[0].items[0].values == [" "]
+    assert sigma.detections[1].items[0].values == [" "]

@@ -132,14 +132,38 @@ def test_one_populated_one_empty_item_is_valid() -> None:
     )
 
 
-def test_whitespace_only_value_is_treated_as_empty() -> None:
-    """An item with field set + a single whitespace-only value should be
-    treated like values-empty, not values-set. Otherwise a stray space
-    in the value field tricks the validator.
+def test_whitespace_value_is_preserved_not_stripped() -> None:
+    """An item with a literal whitespace value passes validation.
+
+    Sigma rules legitimately use whitespace as meaningful values:
+    ``CommandLine|endswith: ' '`` is the macOS masquerading-via-
+    trailing-space pattern at SigmaHQ rule b6e2a2e3-… The earlier
+    behaviour treated whitespace-only values as missing, silently
+    nuking the user's literal value. The L1 corpus audit (e9a040b)
+    found 55+ rules failing this way. Now we accept any non-zero-
+    length string as a value; only TRULY empty (``""``) values are
+    flagged as missing.
     """
     draft = _stage_with_items(
         [
-            {"field": "Image", "modifiers": ["endswith"], "values": ["   "]},
+            {"field": "CommandLine", "modifiers": ["endswith"], "values": [" "]},
+        ]
+    )
+    assert "DRAFT_ITEM_VALUES_MISSING" not in _codes(draft)
+
+
+def test_empty_string_value_is_still_treated_as_missing() -> None:
+    """A truly empty value (length-0 string) still trips DRAFT_ITEM_VALUES_MISSING.
+
+    The companion to the test above: we relaxed whitespace-as-empty
+    but kept zero-length-as-empty. An item with field set and
+    ``values=[""]`` is a half-completed row the user is in the
+    middle of editing — flag it so the composer doesn't ship a
+    rule with an empty match condition.
+    """
+    draft = _stage_with_items(
+        [
+            {"field": "Image", "modifiers": ["endswith"], "values": [""]},
         ]
     )
     assert "DRAFT_ITEM_VALUES_MISSING" in _codes(draft)

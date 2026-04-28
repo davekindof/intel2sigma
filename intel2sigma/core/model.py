@@ -125,7 +125,25 @@ class DetectionItem(_Model):
     YAML is a pure serialization concern rather than a model concern. The
     serializer collapses single-element lists to scalars where that is the
     canonical shape.
+
+    *Whitespace handling.* Overrides the project-wide
+    ``str_strip_whitespace=True`` to ``False`` because detection values
+    can legitimately be (or end with) literal whitespace —
+    ``CommandLine|endswith: ' '`` is a real Sigma idiom (the macOS
+    "space after filename" masquerading pattern at SigmaHQ rule
+    ``b6e2a2e3-…``). The L1 corpus audit (``e9a040b``) found 55+ rules
+    losing values to over-eager whitespace stripping. The
+    ``_field_not_blank`` validator below explicitly strip-checks the
+    field name, which is the only place we *do* want the trim
+    semantic.
     """
+
+    model_config = ConfigDict(
+        extra="forbid",
+        frozen=False,
+        str_strip_whitespace=False,
+        validate_assignment=True,
+    )
 
     field: str = Field(min_length=1)
     modifiers: list[ValueModifier] = Field(default_factory=list)
