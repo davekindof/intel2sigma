@@ -89,7 +89,19 @@ def _render_condition(expr: ConditionExpression) -> str:
     if expr.op is ConditionOp.NOT:
         if len(expr.children) != 1:
             raise ValueError("NOT condition must have exactly one child")
-        return f"not {_render_condition(expr.children[0])}"
+        # NOT binds tighter than AND / OR in the Sigma condition
+        # grammar — ``not a or b`` parses as ``(not a) or b``. So
+        # when the operand is an AND or OR expression, wrap it in
+        # parens to preserve the intended precedence. L2-P1c
+        # uncovered this when ``not (filter_a or filter_b)`` lost
+        # its parens during render and fired on the wrong condition
+        # shape. Atomic operands (selections, NOT, ALL_OF, ONE_OF)
+        # don't need parens because their precedence is unambiguous.
+        child = expr.children[0]
+        rendered = _render_condition(child)
+        if not _is_atomic(child):
+            rendered = f"({rendered})"
+        return f"not {rendered}"
 
     if expr.op in (ConditionOp.AND, ConditionOp.OR):
         if not expr.children:

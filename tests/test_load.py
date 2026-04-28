@@ -648,3 +648,68 @@ level: low
     assert not isinstance(sigma, list), f"to_sigma_rule failed: {sigma}"
     assert sigma.detections[0].items[0].values == [" "]
     assert sigma.detections[1].items[0].values == [" "]
+
+
+# ---------------------------------------------------------------------------
+# L2-P1c regression: filter-only rules ("fire on everything except…")
+# ---------------------------------------------------------------------------
+
+
+def test_load_filter_only_rule_composes_negation_only_condition() -> None:
+    """A Sigma rule with only filter blocks composes to ``not (f1 or f2)``.
+
+    SigmaHQ rule db809f10-56ce-4420-8c86-d6a7d793c79c ("Potential
+    Defense Evasion Via Raw Disk Access By Uncommon Tools") has 13
+    filter_main_* / filter_optional_* blocks and zero match blocks.
+    The Sigma idiom is "fire on every event from this logsource
+    unless any filter matches" — the rule's exclusionary intent IS
+    its detection logic.
+
+    Pre-L2-P1c, ``_compose_condition`` returned ``None`` when there
+    were no match blocks, which tripped DRAFT_CONDITION_EMPTY at
+    tier-1 and made Stage 2 (Metadata) inaccessible from a loaded
+    rule of this shape. The dogfood report on 2026-04-26 surfaced
+    this as a real Stage-navigation bug; the L1 audit (e9a040b)
+    confirmed it as the lone DRAFT_CONDITION_EMPTY exception in the
+    full 3,708-rule corpus.
+
+    L2-P1c adds the filter-only branch: emit ``not filter_a``
+    (single) or ``not (filter_a or filter_b)`` (multiple), mirroring
+    the filter-side handling for match-bearing rules.
+    """
+    yaml_text = """
+title: Filter-only rule fixture
+id: 11111111-9999-aaaa-bbbb-cccccccccccc
+status: test
+description: Fixture for the filter-only-rule branch of _compose_condition.
+author: tests
+date: 2026-04-26
+tags: [attack.defense-evasion]
+logsource:
+    category: raw_access_thread
+    product: windows
+detection:
+    filter_main_floppy:
+        Device|contains: floppy
+    filter_main_servicing:
+        Image|startswith: 'C:\\Windows\\servicing\\'
+    condition: not 1 of filter_main_*
+falsepositives: [Likely]
+level: low
+"""
+    draft, _issues = draft_from_yaml(yaml_text)
+    assert draft is not None
+    # All blocks are filters (loader's is_filter heuristic on
+    # name.startswith("filter") catches all the filter_main_* shapes).
+    assert all(b.is_filter for b in draft.detections)
+    # to_sigma_rule must succeed — no DRAFT_CONDITION_EMPTY any more.
+    sigma = draft.to_sigma_rule()
+    assert not isinstance(sigma, list), f"to_sigma_rule failed: {sigma}"
+    # The composed condition is "not (filter_a or filter_b)" shape.
+    # Render to YAML and assert the negation-only string.
+    from intel2sigma.core.serialize import to_yaml  # noqa: PLC0415
+
+    yaml_out = to_yaml(sigma)
+    assert "filter_main_floppy" in yaml_out
+    assert "filter_main_servicing" in yaml_out
+    assert "not (" in yaml_out  # the negation-of-OR shape

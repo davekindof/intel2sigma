@@ -679,8 +679,33 @@ class RuleDraft(_Model):
             return None
         matches = [b for b in blocks if not b.is_filter]
         filters = [b for b in blocks if b.is_filter]
+
+        # Filter-only rule: "fire on every event from this logsource
+        # unless any filter matches." The Sigma idiom — explicit at
+        # SigmaHQ rule db809f10-… (the dogfood-flagged APT27 raw-
+        # disk-access rule) and other broad-coverage rules. The L1
+        # corpus audit (e9a040b) found this pattern as the only
+        # remaining DRAFT_CONDITION_EMPTY exception. L2-P1c adds the
+        # filter-only branch: emit ``not <filter>`` (single) or
+        # ``not (f1 or f2 or ...)`` (multiple), parallel to the
+        # filter-side handling for match-bearing rules below.
         if not matches:
-            return None
+            if not filters:
+                return None
+            if len(filters) == 1:
+                return ConditionExpression(
+                    op=ConditionOp.NOT,
+                    children=[ConditionExpression(selection=filters[0].name)],
+                )
+            return ConditionExpression(
+                op=ConditionOp.NOT,
+                children=[
+                    ConditionExpression(
+                        op=ConditionOp.OR,
+                        children=[ConditionExpression(selection=b.name) for b in filters],
+                    )
+                ],
+            )
 
         # Match side: enumerate actual names, joined by AND or OR.
         if len(matches) == 1:
