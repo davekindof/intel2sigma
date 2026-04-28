@@ -600,12 +600,19 @@ class RuleDraft(_Model):
             if not field_set and not values_set:
                 continue
             if not field_set:
-                issues.append(
-                    ValidationIssue(
-                        tier=1,
-                        code="DRAFT_ITEM_FIELD_MISSING",
-                        message="Detection item has values but no field selected.",
-                        location=f"detections[{block_idx}].items[{item_idx}]",
+                # Keyword-search item — Sigma's bare-list idiom
+                # (``filter_keywords: [samr, lsarpc, winreg]``) where
+                # the rule fires if any event field contains any of
+                # these strings. L2-P1b accepts these; previously they
+                # tripped DRAFT_ITEM_FIELD_MISSING and broke 106+
+                # corpus rules. Keyword items submit field="" through
+                # to the strict DetectionItem, which the model now
+                # allows for exactly this case.
+                strict_items.append(
+                    DetectionItem(
+                        field="",
+                        modifiers=list(item.modifiers),
+                        values=list(item.values),
                     )
                 )
                 continue

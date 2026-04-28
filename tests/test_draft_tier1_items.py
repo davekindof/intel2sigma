@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 
+from intel2sigma.core.model import DetectionItem
 from intel2sigma.web.draft import RuleDraft
 
 
@@ -88,14 +89,55 @@ def test_field_set_but_values_empty_still_flags_values_missing() -> None:
     assert "DRAFT_ITEM_VALUES_MISSING" in _codes(draft)
 
 
-def test_values_set_but_field_empty_still_flags_field_missing() -> None:
-    """Mirror of the above. A value with no field is also half-filled."""
+def test_empty_field_with_values_does_not_flag_field_missing() -> None:
+    """Empty field + populated values is a Sigma keyword-search item.
+
+    L2-P1b shipped support for Sigma's bare-list keyword idiom — a
+    detection block whose value list lacks a field name fires when
+    *any* event field contains any of the listed strings. SigmaHQ
+    rules use this shape heavily in auditd / Zeek / network-traffic
+    contexts (e.g. ``filter_keywords: [samr, lsarpc, winreg]``).
+
+    Before P1b the strict ``DetectionItem.field`` had ``min_length=1``
+    and tier-1 emitted DRAFT_ITEM_FIELD_MISSING for empty-field
+    items, which broke 106+ corpus rules. The contract now: empty
+    field + populated values is a keyword item, accepted at all
+    layers; only whitespace-only field names ("   ") are typos and
+    rejected.
+
+    Composer UX implication: a user authoring a brand-new rule who
+    leaves the field dropdown blank and types a value will now
+    produce a keyword-search rule. That's almost certainly oversight
+    rather than intent — but the surface for catching that lives in
+    the UI hint, not the strict model.
+    """
     draft = _stage_with_items(
         [
             {"field": "", "modifiers": [], "values": ["\\evil.exe"]},
         ]
     )
-    assert "DRAFT_ITEM_FIELD_MISSING" in _codes(draft)
+    # The keyword shape no longer trips FIELD_MISSING. Other tier-1
+    # codes (DRAFT_TITLE_MISSING etc. from the bare-bones fixture)
+    # may still fire — the assertion is specifically about the
+    # item-level FIELD_MISSING regression we shipped P1b to fix.
+    assert "DRAFT_ITEM_FIELD_MISSING" not in _codes(draft)
+
+
+def test_strict_detection_item_accepts_keyword_shape() -> None:
+    """The strict ``DetectionItem`` model accepts ``field=""`` directly.
+
+    Companion to the tier-1 test above — exercises the model layer
+    in isolation, no tier-1 / metadata interference. Confirms
+    P1b's relaxed ``min_length=1`` constraint and the
+    ``is_keyword`` property.
+    """
+    item = DetectionItem(field="", values=["\\evil.exe"])
+    assert item.is_keyword is True
+    assert item.field == ""
+    assert item.values == ["\\evil.exe"]
+
+    field_match = DetectionItem(field="Image", values=["\\evil.exe"])
+    assert field_match.is_keyword is False
 
 
 def test_completely_populated_item_yields_strict_rule_with_metadata() -> None:

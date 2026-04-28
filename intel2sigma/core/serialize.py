@@ -133,7 +133,14 @@ def _logsource_to_map(ls: LogSource) -> CommentedMap:
 
 
 def _detection_item_key(item: DetectionItem) -> str:
-    """Build the Sigma detection-item key including its modifier chain."""
+    """Build the Sigma detection-item key including its modifier chain.
+
+    Only meaningful for field-match items — keyword-search items have
+    no key because the entire block emits as a bare list at the parent
+    level. Calling this on a keyword item would produce ``""`` or
+    ``"|contains"``; ``_detections_to_map`` short-circuits before it
+    gets here for pure keyword blocks.
+    """
     if not item.modifiers:
         return item.field
     return item.field + "|" + "|".join(item.modifiers)
@@ -149,12 +156,34 @@ def _values_to_yaml(values: list[str | int | bool]) -> Any:
 def _detections_to_map(blocks: list[DetectionBlock]) -> CommentedMap:
     """Build the `detection` block body.
 
-    Mapping form for ``combinator == "all_of"`` (fields AND'd), list-of-mappings
-    form for ``any_of`` (fields OR'd). See :class:`DetectionBlock` for the
-    semantics and a YAML example.
+    Three emission shapes:
+
+    * **Pure keyword block** (every item is keyword-search, no field
+      set): emit as a bare list of values at the block level —
+      ``filter_keywords: [samr, lsarpc, winreg]``. Sigma's idiom for
+      "fire if any event field contains any of these strings."
+      Auditd / Zeek / network-traffic rules use this shape heavily;
+      L2-P1b made it round-trip cleanly through the composer.
+    * **Mapping form** (``combinator == "all_of"``): fields AND'd
+      together; one ``field|mod: value`` per item.
+    * **List-of-mappings form** (``combinator == "any_of"``): fields
+      OR'd; each item rendered as a one-key mapping inside a list.
+
+    See :class:`DetectionBlock` for the AND/OR semantics and a YAML
+    example of each shape.
     """
     out = CommentedMap()
     for block in blocks:
+        # Pure keyword block — every item is a keyword-search shape
+        # (no field set). Emit as a bare list at the block level
+        # rather than as a mapping with empty keys.
+        if block.items and all(item.is_keyword for item in block.items):
+            all_values: list[str | int | bool] = []
+            for item in block.items:
+                all_values.extend(item.values)
+            out[block.name] = list(all_values)
+            continue
+
         if block.combinator == "any_of":
             out[block.name] = [
                 {_detection_item_key(item): _values_to_yaml(item.values)} for item in block.items

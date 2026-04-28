@@ -121,21 +121,33 @@ class LogSource(_Model):
 class DetectionItem(_Model):
     """A single field-modifier-value triple inside a detection block.
 
-    ``values`` is always a list so the (single value vs. list) distinction in
-    YAML is a pure serialization concern rather than a model concern. The
-    serializer collapses single-element lists to scalars where that is the
-    canonical shape.
+    Two shapes:
+
+    * **Field-match item** — ``field`` is set; the rule matches
+      against the named event field. The common case.
+    * **Keyword-search item** — ``field`` is empty; the rule matches
+      *any* event field against the value list. Sigma's idiom for
+      "fire if any of these strings appears anywhere in the event"
+      — common in auditd / Zeek / network-traffic rules. SigmaHQ
+      examples include ``filter_keywords: [samr, lsarpc, winreg]``.
+      The L1 corpus audit (``e9a040b``) counted 100+ corpus rules
+      using this shape.
+
+    ``values`` is always a list so the (single value vs. list)
+    distinction in YAML is a pure serialization concern rather than
+    a model concern. The serializer collapses single-element lists
+    to scalars where that is the canonical shape.
 
     *Whitespace handling.* Overrides the project-wide
-    ``str_strip_whitespace=True`` to ``False`` because detection values
-    can legitimately be (or end with) literal whitespace —
+    ``str_strip_whitespace=True`` to ``False`` because detection
+    values can legitimately be (or end with) literal whitespace —
     ``CommandLine|endswith: ' '`` is a real Sigma idiom (the macOS
     "space after filename" masquerading pattern at SigmaHQ rule
-    ``b6e2a2e3-…``). The L1 corpus audit (``e9a040b``) found 55+ rules
-    losing values to over-eager whitespace stripping. The
-    ``_field_not_blank`` validator below explicitly strip-checks the
-    field name, which is the only place we *do* want the trim
-    semantic.
+    ``b6e2a2e3-…``). The L1 corpus audit found 55+ rules losing
+    values to over-eager whitespace stripping. The
+    ``_field_well_formed`` validator below strip-checks the field
+    name *only when it's set*, which is the only place we *do* want
+    the trim semantic.
     """
 
     model_config = ConfigDict(
@@ -145,16 +157,27 @@ class DetectionItem(_Model):
         validate_assignment=True,
     )
 
-    field: str = Field(min_length=1)
+    # ``field`` is empty for keyword-search items, populated for
+    # field-match items. Pre-L2-P1b this had ``min_length=1`` and
+    # rejected empty strings outright; that broke 106+ corpus rules
+    # using the keyword-search idiom.
+    field: str = ""
     modifiers: list[ValueModifier] = Field(default_factory=list)
     values: list[str | int | bool] = Field(default_factory=list, min_length=1)
 
     @field_validator("field")
     @classmethod
-    def _field_not_blank(cls, value: str) -> str:
-        if not value.strip():
-            raise ValueError("DetectionItem.field must not be blank")
+    def _field_well_formed(cls, value: str) -> str:
+        # Empty string ``""`` is the keyword-search marker; allow it.
+        # Whitespace-only ``"   "`` is always a typo — never legitimate.
+        if value and not value.strip():
+            raise ValueError("DetectionItem.field cannot be whitespace-only")
         return value
+
+    @property
+    def is_keyword(self) -> bool:
+        """True when this item is a keyword-search shape (no field set)."""
+        return not self.field
 
 
 BlockCombinator = Literal["all_of", "any_of"]
