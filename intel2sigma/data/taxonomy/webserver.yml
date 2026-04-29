@@ -1,0 +1,110 @@
+# Webserver-log observation catalog (generic, W3C extended log format).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — 82 vetted corpus
+# rules use ``logsource: { category: webserver }`` with no product
+# (the rules apply to any HTTP server emitting W3C-flavor logs: IIS,
+# Apache mod_log_config-style, nginx with the right format string,
+# Splunk's HTTP collector, etc.). Detection patterns target CVE-class
+# exploit URLs / suspicious user agents / HTTP method-status pairings.
+#
+# The W3C extended-log naming convention is the lingua franca:
+#   cs-* = client-to-server (request side)
+#   sc-* = server-to-client (response side)
+#   c-*  = client-only       (e.g. c-ip)
+#   s-*  = server-only       (e.g. s-port)
+#
+# Field frequency from the L2-P2 corpus mine:
+#   103  cs-uri-query    — by far the dominant detection field
+#    50  cs-method
+#    28  sc-status
+#    16  cs-uri-stem
+#     9  cs-user-agent
+#     5  cs-referer
+
+id: webserver
+label: "A web server logged an HTTP request"
+description: "Use for HTTP request log rules — exploit URLs, suspicious user agents, anomalous HTTP method/status pairings on any W3C-format access log (IIS, Apache, nginx, Splunk HTTP collector)."
+category_group: network
+logsource:
+    category: webserver
+platforms:
+    - id: webserver
+      product: webserver
+      tier: primary
+synonyms:
+    - "http access log"
+    - "web access log"
+    - "iis log"
+    - "apache log"
+    - "nginx log"
+    - "http request"
+    - "web exploit"
+
+fields:
+    - name: cs-uri-query
+      label: "Query string"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, startswith, endswith, exact, re]
+      example: "id=1' OR '1'='1"
+      note: "The URL query string after the ``?``. Highest-signal field for web-exploit detection — SQLi, XSS, command-injection, and CVE-class payloads almost always show here. Combine with ``all`` to require multiple substrings (e.g. exploit marker AND target parameter)."
+
+    - name: cs-method
+      label: "HTTP method"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS", "TRACE", "CONNECT"]
+      note: "POST is the most common malicious method (form submission, file upload). Unusual verbs (PUT, DELETE, OPTIONS, TRACE) on endpoints that shouldn't accept them are high-signal."
+
+    - name: sc-status
+      label: "Response status code"
+      type: int
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      example: "200"
+      note: "200/302 on a known-exploit URL means the attacker likely succeeded. 401/403/404 mean the server rejected — interesting for reconnaissance detection but lower severity. List multiple values to match any."
+
+    - name: cs-uri-stem
+      label: "Request path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, exact, re]
+      example: "/admin/upload.php"
+
+    - name: cs-user-agent
+      label: "User agent"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, startswith, endswith, exact, re]
+      example: "sqlmap/1.7"
+
+    - name: cs-referer
+      label: "Referer header"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, startswith, endswith, exact, re]
+
+    - name: cs-host
+      label: "Host header"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact, contains, endswith]
+
+    - name: c-ip
+      label: "Client IP"
+      type: ip
+      default_modifier: cidr
+      allowed_modifiers: [cidr, exact]
+
+    - name: cs-bytes
+      label: "Request bytes"
+      type: int
+      default_modifier: exact
+      allowed_modifiers: [exact]
+
+    - name: sc-bytes
+      label: "Response bytes"
+      type: int
+      default_modifier: exact
+      allowed_modifiers: [exact]
