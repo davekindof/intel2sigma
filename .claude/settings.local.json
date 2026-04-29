@@ -8,7 +8,15 @@
       "Bash(curl -sS \"https://raw.githubusercontent.com/SigmaHQ/sigma/master/rules-emerging-threats/2025/Exploits/CVE-2025-59287/proc_creation_win_exploit_cve_2025_59287.yml\")",
       "PowerShell($env:Path = \"C:\\\\Users\\\\david\\\\.local\\\\bin;\" + $env:Path; \"=== FINAL GATES ===\"; \"--- ruff check ---\"; uv run ruff check; \"--- ruff format --check ---\"; uv run ruff format --check; \"--- mypy --strict ---\"; uv run mypy intel2sigma --strict; \"--- pytest with coverage ---\"; uv run pytest --cov=intel2sigma --cov-report=term-missing 2>&1 | Select-Object -Last 25)",
       "Bash(uv run python -c ' *)",
-      "Bash(uv run *)"
+      "Bash(uv run *)",
+      "Read(//c/Users/david/AppData/Local/Temp/claude/C--Users-david-OneDrive-Documents-code-claude-intel2sigma/7ca1df8a-5125-42f4-9e27-157aab9647d1/tasks/**)",
+      "Bash(echo \"started: $!\")",
+      "Read(//tmp/**)",
+      "Bash(git commit -m ' *)",
+      "Bash(xargs head *)",
+      "Bash(git add *)",
+      "Bash(ps -W)",
+      "Bash(uv sync *)"
     ]
   }
 }
