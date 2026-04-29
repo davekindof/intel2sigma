@@ -371,13 +371,27 @@ class RuleDraft(_Model):
 
         Mirrors :meth:`_compose_condition` but works on raw (name,
         is_filter) tuples — no need to construct strict ``DetectionBlock``
-        instances just to reach the condition serializer.
+        instances just to reach the condition serializer. The mirror
+        contract matters: the preview pane and the saved rule must show
+        the SAME condition string, otherwise the preview lies to the
+        user about what they're about to ship.
         """
         match_names = [name for name, is_filter in blocks if not is_filter]
         filter_names = [name for name, is_filter in blocks if is_filter]
         if not match_names:
-            # Filter-only block has no semantic meaning on its own.
-            return filter_names[0] if filter_names else "(none)"
+            # Filter-only rule. Mirrors _compose_condition's filter-only
+            # branch (added in L2-P1c, 4100c67): emit ``not <filter>``
+            # for a single filter, ``not (f1 or f2 or …)`` for multiple.
+            # Pre-fix this returned the bare first filter name, which
+            # made the preview show ``condition: filter_main_floppy``
+            # while the saved rule was ``condition: not (filter_main_
+            # floppy or filter_main_servicing)`` — a real round-trip
+            # asymmetry the L2-P1 staleness sweep caught.
+            if not filter_names:
+                return "(none)"
+            if len(filter_names) == 1:
+                return f"not {filter_names[0]}"
+            return "not (" + " or ".join(filter_names) + ")"
 
         match_part = (
             match_names[0] if len(match_names) == 1 else "(" + " and ".join(match_names) + ")"

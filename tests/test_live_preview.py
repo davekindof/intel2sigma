@@ -300,3 +300,124 @@ def test_stage_1_omits_prose_summary_when_no_populated_match(client: TestClient)
     )
     body = r.text
     assert 'class="stage-prose-summary"' not in body
+
+
+# ---------------------------------------------------------------------------
+# Preview / strict parity for filter-only rules
+# ---------------------------------------------------------------------------
+
+
+def test_filter_only_partial_yaml_matches_strict_condition() -> None:
+    """The preview pane and the saved rule must agree on the condition.
+
+    Pre-this-fix, ``_partial_condition_string`` returned the bare first
+    filter name for filter-only rules (``condition: filter_main_floppy``)
+    while ``_compose_condition`` produced the actual SigmaHQ idiom
+    (``condition: not (filter_main_floppy or filter_main_servicing)``).
+    The preview pane was lying to the user about what they were about
+    to ship.
+
+    L2-P1c (`4100c67`) added the filter-only branch to
+    ``_compose_condition``; the partial-preview path was missed and
+    only caught by the L2-P1 doc/comment staleness sweep.
+    """
+    import re  # noqa: PLC0415
+
+    from intel2sigma.core.serialize import to_yaml  # noqa: PLC0415
+
+    draft = RuleDraft.from_json(
+        json.dumps(
+            {
+                "observation_id": "process_creation",
+                "platform_id": "windows",
+                "logsource": {"category": "raw_access_thread", "product": "windows"},
+                "detections": [
+                    {
+                        "name": "filter_main_floppy",
+                        "is_filter": True,
+                        "combinator": "all_of",
+                        "items": [
+                            {"field": "Image", "modifiers": ["contains"], "values": ["floppy"]}
+                        ],
+                    },
+                    {
+                        "name": "filter_main_servicing",
+                        "is_filter": True,
+                        "combinator": "all_of",
+                        "items": [
+                            {
+                                "field": "Image",
+                                "modifiers": ["startswith"],
+                                "values": ["C:/Windows/servicing/"],
+                            }
+                        ],
+                    },
+                ],
+                "title": "Filter-only fixture",
+                "date": "2026-04-28",
+                "stage": 1,
+            }
+        )
+    )
+
+    partial_yaml = draft.to_partial_yaml()
+    sigma = draft.to_sigma_rule()
+    assert not isinstance(sigma, list), f"to_sigma_rule failed: {sigma}"
+    strict_yaml = to_yaml(sigma)
+
+    cond_re = re.compile(r"condition:\s*(.+)")
+    partial_cond = cond_re.search(partial_yaml)
+    strict_cond = cond_re.search(strict_yaml)
+    assert partial_cond is not None, partial_yaml
+    assert strict_cond is not None, strict_yaml
+    assert partial_cond.group(1).strip() == strict_cond.group(1).strip(), (
+        f"preview/strict condition asymmetry:\n"
+        f"  preview: {partial_cond.group(1)!r}\n"
+        f"  strict:  {strict_cond.group(1)!r}"
+    )
+    # And specifically the negation-of-OR shape, not a bare filter name.
+    assert partial_cond.group(1).strip().startswith("not (")
+
+
+def test_single_filter_only_partial_yaml_matches_strict_condition() -> None:
+    """Single-filter case parity: preview emits ``not filter_x``,
+    matching ``_compose_condition``'s single-filter branch.
+    """
+    import re  # noqa: PLC0415
+
+    from intel2sigma.core.serialize import to_yaml  # noqa: PLC0415
+
+    draft = RuleDraft.from_json(
+        json.dumps(
+            {
+                "observation_id": "process_creation",
+                "platform_id": "windows",
+                "logsource": {"category": "raw_access_thread", "product": "windows"},
+                "detections": [
+                    {
+                        "name": "filter_only",
+                        "is_filter": True,
+                        "combinator": "all_of",
+                        "items": [
+                            {"field": "Image", "modifiers": ["contains"], "values": ["floppy"]}
+                        ],
+                    },
+                ],
+                "title": "Single-filter fixture",
+                "date": "2026-04-28",
+                "stage": 1,
+            }
+        )
+    )
+
+    partial_yaml = draft.to_partial_yaml()
+    sigma = draft.to_sigma_rule()
+    assert not isinstance(sigma, list)
+    strict_yaml = to_yaml(sigma)
+
+    cond_re = re.compile(r"condition:\s*(.+)")
+    partial_cond = cond_re.search(partial_yaml)
+    strict_cond = cond_re.search(strict_yaml)
+    assert partial_cond is not None and strict_cond is not None
+    assert partial_cond.group(1).strip() == strict_cond.group(1).strip()
+    assert partial_cond.group(1).strip() == "not filter_only"

@@ -24,6 +24,56 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.2.14 — 2026-04-28
+
+Patch bump — preview/strict parity fix surfaced by the post-L2-P1
+documentation sweep.
+
+### Shipped
+
+- **Filter-only rule preview/strict condition parity** (this commit).
+  When the L2-P1c work added the filter-only branch to
+  `_compose_condition` (composing `not (filter_a or filter_b)` for
+  rules with no match blocks), the partial-preview path
+  (`_partial_condition_string`) was missed. The preview pane was
+  emitting the bare first filter name (`condition: filter_main_floppy`)
+  while the saved rule contained the actual SigmaHQ idiom — a real
+  round-trip lie the user would only catch by comparing the preview
+  to the downloaded YAML. Caught by the post-L2-P1 staleness sweep.
+  `_partial_condition_string` now mirrors `_compose_condition` for
+  filter-only rules: `not <filter>` for one filter, `not (f1 or f2 or
+  …)` for multiple. Two regression tests pin the parity contract.
+
+- **Doc/comment staleness sweep** (`eb614f7`). Post-L2-P1 audit of
+  docs and inline comments to catch superseded statements. ROADMAP's
+  v1.x load-path-sweep section rewritten to mark L1 + L2-P1 shipped
+  with the audit clean-rate movement (88.75% → 91.64%) and L2-P2
+  promoted to "active". SPEC.md grew a 2026-04-28 decision-log entry
+  capturing the L2-P1 model contract changes (values widened to
+  include None, field's min_length=1 dropped, str_strip_whitespace
+  off, filter-only composition, NOT-paren precedence). Smaller
+  fixes: web-state-model.md's DetectionItemDraft.values type signature
+  (now `list[str | None]`), the heuristic comment in
+  `overbroad_selection.py` citing the pre-P1d type, and `web/app.py`'s
+  module docstring still claiming "Guided + Expert mode shells"
+  despite Expert mode being pruned in 2026-04-26.
+
+### Known issues / future work (logged from the sweep)
+
+- `web/load.py:460,507` — bare `except Exception` blocks on the
+  example-manifest reader without inline rationale comments.
+  Defensive (return empty list when the manifest is malformed) but
+  worth a one-line "why" each.
+- `core/heuristics/checks/metadata_completeness.py:19–24` — title /
+  description thresholds (`_TITLE_MIN=10`, `_TITLE_MAX=100`,
+  `_DESC_MIN=30`) are hardcoded. Borderline I-5 violation —
+  arguably tuning parameters of the function rather than catalog
+  data, so leaving in code for now.
+- pySigma v0.x → v1.x migration risk. Pin is `>=0.11,<1.0`; v1.0
+  may move `SigmaDetection` / `SigmaDetectionItem` / `SigmaNull`
+  import paths. Plan the migration when upstream cuts a release
+  candidate.
+
 ## 0.2.13 — 2026-04-27
 
 Patch bump.
