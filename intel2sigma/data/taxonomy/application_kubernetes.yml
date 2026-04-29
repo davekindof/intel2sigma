@@ -1,0 +1,86 @@
+# Application-log observation catalog (Kubernetes audit log).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — 10 vetted rules
+# in the corpus use ``logsource: { category: application, product:
+# kubernetes, service: audit }``. Detection patterns target sensitive
+# API verbs against specific resource kinds (delete events, exec into
+# pods, mount hostPath volumes, etc.).
+#
+# All 10 rules pivot on the same two fields: ``verb`` (the API action)
+# and ``objectRef.resource`` (the resource kind being acted on).
+# ``user.username`` and ``responseStatus.code`` are common secondary
+# qualifiers in the long tail.
+
+id: application_kubernetes
+label: "A Kubernetes API audit event was logged"
+description: "Use for Kubernetes audit log rules — kubectl actions, RBAC changes, sensitive resource access (Pods, Secrets, ServiceAccounts, hostPath mounts)."
+category_group: audit_and_identity
+logsource:
+    category: application
+    product: kubernetes
+    service: audit
+platforms:
+    - id: kubernetes
+      product: kubernetes
+      tier: primary
+synonyms:
+    - "kubernetes audit"
+    - "k8s audit log"
+    - "kube-apiserver audit"
+    - "kubectl action"
+    - "rbac change"
+
+fields:
+    - name: verb
+      label: "API verb"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: ["create", "update", "patch", "delete", "deletecollection", "get", "list", "watch"]
+      note: "The Kubernetes API action. Mutation verbs (create/update/patch/delete) carry the most detection signal; ``get`` / ``list`` / ``watch`` are read-only and rarely security-relevant on their own."
+
+    - name: objectRef.resource
+      label: "Resource kind"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact, contains, endswith]
+      example: "pods"
+      note: "Plural lowercase resource name as it appears in the API path: ``pods``, ``secrets``, ``configmaps``, ``serviceaccounts``, ``clusterroles``, ``rolebindings``, ``events``. Sub-resources (``pods/exec``, ``pods/portforward``) live in ``objectRef.subresource``."
+
+    - name: objectRef.subresource
+      label: "Resource sub-action"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact, contains]
+      example: "exec"
+      note: "Sub-resource verbs like ``exec``, ``portforward``, ``log``, ``proxy`` — high-signal for lateral-movement and reconnaissance detection."
+
+    - name: user.username
+      label: "Acting user"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, startswith, endswith, exact, re]
+
+    - name: objectRef.namespace
+      label: "Target namespace"
+      type: string
+      default_modifier: exact
+      allowed_modifiers: [exact, contains, startswith]
+
+    - name: responseStatus.code
+      label: "Response status code"
+      type: int
+      default_modifier: exact
+      allowed_modifiers: [exact]
+
+    - name: requestObject.spec.containers.image
+      label: "Container image"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, startswith, endswith, exact, re]
+
+    - name: requestObject.spec.hostPath.path
+      label: "hostPath mount path"
+      type: path
+      default_modifier: startswith
+      allowed_modifiers: [startswith, contains, endswith, exact, re]

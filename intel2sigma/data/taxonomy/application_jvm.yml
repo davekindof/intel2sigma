@@ -1,0 +1,64 @@
+# Application-log observation catalog (JVM / Java).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — 5 vetted rules in
+# the corpus use ``logsource: { category: application, product: jvm }``,
+# all targeting Java-exception keyword patterns (Apache Struts OGNL,
+# Spring, log4shell-class indicators). The L2-P2 audit had these
+# tripping LOAD_OBSERVATION_UNKNOWN — distinct from
+# ``application_log.yml`` which targets the Windows Application event
+# channel (``service: application``, ``product: windows``).
+#
+# Predominant rule shape is the keyword-search idiom (a bare list of
+# exception class names / log substrings under a selection block); see
+# L2-P1b for the round-trip support. Catalog fields below are for
+# composer authoring of NEW JVM rules — for keyword-only rules the
+# field dropdown is bypassed entirely.
+
+id: application_jvm
+label: "A JVM application log entry was emitted"
+description: "Use for Java / JVM application logs — exception traces, framework error messages, runtime warnings."
+category_group: os_event_log
+logsource:
+    category: application
+    product: jvm
+platforms:
+    - id: jvm
+      product: jvm
+      tier: primary
+synonyms:
+    - "java exception"
+    - "jvm log"
+    - "stack trace"
+    - "log4j"
+    - "java application error"
+
+fields:
+    - name: Message
+      label: "Log message"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, startswith, endswith, exact, re]
+      example: "org.apache.commons.ognl.OgnlException"
+      note: "The full log line including any exception class name and stack frame. ``contains`` is the typical idiom; combine with ``all`` to require multiple substrings (e.g. exception class AND a specific framework reference)."
+
+    - name: LoggerName
+      label: "Logger name"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, startswith, endswith, exact, re]
+      example: "org.springframework.web"
+      note: "The Java class or category that emitted the log line, typically the fully qualified class name. Use ``startswith`` to scope to a package (e.g. ``org.apache.struts``)."
+
+    - name: Level
+      label: "Log level"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: ["TRACE", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"]
+      note: "Most detection rules pivot on ERROR or FATAL; INFO / DEBUG are rarely useful for security telemetry."
+
+    - name: Thread
+      label: "Thread name"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, startswith, endswith]
