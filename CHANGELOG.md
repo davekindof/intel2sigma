@@ -24,6 +24,83 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.2.13 — 2026-04-27
+
+Patch bump.
+
+### Shipped — L2-P1: load-path round-trip hardening (corpus-driven)
+
+Four-part sweep against the 3,708-rule SigmaHQ corpus, driven by the
+L1 audit script (`e9a040b`). Cumulative result: **88.75% → 91.64%
+clean**, **146 → 0 exceptions**, **0 desync / 0 silent_data_loss
+maintained**. Each part fixes a distinct Sigma idiom the composer
+silently lost on load.
+
+- **L2-P1a — preserve literal whitespace** (`781faea`). `DetectionItem`
+  / `DetectionItemDraft` override the project-wide
+  `str_strip_whitespace=True` to `False`. Tier-1's `values_set` check
+  switched from `v.strip() != ""` to `v != ""` so a single-space value
+  (`CommandLine|endswith: ' '` — the macOS masquerading-via-trailing-
+  space pattern at SigmaHQ rule b6e2a2e3-…) survives load. +5 clean,
+  -4 exceptions.
+
+- **L2-P1b — Sigma keyword-search blocks** (`cebaa00`). `DetectionItem.field`
+  dropped its `min_length=1` constraint to permit the empty string as a
+  keyword-search marker. The `is_keyword` property + `_field_well_formed`
+  validator together still reject whitespace-only field names as typos.
+  Loader and tier-1 keep keyword items; serializer detects pure-keyword
+  blocks and emits them as bare lists (`filter_keywords: [samr,
+  lsarpc, winreg]`). +70 clean, -106 exceptions.
+
+- **L2-P1c — filter-only rules + NOT-of-OR paren precedence** (`4100c67`).
+  `_compose_condition` grew a filter-only branch: a rule with no match
+  blocks (e.g. SigmaHQ db809f10-… APT27 raw-disk-access) now composes
+  to `not filter_a` / `not (filter_a or filter_b)` instead of returning
+  `None` and tripping `DRAFT_CONDITION_EMPTY`. Discovered and fixed a
+  latent paren-precedence bug in `_render_condition` while testing:
+  Sigma's NOT binds tighter than AND/OR, so `not filter_a or filter_b`
+  parses as `(not filter_a) or filter_b`; `_render_condition` now wraps
+  non-atomic NOT operands in parens. +1 clean, -1 exception, plus the
+  precedence fix that would have produced wrong queries for any user-
+  composed multi-filter rule.
+
+- **L2-P1d — Sigma null + explicit empty-string values** (this commit).
+  Final 34 exceptions all carried `Field: null` or `Field: ''` filter
+  blocks (macOS / process-creation rules excluding events with no
+  command line, e.g. SigmaHQ 0250638a-…). `DetectionItem.values`
+  extended from `list[str | int | bool]` to `list[str | int | bool |
+  None]`; loader's `_stringify_value` translates pySigma `SigmaNull`
+  to Python `None` instead of the broken `<sigma.types.SigmaNull
+  object at 0x…>` repr; tier-1 simplified to `values_set =
+  bool(item.values)` since the composer textarea filters blank lines
+  server-side, so any value (including `None` or `""`) reaching tier-1
+  is explicit user intent. ruamel emits `None` as a bare colon
+  (`CommandLine:`) and `""` as `''`; both round-trip through pySigma.
+  +31 clean, -34 exceptions.
+
+The cumulative L2-P1 changes are additive at the model layer (the
+`values` type widened from `list[str | int | bool]` to `list[str |
+int | bool | None]`; the `field` constraint relaxed from `min_length=1`
+to "non-empty if not whitespace") and pure additions at the serializer
+layer (pure-keyword block detection, NOT-paren wrapping). Existing
+strict-rule consumers continue to work; previously-rejected loader
+inputs now build cleanly.
+
+### Coming next
+
+- **L2-P2** — catalog expansion for ~9 observation types (webserver,
+  file_delete, file_access, generic dns, ps_classic_start,
+  registry_delete, k8s/application, create_stream_hash, antivirus).
+  Each adds 7–82 rules to the clean column.
+- **L2-P3** — structured condition editor (v2 design effort, captured
+  in ROADMAP). LOAD_CONDITION_UNUSUAL fires on 100 corpus rules whose
+  conditions are real detection-engineering nuance the composer's
+  auto-condition can't reproduce. Solution stays within I-4 (no
+  editable YAML): a tree-builder UI for `ConditionExpression`.
+- **L3** — convert audit script to a `@pytest.mark.slow` test with
+  ratchet-down-only thresholds so future regressions trip CI.
+- **B2d–B2g** — 10 remaining heuristics.
+
 ## 0.2.12 — 2026-04-27
 
 Patch bump.

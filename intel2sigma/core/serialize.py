@@ -107,9 +107,10 @@ def _render_condition(expr: ConditionExpression) -> str:
         if not expr.children:
             raise ValueError(f"{expr.op.value} condition must have children")
         joiner = f" {expr.op.value} "
-        rendered = [_render_condition(c) for c in expr.children]
+        children_rendered = [_render_condition(c) for c in expr.children]
         parts = [
-            r if _is_atomic(c) else f"({r})" for c, r in zip(expr.children, rendered, strict=True)
+            r if _is_atomic(c) else f"({r})"
+            for c, r in zip(expr.children, children_rendered, strict=True)
         ]
         return joiner.join(parts)
 
@@ -158,8 +159,13 @@ def _detection_item_key(item: DetectionItem) -> str:
     return item.field + "|" + "|".join(item.modifiers)
 
 
-def _values_to_yaml(values: list[str | int | bool]) -> Any:
-    """Collapse single-value lists to scalars; keep multi-value lists."""
+def _values_to_yaml(values: list[str | int | bool | None]) -> Any:
+    """Collapse single-value lists to scalars; keep multi-value lists.
+
+    ``None`` is the YAML-null sentinel — see ``DetectionItem.values``
+    in :mod:`intel2sigma.core.model`. ruamel emits it as a bare
+    colon (``Field:``), which pySigma parses back as ``SigmaNull``.
+    """
     if len(values) == 1:
         return values[0]
     return list(values)
@@ -190,7 +196,7 @@ def _detections_to_map(blocks: list[DetectionBlock]) -> CommentedMap:
         # (no field set). Emit as a bare list at the block level
         # rather than as a mapping with empty keys.
         if block.items and all(item.is_keyword for item in block.items):
-            all_values: list[str | int | bool] = []
+            all_values: list[str | int | bool | None] = []
             for item in block.items:
                 all_values.extend(item.values)
             out[block.name] = list(all_values)

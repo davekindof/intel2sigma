@@ -872,7 +872,12 @@ def _set_item_value(draft: RuleDraft, form: Any) -> None:
     # ``\r\n`` (Windows browsers) without needing a normalisation pass.
     # Empty lines are dropped so a trailing newline doesn't leak a
     # phantom empty value into the draft.
-    values = [line for line in raw.splitlines() if line]
+    # Annotated as list[str | None] to satisfy the invariant
+    # DetectionItemDraft.values type. The textarea path can never
+    # produce ``None``-valued entries on its own — those only arrive
+    # via the loader translating Sigma's ``Field: null`` idiom — but
+    # mypy needs the explicit widening here.
+    values: list[str | None] = [line for line in raw.splitlines() if line]
     item.values = values
 
 

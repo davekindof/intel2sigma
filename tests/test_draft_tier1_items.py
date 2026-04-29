@@ -194,18 +194,62 @@ def test_whitespace_value_is_preserved_not_stripped() -> None:
     assert "DRAFT_ITEM_VALUES_MISSING" not in _codes(draft)
 
 
-def test_empty_string_value_is_still_treated_as_missing() -> None:
-    """A truly empty value (length-0 string) still trips DRAFT_ITEM_VALUES_MISSING.
+def test_empty_string_value_is_accepted_as_explicit_match() -> None:
+    """``values=[""]`` is a Sigma idiom — match the literal empty string.
 
-    The companion to the test above: we relaxed whitespace-as-empty
-    but kept zero-length-as-empty. An item with field set and
-    ``values=[""]`` is a half-completed row the user is in the
-    middle of editing — flag it so the composer doesn't ship a
-    rule with an empty match condition.
+    Real-world example: ``filter_optional_empty: { CommandLine: '' }``
+    from SigmaHQ rule 0250638a-… ("Suspicious Browser Child Process —
+    MacOS"), which excludes events whose command line is the literal
+    empty string. The L2-P1d corpus audit found 34 rules using this
+    shape (often paired with ``Field: null``) — flagging it as
+    VALUES_MISSING was a false positive that broke every one of them.
+
+    The composer textarea drops blank lines server-side
+    (``_set_item_value``), so ``values=[""]`` is only ever produced
+    by the loader translating explicit user intent in the source
+    YAML — never by an in-progress edit. We accept it.
     """
     draft = _stage_with_items(
         [
-            {"field": "Image", "modifiers": ["endswith"], "values": [""]},
+            {"field": "CommandLine", "modifiers": [], "values": [""]},
+        ]
+    )
+    assert "DRAFT_ITEM_VALUES_MISSING" not in _codes(draft)
+
+
+def test_null_value_is_accepted_as_explicit_match() -> None:
+    """``values=[None]`` is the Sigma ``Field: null`` idiom — match
+    when the field is null/absent.
+
+    The L2-P1d companion to the empty-string case: macOS process-
+    creation rules commonly skip events whose command line is null
+    (``filter_optional_null: { CommandLine: null }``). pySigma
+    represents the YAML null as a ``SigmaNull`` instance; the loader
+    translates it to ``None``. The strict ``DetectionItem`` accepts
+    ``None`` in its values list and the serializer emits it back
+    as YAML null.
+    """
+    draft = _stage_with_items(
+        [
+            {"field": "CommandLine", "modifiers": [], "values": [None]},
+        ]
+    )
+    assert "DRAFT_ITEM_VALUES_MISSING" not in _codes(draft)
+
+
+def test_empty_values_list_still_flags_values_missing() -> None:
+    """The only "values missing" trigger is now the empty list itself.
+
+    The composer's ``add_item`` button drops a fresh
+    ``DetectionItemDraft(values=[])`` so the user can fill it in.
+    Until they do — *and* if they've also typed a field name,
+    expressing intent — we want the in-progress row flagged. Both
+    forms previously confused as missing (``[""]``, ``[None]``,
+    whitespace-only) are now recognised as explicit user intent.
+    """
+    draft = _stage_with_items(
+        [
+            {"field": "Image", "modifiers": ["endswith"], "values": []},
         ]
     )
     assert "DRAFT_ITEM_VALUES_MISSING" in _codes(draft)

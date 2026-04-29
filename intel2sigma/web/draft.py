@@ -51,9 +51,14 @@ class LogSourceDraft(_Model):
 class DetectionItemDraft(_Model):
     """One field|modifier|value row in the composer.
 
-    ``values`` is always list[str] for draft purposes — coercion to int/bool
-    happens at to_sigma_rule() time, since the composer widgets are text
-    inputs regardless of the underlying field type.
+    ``values`` carries the user-facing strings plus the ``None`` sentinel
+    for Sigma's YAML-null idiom (``Field: null``). Coercion to int/bool
+    for numeric fields happens at to_sigma_rule() time, since the
+    composer widgets are text inputs regardless of the underlying field
+    type. The composer's textarea path filters out blank lines, so the
+    only way a ``None`` or ``""`` value enters the draft today is via
+    the loader translating a Sigma ``Field: null`` / ``Field: ''``
+    filter block — both first-class round-trippable shapes after L2-P1d.
 
     Overrides the project-wide ``str_strip_whitespace=True`` to ``False``
     so detection values containing meaningful whitespace
@@ -66,7 +71,7 @@ class DetectionItemDraft(_Model):
 
     field: str = ""
     modifiers: list[ValueModifier] = Field(default_factory=list)
-    values: list[str] = Field(default_factory=list)
+    values: list[str | None] = Field(default_factory=list)
 
 
 class DetectionBlockDraft(_Model):
@@ -314,8 +319,25 @@ class RuleDraft(_Model):
         usable: list[DetectionItem] = []
         for item in block.items:
             field_set = bool(item.field.strip())
-            values_set = bool(item.values) and any(str(v).strip() for v in item.values)
-            if not field_set or not values_set:
+            # Mirror the tier-1 contract in _block_to_strict: a non-empty
+            # values list (including ``[None]`` or ``[""]`` from the
+            # loader's null / empty-string idioms) counts as populated.
+            # The keyword-search shape (empty field + values) is also
+            # rendered, but only when values exist; an entirely blank
+            # row is still skipped as a placeholder.
+            values_set = bool(item.values)
+            if not values_set:
+                continue
+            if not field_set:
+                # Keyword block — render below via the pure-keyword
+                # branch in _detections_to_map.
+                usable.append(
+                    DetectionItem.model_construct(
+                        field="",
+                        modifiers=list(item.modifiers),
+                        values=list(item.values),
+                    )
+                )
                 continue
             usable.append(
                 DetectionItem.model_construct(
@@ -581,16 +603,32 @@ class RuleDraft(_Model):
         strict_items: list[DetectionItem] = []
         for item_idx, item in enumerate(draft.items):
             field_set = bool(item.field.strip())
-            # ``values_set`` deliberately checks ``v != ""`` (length == 0)
-            # rather than ``v.strip() != ""`` (whitespace-empty). A user
-            # whose Sigma rule includes ``CommandLine|endswith: ' '`` —
-            # the masquerading-via-trailing-space pattern at SigmaHQ rule
-            # b6e2a2e3-… — has typed a meaningful value (a single space).
-            # Stripping would silently nuke it. The L1 corpus audit
-            # (e9a040b) found 55+ corpus rules failing this validator
-            # for that reason. ``field_set`` keeps the strip semantic
-            # because a whitespace-only field NAME is always a typo.
-            values_set = bool(item.values) and any(str(v) != "" for v in item.values)
+            # ``values_set`` is ``True`` whenever the values list is non-
+            # empty, no matter what's in it. The empty list (no row
+            # populated) is the only "values missing" signal we trust.
+            #
+            # The looser checks we used to apply (whitespace-empty,
+            # zero-length-string filtering) tried to catch half-typed
+            # placeholder rows but kept knocking out real Sigma idioms:
+            #   * ``CommandLine|endswith: ' '`` (macOS masquerading-via-
+            #     trailing-space, SigmaHQ rule b6e2a2e3-…) — fixed by
+            #     L2-P1a.
+            #   * ``CommandLine: null`` (skip events with no command
+            #     line) and ``CommandLine: ''`` (skip events with an
+            #     empty command line) — both common filter-block idioms
+            #     in macOS / process-creation rules. The L2-P1d corpus
+            #     audit found 34 rules tripping VALUES_MISSING on this
+            #     shape alone.
+            #
+            # The composer textarea splitlines+filter (see
+            # ``_set_item_value`` in routes/composer.py) drops blank
+            # lines so the user can't accidentally produce
+            # ``values=[""]`` while typing — only the loader can put
+            # an empty string or ``None`` into the values list, and
+            # that always reflects explicit user intent in the source
+            # YAML. ``field_set`` keeps the strip semantic because a
+            # whitespace-only field NAME is always a typo.
+            values_set = bool(item.values)
             # Both empty → treat as an in-progress placeholder, not a
             # validation failure. The composer adds blank rows for the
             # user to fill in; complaining about them while they're being

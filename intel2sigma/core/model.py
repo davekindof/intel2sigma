@@ -163,7 +163,15 @@ class DetectionItem(_Model):
     # using the keyword-search idiom.
     field: str = ""
     modifiers: list[ValueModifier] = Field(default_factory=list)
-    values: list[str | int | bool] = Field(default_factory=list, min_length=1)
+    # ``None`` is the YAML-null sentinel. Sigma treats ``Field: null``
+    # as "match when the field is absent / null" — common in macOS /
+    # process-creation rules that skip events with no command line
+    # (e.g. ``filter_optional_null: { CommandLine: null }``). The L2-
+    # P1d corpus audit found 27+ rules using this idiom alongside the
+    # explicit-empty-string ``Field: ''`` form. Both are now first-
+    # class values; the serializer renders ``None`` back to YAML null
+    # and the empty string to a quoted ``''``.
+    values: list[str | int | bool | None] = Field(default_factory=list, min_length=1)
 
     @field_validator("field")
     @classmethod

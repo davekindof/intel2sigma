@@ -348,6 +348,8 @@ def _translate_item(di: SigmaDetectionItem) -> DetectionItemDraft:
         # ``modifiers`` is a list[str] from the YAML; each entry was already
         # validated against ValueModifier in _modifier_name above.
         modifiers=modifiers,  # type: ignore[arg-type]
+        # ``values`` may contain ``None`` for Sigma's ``Field: null`` idiom;
+        # the draft and strict models both accept it post-L2-P1d.
         values=values,
     )
 
@@ -362,12 +364,24 @@ def _modifier_name(mod_cls: type) -> str:
     return name.lower()
 
 
-def _stringify_value(v: Any) -> str:
+def _stringify_value(v: Any) -> str | None:
     """Best-effort stringify a pySigma value.
 
     For ``SigmaString`` this returns the original pattern including wildcards;
     for ``SigmaNumber`` / ``SigmaBool`` it's the decimal / true-false form.
+    For ``SigmaNull`` (the YAML ``null`` literal) we return Python ``None``
+    so it round-trips through the draft and strict models. Without this
+    branch ``str(SigmaNull())`` produces an ugly ``<sigma.types.SigmaNull
+    object at 0x…>`` repr that gets serialized literally back into the
+    user's rule — the L2-P1d corpus audit found 27+ rules carrying
+    ``CommandLine: null`` filter blocks that hit this path.
     """
+    # Lazy import: keeps ``sigma`` off the import path of any consumer
+    # that doesn't actually translate values (e.g. ``list_examples``).
+    from sigma.types import SigmaNull  # noqa: PLC0415
+
+    if isinstance(v, SigmaNull):
+        return None
     return str(v)
 
 

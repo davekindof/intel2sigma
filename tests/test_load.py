@@ -713,3 +713,95 @@ level: low
     assert "filter_main_floppy" in yaml_out
     assert "filter_main_servicing" in yaml_out
     assert "not (" in yaml_out  # the negation-of-OR shape
+
+
+def test_load_preserves_null_filter_value() -> None:
+    """``Field: null`` round-trips through the loader as ``None`` on values.
+
+    SigmaHQ rule 0250638a-… ("Suspicious Browser Child Process —
+    MacOS") and 26 other corpus rules use ``CommandLine: null`` to
+    skip events whose command line is null/absent. pySigma exposes
+    these as ``SigmaNull`` instances; the L2-P1d loader translates
+    them to Python ``None``, which the strict ``DetectionItem`` now
+    accepts and the serializer emits back as YAML null.
+
+    Pre-L2-P1d, ``str(SigmaNull())`` produced a ``<sigma.types.
+    SigmaNull object at 0x…>`` repr that got stored as a literal
+    value, breaking 27+ corpus rules at the round-trip boundary.
+    """
+    yaml_text = """
+title: Null-filter fixture
+id: 22222222-9999-aaaa-bbbb-dddddddddddd
+status: test
+date: 2026-04-27
+logsource:
+    category: process_creation
+    product: macos
+detection:
+    selection:
+        Image|endswith: '/sh'
+    filter_optional_null:
+        CommandLine: null
+    condition: selection and not filter_optional_null
+"""
+    draft, issues = draft_from_yaml(yaml_text)
+    assert draft is not None
+    # No translator warnings — null is supported, not a fidelity loss.
+    surprising = [i for i in issues if i.code != "LOAD_OBSERVATION_UNKNOWN"]
+    assert surprising == [], f"unexpected load issues: {surprising}"
+    # Loader stored None for the null value.
+    null_block = next(b for b in draft.detections if b.name == "filter_optional_null")
+    assert null_block.items[0].values == [None]
+    # Round-trips to a strict rule and emits as YAML null.
+    sigma = draft.to_sigma_rule()
+    assert not isinstance(sigma, list), f"to_sigma_rule failed: {sigma}"
+
+    from intel2sigma.core.serialize import to_yaml  # noqa: PLC0415
+
+    yaml_out = to_yaml(sigma)
+    # ruamel emits None as bare-colon (``CommandLine:``) — both that
+    # and ``CommandLine: null`` parse back to SigmaNull in pySigma.
+    assert "CommandLine:" in yaml_out
+    assert "<sigma.types" not in yaml_out  # the broken pre-P1d shape
+
+
+def test_load_preserves_empty_string_filter_value() -> None:
+    """``Field: ''`` round-trips as the literal empty string.
+
+    Companion to the null case: same SigmaHQ rule pattern uses
+    ``CommandLine: ''`` to skip events whose command line is the
+    literal empty string. Distinct semantics from null (the Sigma
+    spec treats them differently); both must round-trip.
+
+    Pre-L2-P1d, the tier-1 ``values_set`` check filtered out
+    zero-length strings, so the rule failed validation with
+    DRAFT_ITEM_VALUES_MISSING despite carrying explicit user intent
+    in the source YAML.
+    """
+    yaml_text = """
+title: Empty-string-filter fixture
+id: 33333333-9999-aaaa-bbbb-eeeeeeeeeeee
+status: test
+date: 2026-04-27
+logsource:
+    category: process_creation
+    product: macos
+detection:
+    selection:
+        Image|endswith: '/sh'
+    filter_optional_empty:
+        CommandLine: ''
+    condition: selection and not filter_optional_empty
+"""
+    draft, _issues = draft_from_yaml(yaml_text)
+    assert draft is not None
+    empty_block = next(b for b in draft.detections if b.name == "filter_optional_empty")
+    assert empty_block.items[0].values == [""]
+    sigma = draft.to_sigma_rule()
+    assert not isinstance(sigma, list), f"to_sigma_rule failed: {sigma}"
+
+    from intel2sigma.core.serialize import to_yaml  # noqa: PLC0415
+
+    yaml_out = to_yaml(sigma)
+    # The canonical emission uses single-quoted empty string.
+    assert "CommandLine: ''" in yaml_out
