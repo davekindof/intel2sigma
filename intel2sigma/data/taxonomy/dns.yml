@@ -1,0 +1,62 @@
+# DNS observation catalog (generic).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — 11 vetted corpus
+# rules use ``logsource: { category: dns }`` with no product (the rules
+# apply to any DNS server / resolver / sensor emitting query records:
+# Bind, Unbound, Pi-hole, dnstap, Zeek dns.log, Splunk DNS sourcetypes,
+# etc.). Distinct from ``dns_query.yml`` which targets Sysmon EventID 22
+# specifically (Windows process-DNS pairing).
+#
+# Field shape is the standard DNS query log triple:
+#   query        - the requested name
+#   record_type  - A / AAAA / TXT / CNAME / NS / MX / etc.
+#   answer       - the resolved value (when the response is logged)
+#
+# Field frequency from the L2-P2 corpus mine:
+#   12  query
+#    1  record_type
+#    1  answer
+
+id: dns
+label: "A DNS query was logged"
+description: "Use for generic DNS server / resolver log rules — suspicious queried domains, DGA patterns, DNS tunneling indicators on any DNS sensor (Bind, Pi-hole, Zeek, dnstap, Splunk DNS)."
+category_group: network
+logsource:
+    category: dns
+platforms:
+    - id: dns
+      product: dns
+      tier: primary
+synonyms:
+    - "dns log"
+    - "dns server log"
+    - "dns sensor"
+    - "domain query"
+    - "name resolution"
+    - "zeek dns"
+    - "bind log"
+
+fields:
+    - name: query
+      label: "Queried domain name"
+      type: string
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, exact, re]
+      example: ".evil.invalid"
+      note: "The queried DNS name. For a TLD/SLD suffix match include the leading dot — ``.evil.invalid`` matches ``sub.evil.invalid`` but not ``nameevil.invalid``. ``contains`` works against substring patterns common in DGA detection."
+
+    - name: record_type
+      label: "Record type"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: ["A", "AAAA", "CNAME", "MX", "NS", "PTR", "SOA", "SRV", "TXT", "ANY", "AXFR"]
+      note: "TXT and ANY records are unusual for client traffic and high-signal for tunneling / data-exfil detection. AXFR (zone transfer) attempts from unexpected sources are reconnaissance."
+
+    - name: answer
+      label: "Resolved value"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, startswith, endswith, re]
+      example: "192.168.1.1"
+      note: "The DNS response value. For A/AAAA records this is an IP; for CNAME/MX/NS it's a hostname; for TXT it's the literal record string. Useful for catching responses with sinkhole IPs or specific evil-IP patterns."

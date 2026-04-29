@@ -1,0 +1,70 @@
+# Antivirus observation catalog (generic).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — 7 vetted corpus
+# rules use ``logsource: { category: antivirus }`` with no product
+# (the rules apply to any AV / EDR alert stream emitting signature
+# names + detected file paths: Defender, Symantec, Sophos, ClamAV,
+# vendor-specific consoles).
+#
+# Detection patterns commonly target signature-name substrings (e.g.
+# ``Cobalt Strike`` family signatures, ``Mimikatz`` variants) or
+# specific file paths where benign software shouldn't write.
+#
+# Field frequency from the L2-P2 corpus mine:
+#    3  Filename
+#    2  Signature
+
+id: antivirus
+label: "An antivirus alert was raised"
+description: "Use for AV / EDR alert log rules — signature-based detections, quarantined files, threat-name patterns from Defender, Symantec, Sophos, ClamAV, or any vendor AV stream."
+category_group: os_event_log
+logsource:
+    category: antivirus
+platforms:
+    - id: antivirus
+      product: antivirus
+      tier: primary
+synonyms:
+    - "av alert"
+    - "edr alert"
+    - "threat detected"
+    - "quarantined file"
+    - "signature match"
+    - "malware detected"
+
+fields:
+    - name: Signature
+      label: "Threat signature name"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, startswith, endswith, exact, re]
+      example: "Trojan:Win32/CobaltStrike"
+      note: "The vendor-specific signature / threat name. Vendors prefix differently (Defender ``Trojan:Win32/…``, Symantec ``Backdoor.Cobalt``, Sophos ``Mal/…``) — ``contains`` is the typical idiom to catch any vendor's flavor of the same family. ``all`` lets you require multiple substring markers (e.g. ``CobaltStrike`` AND a specific component name)."
+
+    - name: Filename
+      label: "Detected file path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, exact, re]
+      example: "\\AppData\\Local\\Temp\\payload.exe"
+      note: "Path to the file the AV flagged. Combine with ``Signature`` to catch a specific malware family in a specific staging location (e.g. Cobalt Strike beacon in ``%TEMP%``)."
+
+    - name: Action
+      label: "Action taken"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: ["quarantined", "blocked", "deleted", "allowed", "remediated", "detected"]
+      note: "``allowed`` / ``detected`` (alert without remediation) is the highest-signal outcome — the threat was seen but not stopped, often because the user clicked through or the AV's response was disabled."
+
+    - name: User
+      label: "User account"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, endswith, startswith]
+
+    - name: Hostname
+      label: "Affected host"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, endswith, startswith]

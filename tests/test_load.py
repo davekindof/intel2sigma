@@ -448,6 +448,12 @@ level: high
 # ---------------------------------------------------------------------------
 
 
+# Antivirus-shape rule used as both the canonical "multi-value detection
+# item" fixture and the historical "unknown category" fixture. After
+# L2-P2 added ``antivirus.yml`` to the catalog, ``category: antivirus``
+# is no longer unknown — the freeform-routing tests below use a
+# synthetic still-uncatalogued category instead. This fixture is now
+# kept for tests that exercise the multi-value rendering path.
 ANTIVIRUS_RULE_YAML = """
 title: Antivirus Exploitation Framework Detection
 id: 238527ad-3c2c-4e4f-a1f6-92fd63adb864
@@ -475,19 +481,47 @@ level: high
 """
 
 
-def test_load_unknown_category_routes_to_freeform_observation() -> None:
-    """An ``antivirus`` logsource isn't in our taxonomy — must use _freeform.
+# Synthetic still-uncatalogued category for the freeform-routing tests.
+# Picked deliberately implausible so a future taxonomy expansion is
+# unlikely to invalidate it the way ``antivirus`` invalidated the
+# original fixture.
+UNKNOWN_CATEGORY_YAML = """
+title: Imaginary-source rule
+id: 99999999-1111-2222-3333-444444444444
+status: stable
+description: Synthetic fixture exercising freeform routing for an uncatalogued logsource.
+references:
+  - https://example.invalid/ref
+author: tests
+date: 2026-04-29
+tags:
+  - attack.execution
+logsource:
+    category: imaginary_telemetry_source
+detection:
+    selection:
+        SomeField|contains: x
+    condition: selection
+falsepositives:
+  - Unlikely
+level: high
+"""
 
-    Regression for the dogfood case where loading the antivirus rule
-    left ``observation_id=""`` and the render fallback dropped to
-    Stage 0 with a stale breadcrumb. The fix routes to ``_freeform``
-    instead, so the breadcrumb / stage stay consistent.
+
+def test_load_unknown_category_routes_to_freeform_observation() -> None:
+    """An uncatalogued logsource must use the ``_freeform`` observation.
+
+    Regression for the dogfood case where loading a rule with a
+    logsource we didn't have catalogued left ``observation_id=""``
+    and the render fallback dropped to Stage 0 with a stale
+    breadcrumb. The fix routes to ``_freeform`` instead, so the
+    breadcrumb / stage stay consistent.
     """
-    draft, issues = draft_from_yaml(ANTIVIRUS_RULE_YAML)
+    draft, issues = draft_from_yaml(UNKNOWN_CATEGORY_YAML)
     assert draft is not None
 
     assert draft.observation_id == "_freeform"
-    assert draft.logsource.category == "antivirus"
+    assert draft.logsource.category == "imaginary_telemetry_source"
     # The informational issue stays — user should know the field
     # catalogue isn't validating their inputs.
     codes = {i.code for i in issues}
@@ -497,13 +531,13 @@ def test_load_unknown_category_routes_to_freeform_observation() -> None:
 def test_load_unknown_category_breadcrumb_stays_consistent(client: TestClient) -> None:
     """Loading an unknown-category rule must not desync breadcrumb from content.
 
-    Before the fix, the antivirus rule landed with ``stage=3,
+    Before the fix, an unknown-logsource rule landed with ``stage=3,
     observation_id=""`` — render dropped to Stage 0 markup while the
     breadcrumb still reported Stage 3. With the fix, the same rule
     lands with ``observation_id=_freeform`` and the rendered Stage 3
     review markup matches the breadcrumb.
     """
-    r = client.post("/composer/load-paste", data={"yaml_text": ANTIVIRUS_RULE_YAML})
+    r = client.post("/composer/load-paste", data={"yaml_text": UNKNOWN_CATEGORY_YAML})
     assert r.status_code == 200
     state = _extract_state(r.text)
     assert state["observation_id"] == "_freeform"
