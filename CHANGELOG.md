@@ -24,6 +24,89 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.3.0 — 2026-04-29
+
+Minor bump — v1.x **load-path corpus-wide hardening sweep complete**.
+
+Captures the cumulative L1 + L2-P1 + L2-P2 + L3 work landed across
+0.2.12 → 0.3.0. The "load any SigmaHQ rule" feature was producing
+bug-of-the-week dogfood reports because each rule shape that broke
+was a different combination of (logsource × condition × field-name
+leak × multi-value items × oob-swap class survival × stage gating).
+Patch-when-found is over; the audit-driven sweep replaces it.
+
+### Sweep result against the SigmaHQ corpus (3,708 rules)
+
+|              | baseline (0.2.11) | 0.3.0       | Δ           |
+| ------------ | ----------------- | ----------- | ----------- |
+| **clean**    | 3291 (88.75%)     | **3582 (96.60%)** | **+291 (+7.85 pp)** |
+| degraded     | 271               | 126         | -145        |
+| **exception**| 146               | **0**       | **-146**    |
+| desync       | 0                 | 0           | held        |
+| silent_data_loss | 0             | 0           | held        |
+
+### Phases shipped
+
+- **L1** (`e9a040b`, 0.2.12) — `scripts/audit_corpus_loads.py`. Walks
+  every corpus rule through the load path, categorises into clean /
+  degraded / desync / silent_data_loss / exception. Output:
+  `reports/corpus_load_audit.json`.
+
+- **L2-P1 a–d** (`781faea` / `cebaa00` / `4100c67` / `625776e`,
+  0.2.13) — four load-path round-trip fixes. Literal whitespace
+  preservation, Sigma keyword-search blocks (`filter_keywords:
+  [samr, lsarpc, winreg]`), filter-only rules + the latent NOT-of-OR
+  paren precedence bug, Sigma null + explicit empty-string values.
+  Cleared 146 → 0 exceptions, +107 clean.
+
+- **Filter-only preview parity** (`8329d04`, 0.2.14) — fixed the
+  preview/strict asymmetry that L2-P1c missed, where the preview
+  pane showed `condition: filter_main_floppy` while the saved rule
+  was `condition: not (filter_main_floppy or filter_main_servicing)`.
+
+- **L2-P2** (`eeecb61` → `397fcc5`, 0.3.0) — catalog expansion. 9
+  new taxonomy files (`application_jvm`, `application_kubernetes`,
+  `webserver`, `dns`, `antivirus`, `file_delete`, `file_access`,
+  `ps_classic_start`, `registry_delete`, `registry_add`,
+  `create_stream_hash`, `file_change`) plus secondary-platform
+  extensions on `network_connection` (linux) and `file_event`
+  (macos). Loader's platform-routing fix (`_translate_observation`
+  now picks the platform whose product matches the loaded rule
+  instead of always returning the first platform) covered along
+  the way. Cleared 184 LOAD_OBSERVATION_UNKNOWN rules.
+
+- **L3** (`543a3bd`, 0.3.0) — audit-as-test. Refactored the
+  categorisation logic into `intel2sigma._audit` (importable
+  module) so `tests/test_corpus_load_audit_ratchet.py` could lock
+  in the floor as a `@pytest.mark.slow` ratchet. Three checks:
+  (1) exception/desync/silent_data_loss must stay at 0,
+  (2) clean count must not drop below `MIN_CLEAN_COUNT`,
+  (3) soft check that `MIN_CLEAN_COUNT` doesn't lag actual by >100
+  (catches PRs that improve the count but forget to bump the
+  constant). Floor at v0.3.0: **3582**.
+
+### Remaining audit degradation (126 rules, all benign)
+
+- **~100 LOAD_CONDITION_UNUSUAL** — captured for v2 design effort:
+  *structured condition editor* (ROADMAP). These are real
+  detection-engineering nuance the auto-composer can't reproduce —
+  the right answer is a tree-builder UI for `ConditionExpression`
+  that stays within I-4 (no editable YAML), not "accept the lossy
+  save." Out of scope for v1.x.
+- **~16 long-tail single-rule logsources** — firewall (2),
+  application+spring/+ruby_on_rails/+velocity/+python/+sql/+nodejs
+  (each 1–2), sysmon_status (1), sysmon_error (1),
+  file_executable_detected (1), file_event+paloalto (1),
+  process_tampering (1), file_rename (2). The freeform-observation
+  path covers these without bloating the catalog.
+
+### Coming next
+
+- **B2d–B2g** — 10 remaining heuristics. Parallel work, not on the
+  load-path critical path; pairs naturally with the next quarterly
+  recalibration cycle.
+- **L2-P3 (v2 candidate)** — structured condition editor.
+
 ## 0.2.14 — 2026-04-28
 
 Patch bump — preview/strict parity fix surfaced by the post-L2-P1

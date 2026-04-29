@@ -157,7 +157,7 @@ Approach: every quarterly recalibration cycle (already scheduled for taxonomy fr
 
 Tracked here so the work doesn't get lost. No specific exit gate — it's recurring maintenance.
 
-## v1.x — Load-path corpus-wide hardening sweep
+## 🪦 v1.x — Load-path corpus-wide hardening sweep *(SHIPPED in 0.3.0, 2026-04-29)*
 
 The "load any SigmaHQ rule" feature was producing bugs at a steady drip — one
 or two per dogfood session — because each rule shape that breaks is a different
@@ -167,7 +167,14 @@ was no longer the right cadence. The sweep audits every corpus rule
 programmatically once and produces a single coherent fix-list, plus catches
 anything that still breaks at runtime instead of letting the user discover it.
 
-Three phases, each shippable independently:
+**Result against the 3,708-rule corpus**: clean 88.75% → **96.60%**
+(+291 rules / +7.85 pp), exceptions 146 → **0**, desync /
+silent_data_loss held at 0 throughout. The remaining 126 degraded
+rules are 100 LOAD_CONDITION_UNUSUAL (captured for v2's structured
+condition editor) plus ~16 long-tail single-rule logsources where
+the freeform path is the right answer.
+
+Three phases, each shipped independently:
 
 **🪦 L1 — Audit script (one-shot, kept).** *Shipped as
 `scripts/audit_corpus_loads.py` in `e9a040b` (0.2.12).* Walks every entry
@@ -205,17 +212,17 @@ the composer was silently losing on load:
   Cumulative: clean 88.75% → 91.64%, exceptions 146 → 0, desync /
   silent_data_loss held at 0.
 
-**L2-P2 — Catalog expansion (next).** Audit's remaining 310 degraded
-rules are 210 `LOAD_OBSERVATION_UNKNOWN` (covered here) + 100
-`LOAD_CONDITION_UNUSUAL` (covered by L2-P3 below). The unknown-
-observation rules cluster around ~9 logsource shapes the taxonomy
-doesn't currently model: `webserver` (82 rules), `file_delete`
-(14), `file_access` (13), generic `dns` (11), `ps_classic_start`
-(11), `registry_delete` (10), `application + kubernetes` (10),
-`create_stream_hash` (9), `antivirus` (7). Each addition is a data-
-only change per CLAUDE.md I-5 — adding a YAML file under
-`data/taxonomy/`, no Python edits. Targets clean rate ≥97% on the
-corpus when complete.
+**🪦 L2-P2 — Catalog expansion.** *Shipped across `eeecb61` →
+`397fcc5` (0.3.0).* 12 new taxonomy files (`application_jvm`,
+`application_kubernetes`, `webserver`, `dns`, `antivirus`,
+`file_delete`, `file_access`, `ps_classic_start`,
+`registry_delete`, `registry_add`, `create_stream_hash`,
+`file_change`) plus secondary-platform extensions on
+`network_connection` (linux) and `file_event` (macos). Cleared
+184 `LOAD_OBSERVATION_UNKNOWN` rules. Loader's platform-routing
+fix (`_translate_observation` now picks the platform whose
+product matches the loaded rule, not always the first platform)
+landed alongside.
 
 **L2-P3 — Structured condition editor.** *Reframed as a v2 candidate;
 see "## v2 — Composer fidelity" below.* The `LOAD_CONDITION_UNUSUAL`
@@ -224,16 +231,16 @@ reproduce — accepting the lossy save is wrong; the right answer is a
 tree-builder UI for `ConditionExpression` that stays within I-4 (no
 editable YAML). Out of scope for v1.
 
-**L3 — Audit-as-test (pending).** Convert `scripts/audit_corpus_loads.py`
-into a `@pytest.mark.slow` integration test with ratchet-down-only
-thresholds (clean count must not regress, exception count must stay
-0) so future loader changes can't reintroduce breakage without CI
-catching it. Independent of L2; can ship anytime.
+**🪦 L3 — Audit-as-test.** *Shipped as `tests/test_corpus_load_audit
+_ratchet.py` in `543a3bd` (0.3.0).* Three slow-marked checks
+(exception/desync/silent_data_loss must stay 0; clean count must
+not drop below `MIN_CLEAN_COUNT`; soft-stale-floor check that
+catches PRs improving the count without bumping the constant).
+Audit categorisation refactored into `intel2sigma._audit` so the
+script and the test share one implementation. Floor at v0.3.0:
+**3582**.
 
-**Status**: L1 + L2-P1 shipped (0.2.12, 0.2.13). L2-P2 is the active
-work-in-progress. L3 trails L2-P2 but doesn't depend on it. The whole
-sweep constitutes a coherent v1.x milestone — bumps minor (`0.3.0`)
-when L2-P2 + L3 land.
+**Status**: complete. L2-P3 lives in v2 below.
 
 ## v1.x — Smaller post-v1.0 polish
 

@@ -3,4 +3,4 @@
 See SPEC.md and CLAUDE.md for architectural invariants.
 """
 
-__version__ = "0.2.14"
+__version__ = "0.3.0"
