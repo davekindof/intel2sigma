@@ -155,6 +155,12 @@ The v0/v1.0 catalog ships **15** observation types covering the most common Wind
 
 Approach: every quarterly recalibration cycle (already scheduled for taxonomy frequency analysis + heuristic severity tuning) also reviews the corpus for high-frequency uncatalogued logsources and adds catalog files for any with ≥50 vetted rules. Each addition is a data-only change per CLAUDE.md I-5 — no Python edits.
 
+**Pattern IV — vertical-slice review per observable** *(0.3.1+ methodology change).* Frequency analysis as the primary signal undercounts low-frequency-high-value telemetry. B3 (filed during 0.3.0 testing) is the canonical instance: auditd's SOCKADDR-record fields (`saddr`, `lport`, `laddr`, `fam`) are rare in the corpus precisely because the catalog doesn't expose them — users can't easily author rules using fields they can't pick from the dropdown, so rare stays rare in a feedback loop. Network-syscall detection is a vertical slice of high security value that pure frequency systematically underweights. Same pattern likely affects Sysmon paired events, ETW manifest fields, and cloud audit's "low-frequency-but-critical" fields (e.g. AWS `errorCode`, GCP `protoPayload.status.code`).
+
+Methodology change: each observable also passes a **"top-5 archetype detections"** check — can a senior detection engineer write the five canonical rule shapes for this telemetry using only the catalogued fields? For auditd, archetypes include network-syscall (needs SOCKADDR), file-access (needs PATH), command-execution (needs EXECVE), authentication events (needs USER_AUTH), and rule-key matching (needs `key`) — five archetypes spanning multiple context records, not just SYSCALL. Where the answer is no, the catalog gets the missing fields even if frequency doesn't justify them.
+
+Implement as a periodic "junior analyst hits a wall" report alongside the frequency analysis. The L1-L3 sweep proved that audit-driven prioritisation works; this is the same pattern applied to the catalog-completeness axis.
+
 Tracked here so the work doesn't get lost. No specific exit gate — it's recurring maintenance.
 
 ## 🪦 v1.x — Load-path corpus-wide hardening sweep *(SHIPPED in 0.3.0, 2026-04-29)*
@@ -242,9 +248,207 @@ script and the test share one implementation. Floor at v0.3.0:
 
 **Status**: complete. L2-P3 lives in v2 below.
 
+## v1.x — Emit-path corpus-wide hardening sweep
+
+The mirror of the L1–L3 load-path sweep above. The load-path sweep
+gave the project a corpus-driven ratchet for **what we ingest** — every
+SigmaHQ rule is categorised, the floor is locked in CI, regressions
+fail the build. The emit path (composer → strict YAML output) has
+**no equivalent**. The composer can author rules that downstream
+pySigma can't parse, with dropped operators or non-standard modifiers,
+and we'd ship them.
+
+Surfaced in 0.3.0 dogfood testing as four bugs (logged inline in the
+"Smaller polish" section below) — `|exact` modifier emitted but not
+in the Sigma spec; modifier-dropdown drops `contains` between user
+intent and emitted YAML; UI dropdown defaults visually mask empty
+state. The bugs are individually fixable, but the underlying pattern
+— **we author rules without verifying they parse back through
+pySigma** — needs the same treatment that load-path correctness got.
+
+Three phases, mirroring L1/L2/L3:
+
+**L4 — Audit script (one-shot, kept).** New
+`scripts/audit_corpus_emits.py`. For every corpus rule that loads
+cleanly today, runs:
+
+```
+   load via web/load.draft_from_yaml
+→  re-emit via composer's canonical path
+   (to_yaml(draft.to_sigma_rule()))
+→  parse the re-emitted YAML through pySigma
+→  compare structural facts (block count, block names, item count
+   per block, modifier chains, condition shape) against the
+   originally-loaded structure
+```
+
+Categorise outcomes (precedence order):
+
+  * **emit_exception** — `to_sigma_rule()` returns issues, or
+    `to_yaml` raises, or pySigma can't parse the re-emitted
+    output. **Bug 2 (`|exact`) lands here.**
+  * **structural_drift** — re-emitted parses, but block names /
+    item counts / modifier chains differ from the source.
+    **Bug 1 (dropped `|contains`) lands here.**
+  * **degraded** — re-emitted parses with warnings or with
+    explicit fidelity loss flags (a `LOAD_NESTED_SUBGROUPS_FLATTENED`
+    on re-load, etc.). Acceptable; documented.
+  * **clean** — load + re-emit + re-parse round-trips with no
+    structural change.
+
+Output: `reports/corpus_emit_audit.json` mirroring the load-audit
+report shape. Exit non-zero on any emit_exception or structural_drift.
+The audit categorisation logic lives in `intel2sigma._audit` so it
+shares helpers with the L3 ratchet (`_source_structure` /
+`_draft_structure` already exist; just reused on the re-emitted
+side).
+
+**L5 — Fix every emit-side category surfaced by L4.** Each fix lands
+as a separate commit referencing a category from the L4 report.
+Likely buckets, working from what we know today:
+
+  * `|exact` collapse to bare key (Bug 2). One change in
+    `core/serialize.py:_detection_item_key` plus the loader's
+    symmetric drop in `web/load.py:_translate_item`.
+  * Modifier preservation across `_set_item_field` (Bug 1). Narrow
+    the reset to "only when the new field's allowed-modifier list
+    excludes the current one."
+  * Likely a small tail of value-type-coercion mismatches (int vs
+    string, bool case sensitivity) similar to the value handling
+    we cleaned up in L2-P1d.
+
+**L6 — Emit-as-test ratchet.** Wraps `audit_corpus_emits.py` as a
+`@pytest.mark.slow` ratchet test (`tests/test_corpus_emit_audit
+_ratchet.py`), parallel to the load-path ratchet
+(`tests/test_corpus_load_audit_ratchet.py`). Same three-check shape:
+
+  * emit_exception / structural_drift must stay 0
+  * clean count must not drop below `MIN_EMIT_CLEAN_COUNT`
+  * stale-floor soft check (lag > 100 = bump the constant)
+
+After L4–L6 land, the project has symmetric ratchets in both
+directions: every regression on what we ingest OR what we emit fails
+CI. Together with the existing L1-L3 floor at 3582, this closes the
+"correctness blind spot in either direction" gap.
+
+**Sequencing**: L4 first (audit feeds the fix list, same pattern as
+L1). L5 fixes can ship independently as they're discovered. L6
+trails L5 — until L5's first wave lands, the floor is too low to be
+useful as a ratchet. The whole sweep bumps minor (`0.4.0`) on
+completion — same versioning shape as the load-path sweep.
+
+The four bugs filed during 0.3.0 testing
+(see "Bugs from 0.3.0 testing" in the polish section below) are the
+**input** to this sweep, not its output — fix individually in
+0.3.1 patch, then run L4 to surface what we don't yet know about.
+
 ## v1.x — Smaller post-v1.0 polish
 
 Doesn't fit a milestone:
+
+### Bugs from 0.3.0 testing (target 0.3.1 patch)
+
+Filed during dogfood testing of the 0.3.0 deploy with a second Claude
+instance. Listed individually here because each is concrete and
+actionable; the larger systemic concerns they surface are tracked
+above (the emit-path sweep) and below (Patterns II, III, V).
+
+- **B1 — operator modifier dropped from emitted YAML** (HIGH,
+  correctness). `_set_item_field` resets `item.modifiers = []` on
+  every field-name keystroke (htmx `change, keyup delay:300ms`
+  trigger). User picks `contains` → types/edits field name →
+  modifier silently reset → YAML emits `field: value` instead of
+  `field|contains: value`. Worst-class detection bug because the
+  rule looks deployed and produces no alerts. Fix: narrow
+  `_set_item_field`'s reset to only fire when the new field's
+  allowed-modifier list (from spec, when present) actually excludes
+  the current modifier; for freeform (no spec), never reset. Add a
+  handler-sequence test pinning the contract.
+
+- **B2 — non-standard `|exact` modifier emitted** (MEDIUM, spec
+  compliance). `core/serialize.py:_detection_item_key` joins all
+  modifiers including `exact`, producing `field|exact: value`. The
+  Sigma spec has no `|exact` modifier — bare `field: value` IS the
+  exact-match form. Documented in SPEC.md decision log (2026-04-24)
+  as a planned collapse but never implemented. Fix: strip `"exact"`
+  from the modifier chain in `_detection_item_key`, drop `"exact"`
+  from incoming modifier lists in `web/load.py:_translate_item`,
+  add a round-trip test pinning both directions.
+
+- **B3 — auditd taxonomy missing SOCKADDR-record fields** (MEDIUM,
+  coverage). The `auditd.yml` catalog exposes SYSCALL-record fields
+  (`type`, `a0..a4`, `name`, `SYSCALL`, `exe`, `comm`) but not
+  context-record fields (`saddr`, `lport`, `laddr`, `fam`). Users
+  authoring network-syscall detections have to drop into freeform.
+  Pure-data fix: extend `auditd.yml` with the SOCKADDR fields and a
+  top-of-file note about auditd's record-pair pattern. Tracked
+  systemically as Pattern IV below — vertical-slice catalog review.
+
+- **B4 — UI dropdown defaults visually mask empty state** (LOW, UX).
+  `<select>` defaults to first option when nothing is `selected`.
+  An item with `modifiers=[]` displays the first allowed modifier
+  ("contains" in the freeform list) as if the user picked it,
+  making B1's silent state-drop indistinguishable from "user
+  intentionally picked contains." Fix: render a leading
+  `<option value="" disabled selected>—</option>` whenever
+  `item.modifiers == []`. Catches both this bug and any future
+  state-drift bug for free.
+
+### Systemic patterns surfaced by the four bugs
+
+The four bugs above are individual fixes; the **patterns** below
+need systematic addressing so we stop chasing instances of the same
+shape. Pattern I (the emit-path sweep) is large enough to warrant
+its own milestone — see "Emit-path corpus-wide hardening sweep"
+above. Patterns II/III/V are patch-series work tracked here.
+Pattern IV folds into the v1.7 quarterly catalog cycle.
+
+- **Pattern II — converge to a single YAML emit path.** Today the
+  preview pane uses `RuleDraft.to_partial_yaml()` and the canonical
+  download artifact uses `to_yaml(rule.to_sigma_rule())`. These
+  live in separate code and have already drifted once (`8329d04`,
+  filter-only condition mismatch where the preview said
+  `condition: filter_main_floppy` while the saved rule said
+  `condition: not (filter_main_floppy or filter_main_servicing)`).
+  B4 is another instance — the user trusts the preview as the source
+  of truth. Either collapse to one path (preferred — make
+  `to_partial_yaml` a thin wrapper that calls `to_sigma_rule` and
+  renders a "graceful partial" view of whatever fields are set) or
+  pin parity in tests. Lines saved on collapse pay off across every
+  future drift bug.
+
+- **Pattern III — handler-sequence test pass + minimum-mutation
+  audit.** B1 is one instance of form handlers in
+  `web/routes/composer.py` making non-local state mutations
+  (`_set_item_field` resets `modifiers`). Other likely instances:
+  `add_block` touching condition tree / combinator default,
+  `delete_block` leaving the condition referencing a name that no
+  longer exists, `set_observation_id` invalidating existing
+  detection blocks. Two-part fix: (1) audit each `_set_*` /
+  `add_*` / `delete_*` handler for what it touches outside its
+  named scope, mark "necessary" or "speculative", narrow the
+  speculative ones; (2) add a sequence-test framework in
+  `tests/test_handler_sequences.py` that drives the composer
+  through realistic UI workflows (add field → set name → set
+  modifier → set value, in all 24 permutations) and asserts the
+  final draft state matches what the user would expect. B1's pin:
+  `set_modifier("contains") → set_field("saddr") → set_value(...)
+  ⇒ modifiers == ["contains"]`.
+
+- **Pattern V — UI controls visually distinguish "no value" from
+  "default value".** B4 is the visible instance, but the pattern
+  generalises: `<select>` defaults to first option, radio groups
+  default to first option, text inputs render placeholder vs
+  empty-string-default ambiguously. Concrete pattern: every
+  `<select>` leads with `<option value="" disabled selected>—
+  </option>` when the underlying field is unset; every radio group
+  has an explicit "(not set)" state; every text input renders a
+  placeholder, never a pre-filled "default" value. One-time
+  template audit + a Jinja macro that wraps the convention. Pays
+  off across the whole composer surface, not just the modifier
+  dropdown.
+
+### Other v1.x polish
 
 - **Rule upload (`.yml` file picker).** v1.5 ships paste + curated examples; the file picker is a small follow-up using the browser File API (read client-side, POST text body to the existing load endpoint).
 - **Rule download UX**: progress indicator + last-N rules list (client-side localStorage, *not* server persistence).
