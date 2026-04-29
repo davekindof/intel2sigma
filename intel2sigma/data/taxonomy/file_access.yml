@@ -1,0 +1,59 @@
+# File-access observation catalog (Windows).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — 13 vetted corpus
+# rules use ``logsource: { category: file_access, product: windows }``.
+# Detection patterns target reads of sensitive files (LSASS dumps,
+# credential stores, ntds.dit, registry hives) by unusual processes.
+#
+# Field shape uses the alternate Sysmon-flavor naming ``FileName``
+# (note: not ``TargetFilename`` like file_event / file_delete) — this
+# is the convention SigmaHQ adopted for the file_access category.
+
+id: file_access
+label: "A sensitive file was read"
+description: "Use for sensitive-file-read rules — LSASS access, credential store reads, ntds.dit reads, registry hive copies."
+category_group: file_and_registry
+logsource:
+    category: file_access
+    product: windows
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "file read"
+    - "file accessed"
+    - "credential dump"
+    - "lsass access"
+    - "sensitive file read"
+
+fields:
+    - name: Image
+      label: "Reading process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\rundll32.exe'
+      note: "The process that performed the read. High-signal field — most file_access detections pivot on which process is touching the sensitive file."
+
+    - name: FileName
+      label: "Accessed file path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, all, re, exact]
+      example: '\Windows\NTDS\ntds.dit'
+      note: "Path of the file that was read. Note: this category uses ``FileName`` (NOT ``TargetFilename`` like file_event / file_delete) — Sigma's split between the two reflects different Sysmon emission shapes."
+
+    - name: ProcessId
+      label: "Process ID"
+      type: int
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      example: "4242"
+      note: "Numeric PID of the reading process. Useful for correlation with process_creation events when reconstructing an attack chain."
+
+    - name: User
+      label: "User account"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, endswith, startswith]

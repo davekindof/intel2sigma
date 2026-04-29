@@ -1,0 +1,56 @@
+# Registry-add observation catalog (Windows, Sysmon EventID 12 with
+# EventType=CreateKey).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — 3 vetted corpus
+# rules use ``logsource: { category: registry_add, product: windows
+# }``. Tiny bucket — most "key was added" detections live in
+# ``registry_event`` / ``registry_set`` instead. The few rules here
+# target persistence-key creation under specific subtrees.
+
+id: registry_add
+label: "A registry key was created"
+description: "Use for Sysmon registry-add rules — creation of persistence keys, COM hijack subtrees, scheduled-task registry entries."
+category_group: file_and_registry
+logsource:
+    category: registry_add
+    product: windows
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "registry created"
+    - "regkey added"
+    - "registry key created"
+    - "persistence key"
+
+fields:
+    - name: TargetObject
+      label: "Registry path"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, endswith, startswith, all, exact, re]
+      example: '\Software\Classes\CLSID\{'
+      note: "Full registry path of the created key. Use ``contains`` for substring matches; use ``startswith`` to scope to a subtree (e.g. all of ``HKCR\\CLSID\\``)."
+
+    - name: EventType
+      label: "Create kind"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: ["CreateKey"]
+      note: "Always ``CreateKey`` for this category. The Sigma category exists separately from registry_set so detection rules can scope by intent (key creation vs value modification)."
+
+    - name: Image
+      label: "Creating process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\reg.exe'
+      note: "The process that created the key. Combine with TargetObject to catch a specific persistence pattern."
+
+    - name: User
+      label: "User account"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, endswith, startswith]

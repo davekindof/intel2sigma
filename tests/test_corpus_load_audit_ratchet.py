@@ -55,7 +55,28 @@ from intel2sigma._data import data_path
 #   2026-04-27 (cebaa00, L2-P1b)       — 3366 (90.78%)
 #   2026-04-27 (4100c67, L2-P1c)       — 3367 (90.80%)
 #   2026-04-27 (625776e, L2-P1d)       — 3398 (91.64%)
-MIN_CLEAN_COUNT = 3398
+#   2026-04-29 (eeecb61..[hash], L2-P2) — 3582 (96.60%) — catalog
+#                                         expansion: 9 new taxonomy
+#                                         files + 2 platform extensions
+#                                         clearing 184 LOAD_OBSERVATION_
+#                                         UNKNOWN rules across the
+#                                         webserver / application_jvm /
+#                                         application_kubernetes /
+#                                         dns / antivirus / file_delete /
+#                                         file_access / ps_classic_start /
+#                                         registry_delete / registry_add /
+#                                         create_stream_hash / file_change
+#                                         buckets, plus net_conn-linux
+#                                         and file_event-macos secondary
+#                                         platforms. Remaining 126
+#                                         degraded rules are 100
+#                                         LOAD_CONDITION_UNUSUAL (v2
+#                                         work, captured in ROADMAP) +
+#                                         ~16 long-tail single-rule
+#                                         logsources where the
+#                                         freeform-observation path is
+#                                         the right answer.
+MIN_CLEAN_COUNT = 3582
 
 # Categories that MUST stay at zero. Any non-zero count is either a
 # regression (loader started raising or losing data) or evidence that

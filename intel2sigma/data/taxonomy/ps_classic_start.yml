@@ -1,0 +1,56 @@
+# PowerShell classic-start observation catalog (Windows EventID 400).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — 11 vetted corpus
+# rules use ``logsource: { category: ps_classic_start, product: windows
+# }``. Targets the legacy "PowerShell engine starting" event in the
+# Windows PowerShell channel (EventID 400) — distinct from the
+# script-block / module-logging categories which live in ``ps_script``
+# and ``ps_module`` respectively.
+#
+# All 11 rules use the single ``Data`` field, which is the
+# multi-line ``Data`` payload from the legacy event format. Detection
+# patterns search for marker substrings (engine version, host
+# application, command-line indicators) within that blob.
+
+id: ps_classic_start
+label: "A legacy PowerShell engine started"
+description: "Use for Windows PowerShell-classic engine-start rules (EventID 400) — host application identification, engine version anomalies, classic-format detections."
+category_group: powershell_and_scripting
+logsource:
+    category: ps_classic_start
+    product: windows
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "powershell start"
+    - "powershell classic"
+    - "powershell engine started"
+    - "eventid 400"
+    - "classic powershell logging"
+
+fields:
+    - name: Data
+      label: "Event data blob"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, all, startswith, endswith, exact, re]
+      example: "HostApplication=powershell.exe -nop -w hidden"
+      note: "The full multi-line ``Data`` payload from EID 400. ``contains`` is the typical idiom — search for marker substrings (HostApplication name, suspicious flags, encoded-command markers). Combine with ``all`` to require multiple markers."
+
+    - name: HostName
+      label: "Host name"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, startswith, endswith]
+      example: "ConsoleHost"
+      note: "Name of the PowerShell host (``ConsoleHost``, ``ISE``, ``ServerRemoteHost``, etc.). Embedded hosts (named pipes, custom apps) are higher-signal than the standard console."
+
+    - name: EngineVersion
+      label: "Engine version"
+      type: string
+      default_modifier: startswith
+      allowed_modifiers: [startswith, contains, exact]
+      example: "2.0"
+      note: "PowerShell engine version. Downgrade attacks force ``2.0`` to bypass v3+ logging — ``EngineVersion: 2.0`` from a host that has v5 installed is high-signal."

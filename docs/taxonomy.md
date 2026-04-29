@@ -171,6 +171,7 @@ Modifier availability per field is determined by `allowed_modifiers` in the taxo
 - Re-run frequency analysis quarterly against the latest SigmaHQ corpus. Bumping `PINNED_COMMIT` in `scripts/fetch_sigmahq.py` is a commit that records when the catalog was last calibrated.
 - New field inclusion requires a justification comment at the top of the YAML file.
 - Labels and examples must be reviewed by a human detection engineer — no auto-generation.
+- The L2 corpus load-audit (`scripts/audit_corpus_loads.py`, locked in by the `tests/test_corpus_load_audit_ratchet.py` slow ratchet) is the operational signal for catalog gaps. When `LOAD_OBSERVATION_UNKNOWN` accumulates ≥5 rules for a given (category, product) pairing, that bucket is a candidate for a catalog file. The L2-P2 sweep added 9 entries this way: `application_jvm`, `application_kubernetes`, `webserver`, `dns`, `antivirus`, `file_delete`, `file_access`, `ps_classic_start`, `registry_delete`, `registry_add`, `create_stream_hash`, `file_change` (plus `file_event` and `network_connection` gained secondary platforms). Long-tail single-rule logsources are intentionally not catalogued — the freeform-observation path (`_freeform`) handles those.
 
 ## Label writing guidelines
 

@@ -1,0 +1,57 @@
+# Registry-delete observation catalog (Windows, Sysmon EventID 12 with
+# EventType=DeleteValue/DeleteKey).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — 10 vetted corpus
+# rules use ``logsource: { category: registry_delete, product: windows
+# }``. Detection patterns target removal of persistence keys, security
+# software registry entries, and forensic artifact paths (UAC
+# bypasses, AMSI policy keys, Defender exclusions).
+
+id: registry_delete
+label: "A registry key or value was deleted"
+description: "Use for Sysmon registry-delete rules — removal of persistence keys, AMSI policies, Defender exclusion entries, forensic-artifact registry paths."
+category_group: file_and_registry
+logsource:
+    category: registry_delete
+    product: windows
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "registry deleted"
+    - "regkey removed"
+    - "regvalue removed"
+    - "persistence cleanup"
+    - "registry tampering"
+
+fields:
+    - name: Image
+      label: "Deleting process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\reg.exe'
+      note: "The process that performed the delete. High-signal field — pair with TargetObject to catch a specific anti-forensic pattern (e.g. reg.exe removing a Run key)."
+
+    - name: TargetObject
+      label: "Registry path"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, endswith, startswith, all, exact, re]
+      example: '\Software\Microsoft\Windows\CurrentVersion\Run'
+      note: "Full registry path of the deleted key/value. Use ``contains`` for substring matches (e.g. ``CurrentVersion\\Run`` matches both HKLM and HKCU); use ``endswith`` to match a specific value name."
+
+    - name: EventType
+      label: "Delete kind"
+      type: enum
+      default_modifier: exact
+      allowed_modifiers: [exact]
+      values: ["DeleteValue", "DeleteKey"]
+      note: "``DeleteValue`` removes one named value; ``DeleteKey`` removes a whole subkey (more destructive)."
+
+    - name: User
+      label: "User account"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, endswith, startswith]

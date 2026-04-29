@@ -1,0 +1,60 @@
+# File-delete observation catalog (Windows, Sysmon EventID 23/26).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — 14 vetted corpus
+# rules use ``logsource: { category: file_delete, product: windows }``.
+# EID 23 (file delete logged) and 26 (file delete detected) emit the
+# same field set; SigmaHQ rules use the generic ``file_delete``
+# category for both.
+#
+# Detection patterns target specific files being wiped (event log
+# clearing, anti-forensics) or unusual processes performing deletes
+# (e.g. shadow copy removal by non-administrative processes).
+
+id: file_delete
+label: "A file was deleted"
+description: "Use for Sysmon file-delete rules — anti-forensics, log clearing, ransomware shadow copy removal, evidence destruction."
+category_group: file_and_registry
+logsource:
+    category: file_delete
+    product: windows
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "file deleted"
+    - "file removed"
+    - "anti-forensics"
+    - "evidence destruction"
+    - "log cleared"
+
+fields:
+    - name: TargetFilename
+      label: "Deleted file path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, all, re, exact]
+      example: '\Windows\System32\winevt\Logs\Security.evtx'
+      note: "Path of the file that was deleted. Use the ``\\name.ext`` suffix idiom to catch the file regardless of directory."
+
+    - name: Image
+      label: "Deleting process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\wevtutil.exe'
+      note: "The process that performed the delete. Pair with TargetFilename to catch a specific anti-forensic pattern (e.g. ``wevtutil.exe`` deleting Security.evtx)."
+
+    - name: User
+      label: "User account"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, endswith, startswith]
+      example: "NT AUTHORITY\\SYSTEM"
+      note: "User context the delete ran as. Anti-forensic patterns often run as SYSTEM after privilege escalation."
+
+    - name: Hashes
+      label: "Deleted file hashes"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact]

@@ -1,0 +1,58 @@
+# Create-stream-hash observation catalog (Windows, Sysmon EventID 15).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — 9 vetted corpus
+# rules use ``logsource: { category: create_stream_hash, product:
+# windows }``. EID 15 fires when a file is downloaded via Internet
+# Explorer / Edge / curl / certutil and the OS attaches a
+# ``Zone.Identifier`` Alternate Data Stream marking the file as
+# Internet-origin. Detection patterns target downloads of executable
+# extensions, PowerShell scripts, or specific evil-domain content.
+
+id: create_stream_hash
+label: "An Alternate Data Stream was created"
+description: "Use for Sysmon create-stream-hash rules (EID 15) — downloads with Mark-of-the-Web Zone.Identifier, files retrieved via certutil / curl / browser, ADS-based persistence."
+category_group: file_and_registry
+logsource:
+    category: create_stream_hash
+    product: windows
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "alternate data stream"
+    - "zone identifier"
+    - "mark of the web"
+    - "ads created"
+    - "download attribution"
+
+fields:
+    - name: Image
+      label: "Downloading process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\powershell.exe'
+      note: "The process that wrote the file with the ADS attached. PowerShell, certutil, bitsadmin, mshta downloading executables are high-signal."
+
+    - name: TargetFilename
+      label: "Downloaded file path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, all, re, exact]
+      example: '.exe'
+      note: "Path of the file that received the Zone.Identifier ADS. ``endswith`` against an extension (``.exe``, ``.ps1``, ``.lnk``) catches the file type regardless of name."
+
+    - name: Contents
+      label: "Stream contents"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, startswith, endswith, exact, re]
+      example: "ZoneId=3"
+      note: "Body of the Zone.Identifier ADS. ``ZoneId=3`` indicates Internet zone (Mark-of-the-Web); ``ZoneId=4`` is restricted. The HostUrl line in the body shows the originating URL."
+
+    - name: Hash
+      label: "File hashes"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact]

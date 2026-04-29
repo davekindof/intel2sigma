@@ -1,0 +1,62 @@
+# File-change observation catalog (Windows, Sysmon EventID 2).
+#
+# Calibrated against SigmaHQ at commit 03412947a2d6 — 2 vetted corpus
+# rules use ``logsource: { category: file_change, product: windows }``.
+# Tiny bucket. EID 2 fires when a file's CreationTime is modified
+# (timestomping) — a classic anti-forensics technique where attackers
+# rewrite a file's metadata to look like a system file from years ago.
+
+id: file_change
+label: "A file's creation time was modified"
+description: "Use for Sysmon file-change / timestomping rules (EID 2) — anti-forensics where attackers rewrite a file's CreationTime to evade timeline analysis."
+category_group: file_and_registry
+logsource:
+    category: file_change
+    product: windows
+platforms:
+    - id: windows
+      product: windows
+      tier: primary
+synonyms:
+    - "timestomp"
+    - "timestomping"
+    - "file metadata modified"
+    - "creation time changed"
+    - "anti-forensics"
+
+fields:
+    - name: TargetFilename
+      label: "Modified file path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, all, re, exact]
+      example: '\Windows\System32\config\SAM'
+      note: "Path of the file whose CreationTime was modified. Files in system directories whose creation time was just changed are highly suspicious — legitimate software rarely timestomps system paths."
+
+    - name: Image
+      label: "Modifying process path"
+      type: path
+      default_modifier: endswith
+      allowed_modifiers: [endswith, contains, startswith, re, exact]
+      example: '\powershell.exe'
+      note: "The process that performed the timestomp. PowerShell, custom binaries, and unsigned tools are higher-signal than Windows-native processes."
+
+    - name: CreationUtcTime
+      label: "New creation time"
+      type: string
+      default_modifier: startswith
+      allowed_modifiers: [startswith, contains, exact]
+      example: "2010-01-01"
+      note: "The new (post-modification) CreationTime as ISO-style timestamp. Suspicious values are typically far in the past (Windows system files often dated to 2009/2010)."
+
+    - name: PreviousCreationUtcTime
+      label: "Original creation time"
+      type: string
+      default_modifier: startswith
+      allowed_modifiers: [startswith, contains, exact]
+
+    - name: User
+      label: "User account"
+      type: string
+      default_modifier: contains
+      allowed_modifiers: [contains, exact, endswith, startswith]
