@@ -134,11 +134,13 @@ def single_common_keyword(rule: SigmaRule) -> HeuristicResult | None:
     item = block.items[0]
     if not item.values:
         return None
-    # ``DetectionItem.values`` is ``list[str | int | bool]`` — only string
-    # values can match a keyword list, ints/bools obviously can't. The
-    # str() is a safety net in case a future model change loosens the type;
-    # today a non-string value just means "not a keyword", so the rule
-    # legitimately doesn't fire.
+    # ``DetectionItem.values`` is ``list[str | int | bool | None]`` — only
+    # string values can match a keyword list, ints/bools/None obviously
+    # can't. The ``str(v)`` is a safety net so a non-string value just
+    # means "not a keyword" and the heuristic legitimately doesn't fire.
+    # ``None`` (the YAML-null sentinel from L2-P1d) maps to the literal
+    # string ``"None"`` here, which won't match any process keyword
+    # either — same harmless outcome.
     values_lower = [str(v).strip().lower() for v in item.values]
     if not all(v in _COMMON_PROCESS_KEYWORDS for v in values_lower):
         return None

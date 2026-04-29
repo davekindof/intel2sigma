@@ -159,68 +159,81 @@ Tracked here so the work doesn't get lost. No specific exit gate — it's recurr
 
 ## v1.x — Load-path corpus-wide hardening sweep
 
-The "load any SigmaHQ rule" feature has produced bugs at a steady drip — one
+The "load any SigmaHQ rule" feature was producing bugs at a steady drip — one
 or two per dogfood session — because each rule shape that breaks is a different
 combination of (logsource shape × condition shape × field-name leak × multi-
-value items × oob-swap class survival × stage gating × …). Patch-when-found is
-no longer the right cadence. The sweep audits every corpus rule programmatically
-once and produces a single coherent fix-list, plus catches anything that still
-breaks at runtime instead of letting the user discover it.
+value items × oob-swap class survival × stage gating × …). Patch-when-found
+was no longer the right cadence. The sweep audits every corpus rule
+programmatically once and produces a single coherent fix-list, plus catches
+anything that still breaks at runtime instead of letting the user discover it.
 
 Three phases, each shippable independently:
 
-**L1 — Audit script (one-shot, kept).** New `scripts/audit_corpus_loads.py`
-walks every entry in `intel2sigma/data/sigmahq_corpus.json` (3,708 rules at
-the current pin), runs each through `web/load.draft_from_yaml`, and categorises
+**🪦 L1 — Audit script (one-shot, kept).** *Shipped as
+`scripts/audit_corpus_loads.py` in `e9a040b` (0.2.12).* Walks every entry
+in `intel2sigma/data/sigmahq_corpus.json` (3,708 rules at the current
+pin), runs each through `web/load.draft_from_yaml`, and categorises
 outcomes:
   * **clean** — loads, lands at the expected stage, all internal state
-    consistent (observation_id non-empty AND `_render_composer_panel` would
-    render the current-stage markup, not the Stage-0 fallback).
-  * **degraded but rendered** — loads with `LOAD_*` issues; the issue list
-    surfaces in the preview pane and the user sees a usable draft. Acceptable.
-  * **silently desynced** — `observation_id == ""` AND `draft.stage > 0`, OR
-    the breadcrumb's reachable list doesn't match the rendered stage. The user-
-    visible symptom is "breadcrumb says X, content shows Y" — exactly the
-    bitbucket / filter-only / antivirus failure shape.
-  * **exception** — any code path that throws (currently bug, should be 0).
+    consistent.
+  * **degraded** — loads with `LOAD_*` issues; the issue list surfaces in
+    the preview pane and the user sees a usable draft. Acceptable.
+  * **desync** — observation_id desynced from rendered stage. The user-
+    visible symptom is "breadcrumb says X, content shows Y" — exactly
+    the historical bitbucket / filter-only / antivirus failure shape.
+  * **silent_data_loss** — load succeeds but the round-trip drops fields.
+  * **exception** — any code path that throws.
 
-Output: `reports/corpus_load_audit.json` with per-rule outcome + a summary
-breakdown. Exit non-zero if anything is in the desynced or exception buckets.
-Hooked into CI as a `@pytest.mark.slow` regression test so future loader
-changes can't introduce new breakage without us seeing it.
+  Output: `reports/corpus_load_audit.json`. Initial baseline:
+  88.75% clean / 0 desync / 0 silent_data_loss / 146 exceptions / 271
+  degraded — confirming the regressive triage work that preceded the
+  sweep already paid off; the remaining failures are real
+  feature/category gaps, not crashes.
 
-**L2 — Fix every failure category surfaced by L1.** Most of these will
-resolve to the same shape of fix as the existing P2 patch — extend the
-loader's "no taxonomy match → freeform" path to handle every escape route
-(missing category, missing product, dotted service names, etc.). A small
-number may need genuine model work (multi-condition rules, sub-group
-flattening that already issues `LOAD_NESTED_SUBGROUPS_FLATTENED`). Each
-fix lands as a separate commit referencing a category from the L1 report.
+**🪦 L2-P1 — Round-trip behaviour fixes (idiom support).** *Shipped as
+four sub-commits across 0.2.13.* Each cleared a specific Sigma idiom
+the composer was silently losing on load:
+  * `781faea` (P1a) — preserve literal whitespace in detection values.
+  * `cebaa00` (P1b) — first-class support for keyword-search blocks
+    (`filter_keywords: [samr, lsarpc, winreg]`).
+  * `4100c67` (P1c) — filter-only rule condition composition + a latent
+    NOT-paren precedence bug (`not a or b` was rendering without
+    parens).
+  * `625776e` (P1d) — `Field: null` (`SigmaNull`) + `Field: ''` as
+    first-class round-trippable values.
 
-**L3 — User-facing surfacing.** After L1/L2 there's still a residual class
-of rules that load but with known fidelity loss (e.g. condition shape we
-collapse to `all of selection_*`). Two options:
+  Cumulative: clean 88.75% → 91.64%, exceptions 146 → 0, desync /
+  silent_data_loss held at 0.
 
-  * Pre-load: corpus-search results carry a small "compatibility: clean /
-    partial / degraded" chip so the user sees what they're getting into
-    before they click Load. The audit JSON computes this.
-  * Post-load: the existing `LOAD_*` issue list (already surfaced in the
-    preview pane) is the canonical view; add a one-line summary at the top
-    of Stage 1 if any `LOAD_*` issue is `tier=1` so the user can't miss it.
+**L2-P2 — Catalog expansion (next).** Audit's remaining 310 degraded
+rules are 210 `LOAD_OBSERVATION_UNKNOWN` (covered here) + 100
+`LOAD_CONDITION_UNUSUAL` (covered by L2-P3 below). The unknown-
+observation rules cluster around ~9 logsource shapes the taxonomy
+doesn't currently model: `webserver` (82 rules), `file_delete`
+(14), `file_access` (13), generic `dns` (11), `ps_classic_start`
+(11), `registry_delete` (10), `application + kubernetes` (10),
+`create_stream_hash` (9), `antivirus` (7). Each addition is a data-
+only change per CLAUDE.md I-5 — adding a YAML file under
+`data/taxonomy/`, no Python edits. Targets clean rate ≥97% on the
+corpus when complete.
 
-  My lean: Post-load is enough for v1.x — the issue list already exists.
-  Pre-load chips are nice but extra UI surface, defer to v2 unless tester
-  feedback specifically asks for it.
+**L2-P3 — Structured condition editor.** *Reframed as a v2 candidate;
+see "## v2 — Composer fidelity" below.* The `LOAD_CONDITION_UNUSUAL`
+class is real detection-engineering nuance the auto-composer can't
+reproduce — accepting the lossy save is wrong; the right answer is a
+tree-builder UI for `ConditionExpression` that stays within I-4 (no
+editable YAML). Out of scope for v1.
 
-**Sequencing**: L1 must precede L2 (the audit feeds the fix list).
-L3 is independent and small; can ship anytime. The whole sweep
-constitutes a coherent v1.x milestone — bumps minor (`0.3.0`) on
-completion per the versioning policy in CHANGELOG.md.
+**L3 — Audit-as-test (pending).** Convert `scripts/audit_corpus_loads.py`
+into a `@pytest.mark.slow` integration test with ratchet-down-only
+thresholds (clean count must not regress, exception count must stay
+0) so future loader changes can't reintroduce breakage without CI
+catching it. Independent of L2; can ship anytime.
 
-The next-three patches' worth of "load XYZ rule and breadcrumb desyncs"
-follow-ups in the todo list (filter-only Stage-2-inaccessible, missing-
-category P2 regression, etc.) all roll up into L2's fix list. Don't fix
-them piecemeal; they're the input to the audit, not the output.
+**Status**: L1 + L2-P1 shipped (0.2.12, 0.2.13). L2-P2 is the active
+work-in-progress. L3 trails L2-P2 but doesn't depend on it. The whole
+sweep constitutes a coherent v1.x milestone — bumps minor (`0.3.0`)
+when L2-P2 + L3 land.
 
 ## v1.x — Smaller post-v1.0 polish
 

@@ -78,9 +78,13 @@ class DetectionItemDraft(BaseModel):
     model_config = ConfigDict(extra="forbid")
     field: str = ""
     modifiers: list[ValueModifier] = Field(default_factory=list)
-    values: list[str] = Field(default_factory=list)  # drafts hold raw strings;
-                                                     # coercion to int/bool is
-                                                     # core.model's concern
+    values: list[str | None] = Field(default_factory=list)  # raw strings + None
+                                                            # for the YAML-null
+                                                            # idiom (Field: null);
+                                                            # int/bool coercion
+                                                            # for numeric fields
+                                                            # is core.model's
+                                                            # concern
 
 
 class DetectionBlockDraft(BaseModel):

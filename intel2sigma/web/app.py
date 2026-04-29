@@ -4,13 +4,12 @@ Wires together:
 
 * Static asset serving (``/static/*`` -> ``intel2sigma/web/static/``)
 * Jinja2 templates (``intel2sigma/web/templates/``)
-* Guided + Expert mode shells — both render the same base template with
-  different ``mode`` values, per the design in docs/web-state-model.md.
+* The Guided composer shell at ``/mode/guided`` (the only mode — Expert
+  mode was pruned without ever shipping; see ``guided_home`` below and
+  the SPEC.md decision log for the full rationale).
+* The composer routes router (mounted via :mod:`intel2sigma.web.routes`),
+  which carries the actual stage-by-stage rule-building flow.
 * ``/healthz`` — liveness probe for container platforms.
-
-Zero composer logic at this stage — routes for the five Guided stages and
-Expert-mode detail land in M1.3 and M1.4. This module's job is to make the
-chrome render and prove the FastAPI + Jinja2 + static wiring is correct.
 """
 
 from __future__ import annotations
