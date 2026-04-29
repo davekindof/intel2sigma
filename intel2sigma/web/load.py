@@ -209,7 +209,20 @@ def _translate_observation(
             if product not in products:
                 continue
         draft.observation_id = spec.id
-        draft.platform_id = spec.platforms[0].id if spec.platforms else ""
+        # Pick the platform whose product matches the loaded rule. Pre-
+        # L2-P2 the catalog had one platform per file so this was always
+        # ``spec.platforms[0]``; once multi-platform entries land
+        # (network_connection now carries both windows + linux,
+        # file_event windows + macos) the first-platform default would
+        # silently route a Linux rule to platform_id="windows" — wrong
+        # field set in Stage 1, wrong logsource.product on save. Match
+        # by product when we can; fall back to the first platform when
+        # the loaded rule has no product (e.g. ``category: webserver``).
+        matched_platform = next(
+            (p for p in spec.platforms if product and p.product == product),
+            spec.platforms[0] if spec.platforms else None,
+        )
+        draft.platform_id = matched_platform.id if matched_platform else ""
         return
 
     # No catalogue match. Route to the freeform observation path so the

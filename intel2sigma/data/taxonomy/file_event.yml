@@ -1,12 +1,22 @@
-# File-event observation catalog (Windows).
+# File-event observation catalog.
 #
 # Calibrated against SigmaHQ at commit 03412947a2d6. See docs/taxonomy.md
-# for methodology. Windows-only — Linux auditd rules live in
-# file_event_linux.yml.
+# for methodology. Linux auditd rules use a different field shape and
+# live in file_event_linux.yml; the Windows + macOS variants share the
+# Sysmon-flavor field names (TargetFilename, Image, CommandLine) and
+# route through this file.
 #
-# TargetFilename is essentially universal in this category (99% of rules),
-# followed by Image at ~50%. Everything beyond is a long tail of process-
-# context fields used in a small minority of rules.
+# TargetFilename is essentially universal in this category (99% of
+# rules), followed by Image at ~50%. Everything beyond is a long tail
+# of process-context fields used in a small minority of rules.
+#
+# Cross-platform: macOS Sysmon-for-mac and Windows Sysmon emit
+# file_event records with the same field names. The L2-P2 audit
+# confirmed all 5 unmatched macos file_event corpus rules use this
+# same shape — adding macos as a secondary platform clears them
+# without a sibling file. Path conventions differ at the value layer
+# (macOS paths start with /, Windows with backslash) but that's the
+# user's content, not catalog structure.
 
 id: file_event
 label: "A file was created or modified"
@@ -18,6 +28,9 @@ platforms:
     - id: windows
       product: windows
       tier: primary
+    - id: macos
+      product: macos
+      tier: secondary
 synonyms:
     - "file created"
     - "file written"

@@ -1,10 +1,17 @@
-# Network-connection observation catalog (Windows, Sysmon EventID 3).
+# Network-connection observation catalog.
 #
-# Calibrated against SigmaHQ at commit 03412947a2d6. 61 rules combined.
-# Process-context fields (Image, Initiated) are more common than raw network
-# fields (DestinationIp, DestinationPort) — analysts typically qualify
-# network activity by which process was responsible, then filter on the
-# destination.
+# Calibrated against SigmaHQ at commit 03412947a2d6. 61 windows rules + 5
+# linux rules. Process-context fields (Image, Initiated) are more common
+# than raw network fields (DestinationIp, DestinationPort) — analysts
+# typically qualify network activity by which process was responsible,
+# then filter on the destination.
+#
+# Cross-platform: Sysmon EventID 3 on Windows and sysmon-for-linux's
+# network_connection event share the same field names (Image,
+# DestinationHostname, DestinationIp, DestinationPort, Initiated, etc.).
+# The L2-P2 audit confirmed all 5 unmatched linux network_connection
+# corpus rules use this same shape — adding linux as a secondary
+# platform clears them without a sibling file.
 
 id: network_connection
 label: "A process made a network connection"
@@ -16,6 +23,9 @@ platforms:
     - id: windows
       product: windows
       tier: primary
+    - id: linux
+      product: linux
+      tier: secondary
 synonyms:
     - "outbound connection"
     - "process connected"

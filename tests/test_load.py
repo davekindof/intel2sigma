@@ -77,6 +77,56 @@ def test_draft_from_yaml_lands_at_stage3_when_complete() -> None:
     assert draft.stage == 3
 
 
+def test_draft_from_yaml_routes_to_correct_platform_for_multi_platform_taxonomy() -> None:
+    """A multi-platform taxonomy entry routes by ``logsource.product``.
+
+    Pre-L2-P2 each catalog file had one platform per file, so the loader's
+    ``platform_id = spec.platforms[0].id`` shortcut was correct by
+    coincidence. With multi-platform entries (network_connection now
+    carries both windows + linux, file_event windows + macos), the
+    first-platform default would silently route a Linux rule to
+    ``platform_id="windows"`` — wrong field set in Stage 1, wrong
+    ``logsource.product`` on save. The translator now picks the
+    platform whose ``product`` matches the loaded rule.
+    """
+    yaml_text = """
+title: Linux network_connection fixture
+id: 88888888-1111-2222-3333-444444444444
+status: test
+date: 2026-04-29
+logsource:
+    category: network_connection
+    product: linux
+detection:
+    selection:
+        Image|endswith: /curl
+    condition: selection
+"""
+    draft, _ = draft_from_yaml(yaml_text)
+    assert draft is not None
+    assert draft.observation_id == "network_connection"
+    assert draft.platform_id == "linux"
+
+    # macos file_event uses the same multi-platform shape.
+    yaml_macos = (
+        yaml_text.replace("network_connection", "file_event")
+        .replace("linux", "macos")
+        .replace("/curl", "/etc/emond.d/rules/foo.plist")
+    )
+    draft_macos, _ = draft_from_yaml(yaml_macos)
+    assert draft_macos is not None
+    assert draft_macos.observation_id == "file_event"
+    assert draft_macos.platform_id == "macos"
+
+    # Sanity: the windows path (the original primary platform) still
+    # works — first-platform fallback covers the no-product case too.
+    yaml_win = yaml_text.replace("linux", "windows")
+    draft_win, _ = draft_from_yaml(yaml_win)
+    assert draft_win is not None
+    assert draft_win.observation_id == "network_connection"
+    assert draft_win.platform_id == "windows"
+
+
 def test_draft_from_yaml_returns_issue_on_garbage_input() -> None:
     draft, issues = draft_from_yaml("not: valid sigma\n  detection: nope")
     assert draft is None
