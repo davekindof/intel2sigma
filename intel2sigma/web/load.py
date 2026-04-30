@@ -368,13 +368,52 @@ def _translate_item(di: SigmaDetectionItem) -> DetectionItemDraft:
 
 
 def _modifier_name(mod_cls: type) -> str:
-    """pySigma modifier class (e.g. ``SigmaEndswithModifier``) → short name."""
+    """pySigma modifier class (e.g. ``SigmaEndswithModifier``) → short name.
+
+    Uses pySigma's authoritative ``modifier_mapping`` (token → class) to
+    look up the canonical token for a given class. Fallback to class-
+    name munging is kept for defensive operation when an unrecognized
+    class somehow flows through (extension modifiers from a future
+    pySigma release, etc.) — the fallback's output is unlikely to
+    match anything in our ``known`` set, so the modifier gets filtered
+    out gracefully rather than crashing.
+
+    Pre-L5 this function did class-name munging unconditionally,
+    producing ``"windowsdash"`` from ``SigmaWindowsDashModifier`` —
+    but pySigma's known token is ``"windash"``. The loader's
+    known-set filter then dropped the modifier silently. The L4
+    corpus emit-audit found 50+ rules silently losing modifiers
+    this way; ``windash`` was the worst offender but other multi-
+    word modifier classes had the same shape. Inverse lookup via
+    ``modifier_mapping`` eliminates the entire class.
+    """
+    token = _MOD_CLS_TO_TOKEN.get(mod_cls)
+    if token is not None:
+        return token
+    # Fallback: class-name munging. Unlikely to produce a token in
+    # our ``known`` set, so the modifier filter drops it — preferable
+    # to raising on an unexpected class.
     name = mod_cls.__name__
     if name.startswith("Sigma"):
         name = name[len("Sigma") :]
     if name.endswith("Modifier"):
         name = name[: -len("Modifier")]
     return name.lower()
+
+
+def _build_modifier_class_to_token() -> dict[type, str]:
+    """Invert pySigma's ``modifier_mapping`` (token → class) at import time.
+
+    Built lazily-but-once on first import of this module. pySigma's
+    mapping is stable across the runtime; we don't need to handle
+    runtime changes.
+    """
+    from sigma.modifiers import modifier_mapping  # noqa: PLC0415
+
+    return {cls: token for token, cls in modifier_mapping.items()}
+
+
+_MOD_CLS_TO_TOKEN: dict[type, str] = _build_modifier_class_to_token()
 
 
 def _stringify_value(v: Any) -> str | None:

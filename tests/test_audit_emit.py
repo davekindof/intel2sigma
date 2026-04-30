@@ -88,6 +88,45 @@ level: low
     assert "LOAD_OBSERVATION_UNKNOWN" in rec.get("issue_codes", [])
 
 
+def test_windash_modifier_round_trips_through_emit() -> None:
+    """``Field|contains|windash: x`` round-trips without losing the
+    ``windash`` modifier.
+
+    L4-surfaced regression. Pre-L5, the loader's ``_modifier_name``
+    did class-name munging — ``SigmaWindowsDashModifier`` became
+    ``"windowsdash"`` — but pySigma's canonical token is
+    ``"windash"``. The loader's known-set filter rejected the
+    munged name, dropping the modifier silently. Re-emit then
+    produced YAML where two items collapsed onto the same
+    ``Field|contains`` mapping key, silently dropping one.
+
+    L5 fixed ``_modifier_name`` to use pySigma's
+    ``modifier_mapping`` inversely. This test pins the round-trip
+    end-to-end so a future regression to class-name munging fails
+    here, not 7 minutes later in the L6 ratchet.
+    """
+    yaml_text = """
+title: windash round-trip
+id: 55555555-6666-7777-8888-999999999999
+status: experimental
+date: 2026-04-30
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        CommandLine|contains|windash:
+            - '-encodedcommand'
+    condition: selection
+level: high
+"""
+    rec = categorise_emit_rule(_rule(yaml_text))
+    assert rec["category"] in {"clean", "degraded"}, (
+        f"windash modifier dropped on round-trip: {rec['category']} "
+        f"({rec.get('symptom', '')})"
+    )
+
+
 def test_keyword_search_round_trips_clean() -> None:
     """Sigma's bare-list keyword idiom (no field) survives round-trip.
 
