@@ -40,7 +40,7 @@ from intel2sigma.core.taxonomy import (
     TaxonomyRegistry,
     load_taxonomy,
 )
-from intel2sigma.core.taxonomy.schema import ObservationTypeSpec
+from intel2sigma.core.taxonomy.schema import ObservationTypeSpec, TaxonomyField
 from intel2sigma.core.validate import validate_tier3
 from intel2sigma.core.validate.issues import ValidationIssue
 from intel2sigma.web.draft import (
@@ -836,9 +836,58 @@ def _set_item_field(draft: RuleDraft, form: Any) -> None:
     if item_index is None:
         return
     new_field = str(form.get(f"field::{block_name}::{item_index}", "")).strip()
+
+    # No-op when the field-name string didn't actually change. The
+    # field-name input fires htmx ``change, keyup delay:300ms``, so
+    # repeatedly tabbing away from / hitting Enter on / re-clicking
+    # the input produces calls here with the same value. The pre-
+    # 0.3.1 implementation then ran the unconditional
+    # ``item.modifiers = []`` reset below, silently dropping the
+    # modifier the user picked between keystrokes. (B1 bug filed
+    # during 0.3.0 testing — the user picks ``contains``, edits the
+    # field name, and the emitted YAML loses ``|contains``, turning
+    # the rule into a silent no-op.)
+    if new_field == item.field:
+        return
+
     item.field = new_field
-    # Changing the field invalidates the modifier chain — reset it.
-    item.modifiers = []
+
+    # Reset the modifier chain ONLY when the new field's allowed-
+    # modifier list (per the taxonomy spec) doesn't include the
+    # current modifier. For freeform observations or uncatalogued
+    # field names, keep whatever the user picked — they expressed
+    # intent, the modifier might still be valid (just not validated
+    # by the catalog), and erasing it surprises them.
+    if not item.modifiers:
+        return
+    current_mod = item.modifiers[0]
+    field_spec = _field_spec_for_draft(draft, new_field)
+    if field_spec is None:
+        # Freeform observation or freeform field name — keep modifier.
+        return
+    if current_mod not in field_spec.allowed_modifiers:
+        # Catalog says the user's modifier doesn't apply to this
+        # field type (e.g. switching from a string field with
+        # ``contains`` to an int field where ``contains`` isn't
+        # allowed). Now the reset is justified.
+        item.modifiers = []
+
+
+def _field_spec_for_draft(draft: RuleDraft, field_name: str) -> TaxonomyField | None:
+    """Return the catalog spec for ``field_name`` under the draft's observation.
+
+    Returns ``None`` when the draft uses the freeform observation, when
+    the observation isn't catalogued, or when ``field_name`` doesn't
+    appear in the catalog's field list. Callers treat ``None`` as
+    "trust whatever modifier the user picked" — see ``_set_item_field``.
+    """
+    if not draft.observation_id or draft.observation_id == _FREEFORM_OBSERVATION_ID:
+        return None
+    try:
+        spec = load_taxonomy().get(draft.observation_id)
+    except KeyError:
+        return None
+    return next((f for f in spec.fields if f.name == field_name), None)
 
 
 def _set_item_modifier(draft: RuleDraft, form: Any) -> None:

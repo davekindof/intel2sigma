@@ -189,6 +189,208 @@ def test_add_item_then_set_field_and_value(client: TestClient) -> None:
     assert item["values"] == ["\\powershell.exe"]
 
 
+def _add_match_item(client: TestClient, state: str) -> str:
+    """Helper: add a match block + one empty item, return the JSON state."""
+    r = client.post("/composer/update", data={"rule_state": state, "action": "add_match"})
+    state = json.dumps(_extract_state(r.text))
+    r = client.post(
+        "/composer/update",
+        data={"rule_state": state, "action": "add_item", "block_name": "match_1"},
+    )
+    return json.dumps(_extract_state(r.text))
+
+
+def _post(client: TestClient, state: str, action: str, **fields: str) -> str:
+    """Helper: post a single composer/update action and return the new state."""
+    data = {"rule_state": state, "action": action, **fields}
+    r = client.post("/composer/update", data=data)
+    return json.dumps(_extract_state(r.text))
+
+
+def test_set_field_preserves_modifier_when_allowed_list_includes_it(
+    client: TestClient,
+) -> None:
+    """Picking a modifier and *then* editing the field name must not drop the modifier.
+
+    B1 regression (filed during 0.3.0 testing). The pre-0.3.1
+    implementation reset ``item.modifiers = []`` unconditionally on
+    every ``set_field`` call. The field-name input fires htmx
+    ``change, keyup delay:300ms``, so any keystroke landing after the
+    user picked a modifier silently dropped that modifier — the
+    emitted YAML lost ``|contains`` and the rule became a silent
+    no-op (looks deployed, fires on no events).
+
+    Repro shape:
+      add item → set_modifier "contains" → set_field "Image"
+      → modifiers MUST still be ["contains"]
+    """
+    state = _state_at_stage1(client)
+    state = _add_match_item(client, state)
+    state = _post(
+        client,
+        state,
+        "set_modifier",
+        block_name="match_1",
+        item_index="0",
+        **{"modifier::match_1::0": "contains"},
+    )
+    state = _post(
+        client,
+        state,
+        "set_field",
+        block_name="match_1",
+        item_index="0",
+        **{"field::match_1::0": "Image"},
+    )
+    state_obj = json.loads(state)
+    item = state_obj["detections"][0]["items"][0]
+    assert item["field"] == "Image"
+    assert item["modifiers"] == ["contains"], (
+        f"Modifier dropped on set_field: {item}. The handler reset "
+        f"modifiers when it shouldn't have — Image's allowed_modifiers "
+        f"in process_creation.yml include 'contains', so the user's "
+        f"selection must survive."
+    )
+
+
+def test_set_field_preserves_modifier_in_freeform_observation(
+    client: TestClient,
+) -> None:
+    """Freeform observations have no taxonomy spec — modifier is always preserved.
+
+    B1 regression (freeform branch). When the user picks the
+    "Custom logsource" path in Stage 0, ``observation_id =
+    _freeform`` and there's no catalog to validate against. The
+    user's modifier choice IS the source of truth. The handler
+    must not erase it on any subsequent set_field call.
+
+    Repro shape (the literal flow that surfaced the bug — auditd
+    via custom logsource, saddr field, contains modifier):
+      select-freeform → add item → set_modifier "contains"
+      → set_field "saddr" → modifiers MUST still be ["contains"]
+    """
+    r = client.post(
+        "/composer/select-freeform-observation",
+        data={
+            "rule_state": "{}",
+            "logsource_product": "linux",
+            "logsource_service": "auditd",
+        },
+    )
+    state = json.dumps(_extract_state(r.text))
+    state = _add_match_item(client, state)
+    state = _post(
+        client,
+        state,
+        "set_modifier",
+        block_name="match_1",
+        item_index="0",
+        **{"modifier::match_1::0": "contains"},
+    )
+    state = _post(
+        client,
+        state,
+        "set_field",
+        block_name="match_1",
+        item_index="0",
+        **{"field::match_1::0": "saddr"},
+    )
+    state_obj = json.loads(state)
+    item = state_obj["detections"][0]["items"][0]
+    assert item["field"] == "saddr"
+    assert item["modifiers"] == ["contains"]
+
+
+def test_set_field_no_op_when_field_unchanged_preserves_modifier(
+    client: TestClient,
+) -> None:
+    """Re-posting the same field name doesn't reset the modifier.
+
+    The most direct B1 repro: htmx fires ``keyup delay:300ms`` on
+    the field-name input even when the user hasn't changed the
+    field — clicking out of the input or hitting Enter triggers a
+    redundant set_field POST. Pre-0.3.1 these no-op posts still
+    reset modifiers to []. The fix early-returns when
+    ``new_field == item.field``.
+    """
+    state = _state_at_stage1(client)
+    state = _add_match_item(client, state)
+    state = _post(
+        client,
+        state,
+        "set_field",
+        block_name="match_1",
+        item_index="0",
+        **{"field::match_1::0": "Image"},
+    )
+    state = _post(
+        client,
+        state,
+        "set_modifier",
+        block_name="match_1",
+        item_index="0",
+        **{"modifier::match_1::0": "endswith"},
+    )
+    # Re-post the same field name — simulates a redundant keyup.
+    state = _post(
+        client,
+        state,
+        "set_field",
+        block_name="match_1",
+        item_index="0",
+        **{"field::match_1::0": "Image"},
+    )
+    state_obj = json.loads(state)
+    item = state_obj["detections"][0]["items"][0]
+    assert item["modifiers"] == ["endswith"]
+
+
+def test_set_field_resets_modifier_when_new_field_disallows_it(
+    client: TestClient,
+) -> None:
+    """When the new field's allowed-modifier list excludes the current
+    modifier, the reset is justified — that's the original 'changing
+    the field invalidates the modifier' intent, just narrowed.
+
+    process_creation's ``IntegrityLevel`` field is type=enum with
+    allowed_modifiers=[exact] only. Switching from a string field
+    that had ``contains`` over to ``IntegrityLevel`` must reset
+    because ``contains`` is genuinely illegal there.
+    """
+    state = _state_at_stage1(client)
+    state = _add_match_item(client, state)
+    state = _post(
+        client,
+        state,
+        "set_field",
+        block_name="match_1",
+        item_index="0",
+        **{"field::match_1::0": "CommandLine"},
+    )
+    state = _post(
+        client,
+        state,
+        "set_modifier",
+        block_name="match_1",
+        item_index="0",
+        **{"modifier::match_1::0": "contains"},
+    )
+    state = _post(
+        client,
+        state,
+        "set_field",
+        block_name="match_1",
+        item_index="0",
+        **{"field::match_1::0": "IntegrityLevel"},
+    )
+    state_obj = json.loads(state)
+    item = state_obj["detections"][0]["items"][0]
+    assert item["field"] == "IntegrityLevel"
+    # IntegrityLevel.allowed_modifiers = [exact]; "contains" is illegal,
+    # so the reset is correct here.
+    assert item["modifiers"] == []
+
+
 def test_restart_returns_to_stage0(client: TestClient) -> None:
     state = _state_at_stage1(client)
     r = client.post("/composer/restart", data={"rule_state": state})
