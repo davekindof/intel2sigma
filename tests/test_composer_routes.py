@@ -345,6 +345,116 @@ def test_set_field_no_op_when_field_unchanged_preserves_modifier(
     assert item["modifiers"] == ["endswith"]
 
 
+def test_modifier_dropdown_shows_sentinel_dash_when_modifier_unset(
+    client: TestClient,
+) -> None:
+    """An item with ``modifiers=[]`` must render with the ``—`` sentinel
+    option SELECTED — not silently default-display the first allowed
+    modifier as if the user had picked it.
+
+    B4 regression. Without the sentinel, HTML ``<select>`` defaults to
+    the first ``<option>`` whenever nothing is ``selected``, so an item
+    whose state is ``modifiers=[]`` displays as if the first allowed
+    modifier (typically "contains") were picked. That made B1's
+    silent modifier-drop invisible — the dropdown said "contains" so
+    the user trusted it; the YAML emitted without ``|contains`` so
+    the rule became a silent no-op.
+
+    Contract: when ``item.modifiers == []`` AND a field is set, the
+    rendered ``<option value="">—</option>`` must carry ``selected``.
+    """
+    state = _state_at_stage1(client)
+    state = _add_match_item(client, state)
+    # Set a field but don't touch the modifier — state stays
+    # `modifiers=[]`, the case where the bug surfaced.
+    r = client.post(
+        "/composer/update",
+        data={
+            "rule_state": state,
+            "action": "set_field",
+            "block_name": "match_1",
+            "item_index": "0",
+            "field::match_1::0": "Image",
+        },
+    )
+    body = r.text
+
+    # Dash option is rendered AND has the ``selected`` attribute. Use
+    # multi-line regex because the option's attributes may wrap.
+    import re  # noqa: PLC0415
+
+    sentinel_re = re.compile(
+        r'<option\s+value=""\s+selected[^>]*>\s*—\s*</option>',
+        re.DOTALL,
+    )
+    assert sentinel_re.search(body), (
+        "Modifier dropdown is missing the selected ``—`` sentinel option "
+        "for an item with empty modifiers. The dropdown will visually "
+        "default to the first allowed modifier and lie about user intent."
+    )
+
+    # And the actual modifier options (e.g. "ends with") must NOT be
+    # selected — only the sentinel.
+    options_after_sentinel = body.split('<option value=""', 1)[-1]
+    real_modifier_selected = re.search(
+        r'<option value="(contains|endswith|startswith|all|re)"[^>]*selected',
+        options_after_sentinel,
+    )
+    assert real_modifier_selected is None, (
+        f"A real modifier option carries 'selected' alongside the "
+        f"sentinel: {real_modifier_selected.group(0) if real_modifier_selected else ''}"
+    )
+
+
+def test_modifier_dropdown_marks_picked_modifier_selected_not_sentinel(
+    client: TestClient,
+) -> None:
+    """When the user picks a real modifier, that option carries
+    ``selected``, not the sentinel.
+    """
+    state = _state_at_stage1(client)
+    state = _add_match_item(client, state)
+    state = _post(
+        client,
+        state,
+        "set_field",
+        block_name="match_1",
+        item_index="0",
+        **{"field::match_1::0": "Image"},
+    )
+    r = client.post(
+        "/composer/update",
+        data={
+            "rule_state": json.dumps(json.loads(state)),
+            "action": "set_modifier",
+            "block_name": "match_1",
+            "item_index": "0",
+            "modifier::match_1::0": "endswith",
+        },
+    )
+    body = r.text
+
+    import re  # noqa: PLC0415
+
+    # Sentinel must NOT carry selected now.
+    sentinel_unselected = re.search(
+        r'<option\s+value=""(?![^>]*selected)[^>]*>\s*—\s*</option>',
+        body,
+    )
+    assert sentinel_unselected is not None, (
+        "Sentinel ``—`` option is still selected even though the user "
+        "picked ``endswith`` — only one option can be selected at a time."
+    )
+    # The endswith option must carry selected.
+    endswith_selected = re.search(
+        r'<option\s+value="endswith"[^>]*selected',
+        body,
+    )
+    assert endswith_selected is not None, (
+        "User-picked modifier ``endswith`` is missing the ``selected`` attribute on render."
+    )
+
+
 def test_set_field_resets_modifier_when_new_field_disallows_it(
     client: TestClient,
 ) -> None:

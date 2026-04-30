@@ -113,6 +113,30 @@ Included from stage1_detection.html per match/filter block. Expects:
                 {% set allowed = field_spec.allowed_modifiers
                                  if field_spec
                                  else ["contains", "startswith", "endswith", "exact", "re"] %}
+
+                {# Sentinel "no modifier picked" option (B4 fix). Without this,
+                   HTML's <select> defaults to the FIRST option whenever
+                   nothing is `selected` — so an item with `modifiers=[]`
+                   visually displays as if the user had picked the first
+                   allowed modifier (typically "contains"), even though the
+                   underlying state is empty. The user trusts the dropdown
+                   reading and never realises their modifier wasn't actually
+                   captured. The literal repro from 0.3.0 testing: user picks
+                   "contains" via dropdown, then edits the field-name input,
+                   `_set_item_field` resets modifiers, dropdown still says
+                   "contains" because that's the first allowed option, YAML
+                   emits without `|contains` — silent no-op rule.
+
+                   The leading `—` option is selected when state has no
+                   modifier; the user can re-select it later to deselect.
+                   The dropdown now visually distinguishes "user explicitly
+                   picked the first allowed modifier" from "user hasn't
+                   picked anything." Pattern V in the ROADMAP generalises
+                   this to every <select> / radio group / pre-filled
+                   input across the composer surface. #}
+                <option value=""
+                        {% if not item.modifiers %}selected{% endif %}
+                        title="No modifier — emits as bare ``field: value`` (Sigma's exact-match form).">—</option>
                 {# Render the user-facing label ("ends with") rather than
                    the raw Sigma modifier name ("endswith"). The submitted
                    value is still the canonical Sigma string — only the
