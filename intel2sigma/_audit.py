@@ -355,8 +355,9 @@ def _item_facts(detection_item: Any) -> dict[str, Any]:
         normalized to short tokens (``contains``) and run through
         ``_normalize_modifier_chain``
       * ``original_value`` — the value list / scalar before pySigma
-        type-coerced it; we stringify and put in a frozenset so order
-        differences (any_of blocks may shuffle) don't false-flag drift
+        type-coerced it; we stringify (with a canonical override for
+        ``SigmaNull``) and put in a frozenset so order differences
+        (any_of blocks may shuffle) don't false-flag drift
     """
     field = getattr(detection_item, "field", None) or ""
     raw_mods = getattr(detection_item, "modifiers", []) or []
@@ -374,8 +375,33 @@ def _item_facts(detection_item: Any) -> dict[str, Any]:
         # Frozenset-equivalent — sort for JSON-serializable
         # determinism. Drift comparison treats values as a set
         # because any_of blocks legitimately reorder.
-        "values": sorted(str(v) for v in value_iter),
+        "values": sorted(_canonical_value_str(v) for v in value_iter),
     }
+
+
+def _canonical_value_str(value: Any) -> str:
+    """Stable stringification for drift comparison.
+
+    pySigma's ``SigmaNull`` doesn't override ``__str__``, so every
+    instance stringifies with its memory address — two separate
+    parses of the same ``Field: null`` produce different strings,
+    which previously false-flagged ~21+ rules as ``structural_drift``
+    in the L4 audit even though source and re-emit were semantically
+    identical.
+
+    Canonical override: any ``SigmaNull`` instance maps to the
+    sentinel string ``"<NULL>"``. Other pySigma value types
+    (``SigmaString``, ``SigmaNumber``, ``SigmaBool``) override
+    ``__str__`` themselves and stringify deterministically, so
+    ``str()`` is fine for them.
+    """
+    # Lazy import: avoids dragging the sigma package into _audit's
+    # import path for callers that don't need the audit at all.
+    from sigma.types import SigmaNull  # noqa: PLC0415
+
+    if isinstance(value, SigmaNull):
+        return "<NULL>"
+    return str(value)
 
 
 def _short_modifier_name(mod_cls: type) -> str:
