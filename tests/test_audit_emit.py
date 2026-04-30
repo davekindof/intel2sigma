@@ -122,8 +122,49 @@ level: high
 """
     rec = categorise_emit_rule(_rule(yaml_text))
     assert rec["category"] in {"clean", "degraded"}, (
-        f"windash modifier dropped on round-trip: {rec['category']} "
-        f"({rec.get('symptom', '')})"
+        f"windash modifier dropped on round-trip: {rec['category']} ({rec.get('symptom', '')})"
+    )
+
+
+def test_yaml11_boolean_literal_value_round_trips_through_emit() -> None:
+    """``CommandLine|contains|all: [recoveryenabled, 'no']`` round-trips.
+
+    L4-surfaced regression. The literal string ``"no"`` is a YAML 1.1
+    boolean (``False``) but a plain scalar string in YAML 1.2. Ruamel
+    (our emit) uses 1.2 and emits ``- no`` unquoted; PyYAML (pySigma
+    by default) uses 1.1 and parses ``- no`` as ``False``, then
+    pySigma rejects with ``SigmaTypeError: Modifier
+    SigmaContainsModifier incompatible to value type of 'False'``.
+
+    SigmaHQ rule 1444443e-… ("Boot Configuration Tampering Via
+    Bcdedit.EXE") was the surfaced instance — bcdedit's
+    ``recoveryenabled no`` flag matches as a string, but our emit
+    silently turned it into a boolean.
+
+    L5-C fix: the serializer wraps any string matching a YAML 1.1
+    boolean literal in ``SingleQuotedScalarString`` to force quoted
+    emission. Other YAML 1.1 booleans (yes / on / off / y / n /
+    case variants) are caught by the same set.
+    """
+    yaml_text = """
+title: yaml-1.1 bool round-trip
+id: 77777777-8888-9999-aaaa-bbbbbbbbbbbb
+status: experimental
+date: 2026-04-30
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        - CommandLine|contains|all:
+              - 'recoveryenabled'
+              - 'no'
+    condition: selection
+level: high
+"""
+    rec = categorise_emit_rule(_rule(yaml_text))
+    assert rec["category"] in {"clean", "degraded"}, (
+        f"YAML 1.1 boolean string regressed: {rec['category']} ({rec.get('symptom', '')})"
     )
 
 

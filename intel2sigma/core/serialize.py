@@ -178,10 +178,78 @@ def _values_to_yaml(values: list[str | int | bool | None]) -> Any:
     ``None`` is the YAML-null sentinel — see ``DetectionItem.values``
     in :mod:`intel2sigma.core.model`. ruamel emits it as a bare
     colon (``Field:``), which pySigma parses back as ``SigmaNull``.
+
+    String values matching YAML 1.1 boolean literals (``yes`` / ``no``
+    / ``y`` / ``n`` / ``on`` / ``off`` and case variants) are
+    explicitly single-quoted on emit. ruamel uses YAML 1.2 by default,
+    where ``no`` is a plain scalar (string) — so plain emission feels
+    safe. But pySigma's parser uses PyYAML's YAML 1.1 by default,
+    where ``no`` is the boolean ``False``. The L4 corpus emit-audit
+    found 4 rules failing emit_exception with
+    ``SigmaTypeError: Modifier SigmaContainsModifier incompatible to
+    value type of 'False'`` because of this mismatch — e.g. SigmaHQ
+    rule 1444443e-… emits ``CommandLine|contains|all: [recoveryenabled,
+    no]`` where ``no`` was meant to be the bcdedit recovery-disabled
+    flag.
+
+    Ruamel auto-quotes strings that LOOK like numbers (``"1234"`` →
+    ``'1234'``) and strings that LOOK like null (``"~"`` → ``'~'``)
+    because those are ambiguous in YAML 1.2 too — we only need to
+    handle the YAML-1.1-only ambiguities ourselves.
     """
-    if len(values) == 1:
-        return values[0]
-    return list(values)
+    coerced = [_emit_safe(v) for v in values]
+    if len(coerced) == 1:
+        return coerced[0]
+    return list(coerced)
+
+
+# YAML 1.1 boolean literals. PyYAML (which pySigma uses by default)
+# parses these as booleans, ruamel-yaml (which we use to emit) doesn't.
+# Quote on emit to survive the read-side asymmetry.
+_YAML11_BOOLS: frozenset[str] = frozenset(
+    {
+        "y",
+        "Y",
+        "yes",
+        "Yes",
+        "YES",
+        "n",
+        "N",
+        "no",
+        "No",
+        "NO",
+        "true",
+        "True",
+        "TRUE",
+        "false",
+        "False",
+        "FALSE",
+        "on",
+        "On",
+        "ON",
+        "off",
+        "Off",
+        "OFF",
+    }
+)
+
+
+def _emit_safe(value: str | int | bool | None) -> Any:
+    """Wrap quote-needing strings in a ruamel scalar that forces quoting.
+
+    Currently catches the YAML 1.1 boolean-literal asymmetry between
+    our emit (ruamel 1.2) and pySigma's read (PyYAML 1.1). Other
+    asymmetries (numbers-that-aren't-numbers, null literals like
+    ``~``) are already handled by ruamel's own auto-quoting because
+    they're ambiguous in YAML 1.2 too.
+    """
+    if isinstance(value, str) and value in _YAML11_BOOLS:
+        # Lazy import: keeps ``ruamel.yaml.scalarstring`` off the
+        # import path of any consumer that doesn't actually emit.
+        from ruamel.yaml.scalarstring import SingleQuotedScalarString  # noqa: PLC0415
+
+        return SingleQuotedScalarString(value)
+    return value
 
 
 def _detections_to_map(blocks: list[DetectionBlock]) -> CommentedMap:
