@@ -153,10 +153,23 @@ def _detection_item_key(item: DetectionItem) -> str:
     level. Calling this on a keyword item would produce ``""`` or
     ``"|contains"``; ``_detections_to_map`` short-circuits before it
     gets here for pure keyword blocks.
+
+    ``"exact"`` is filtered out of the chain on emit. The Sigma
+    specification has no ``|exact`` modifier — bare ``field: value``
+    IS exact match by definition. The composer surfaces "exactly
+    matches" as a dropdown choice for UX clarity (per SPEC.md
+    decision log, 2026-04-24), and the in-memory ``ValueModifier``
+    Literal accepts ``"exact"`` so the catalog can express
+    ``default_modifier: exact`` naturally — but the canonical YAML
+    must collapse to bare. (B2 bug filed during 0.3.0 testing —
+    a rule authored with the "exactly matches" dropdown selection
+    was emitting ``type|exact: SOCKADDR``, which downstream pySigma
+    backends either reject outright or convert inconsistently.)
     """
-    if not item.modifiers:
+    real_mods = [m for m in item.modifiers if m != "exact"]
+    if not real_mods:
         return item.field
-    return item.field + "|" + "|".join(item.modifiers)
+    return item.field + "|" + "|".join(real_mods)
 
 
 def _values_to_yaml(values: list[str | int | bool | None]) -> Any:
