@@ -3,6 +3,25 @@
 # Vetted-stratum rule count at last calibration: 53
 # Hand-reviewed for verbiage 2026-04-26 (F1d).
 #
+# auditd record-pair pattern: a single auditd "event" is actually a
+# *bundle* of records sharing a timestamp+serial — at minimum a
+# SYSCALL record (with the call's metadata) plus one or more context
+# records (SOCKADDR, PATH, EXECVE, CWD, etc.) carrying the call's
+# arguments. Different fields live in different record types:
+#
+#   SYSCALL   syscall metadata: type, syscall, exe, comm, success,
+#             exit, auid, uid, gid, ses, key, a0..a4
+#   SOCKADDR  socket-syscall arg: saddr (hex-encoded sockaddr struct)
+#   PATH      file-syscall arg:   name, inode, dev, mode, objtype
+#   EXECVE    full argv list:     a0..an
+#   CWD       working directory:  cwd
+#
+# A rule scoping by ``type=SOCKADDR`` matches against the SOCKADDR
+# record specifically; without the type filter, the rule matches
+# whichever record type carries the field. Most corpus rules pivot
+# on SYSCALL fields and the contained context records share the
+# same timestamp.
+#
 # Hand-review notes:
 #   * a0..a4 labels were "A0".."A4" after the F1c mechanical pass —
 #     restored to the auditd-specific "Syscall argument N" form here.
@@ -12,6 +31,12 @@
 #   * Added ``comm`` field (auditd-canonical command name) — used in
 #     real corpus rules but missing from the original auto-generated
 #     field list. Added between ``exe`` and ``a4`` in frequency order.
+#   * 2026-04-29 (B3 / Pattern IV): added SOCKADDR-record field
+#     ``saddr`` and adjacent practical SYSCALL fields ``success``
+#     and ``auid``. Zero corpus rules used these pre-add — exactly
+#     the feedback loop Pattern IV calls out. A junior analyst
+#     authoring a network-syscall detection had no path to ``saddr``
+#     other than dropping into freeform.
 
 id: auditd
 label: A Linux auditd event was logged
@@ -143,3 +168,31 @@ fields:
   - re
   example: insmod
   note: "Command name as seen by the kernel — basename of the executable, truncated to 16 chars (TASK_COMM_LEN)."
+- name: saddr
+  label: Socket address (hex-encoded)
+  type: string
+  default_modifier: contains
+  allowed_modifiers:
+  - contains
+  - startswith
+  - endswith
+  - exact
+  - re
+  example: "01002F7661722F72756E2F"
+  note: "Hex-encoded sockaddr struct from a SOCKADDR-record companion to a network syscall (connect, bind, sendto, etc.). The leading byte is the address family (02=AF_INET, 0A=AF_INET6, 01=AF_UNIX), then port (big-endian 2 bytes for IP families), then the address bytes. Pair with ``type|exact: SOCKADDR`` to scope to the right record. ``contains`` is the typical idiom for matching a port or address fragment."
+- name: success
+  label: Syscall succeeded?
+  type: enum
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  values: ["yes", "no"]
+  note: "Whether the syscall returned a success or error code. Network-attack detections often want ``success=yes`` (the call landed) to skip noisy denied-connection events."
+- name: auid
+  label: Audit UID (original login)
+  type: int
+  default_modifier: exact
+  allowed_modifiers:
+  - exact
+  example: "1000"
+  note: "The audit UID — the user who originally logged in, preserved across su / sudo / setuid transitions. Distinct from ``uid`` (effective UID at syscall time). Use to attribute syscalls run as root back to the human who escalated."
