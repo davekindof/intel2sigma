@@ -24,6 +24,76 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.3.1 — 2026-04-29
+
+Patch bump — four bugs filed during 0.3.0 deploy testing
+(see ROADMAP § "Bugs from 0.3.0 testing"). Each fix is concrete
+and locally scoped; the systemic patterns they surfaced (Patterns
+I–V in ROADMAP) are tracked separately as the next major effort.
+
+### Shipped
+
+- **B1 — operator modifier dropped from emitted YAML** (`c85ee09`,
+  HIGH correctness). `_set_item_field` was resetting
+  `item.modifiers = []` on every call, including the redundant
+  ones htmx fires on `change, keyup delay:300ms`. User picks
+  "contains" → edits field name → modifier silently dropped → YAML
+  emits bare `field: value` → silent no-op rule. Fix narrows the
+  reset: only fire when the new field's allowed-modifier list
+  excludes the current modifier; for freeform observations or
+  uncatalogued field names, never reset. Four regression tests
+  pin all four branches (catalogued+allowed, freeform, no-op
+  same-field, catalogued+disallowed).
+
+- **B2 — `|exact` modifier emitted, non-standard Sigma**
+  (`0610794`, MEDIUM spec compliance). Sigma has no `|exact`
+  modifier — bare `field: value` IS exact match by definition.
+  SPEC.md decision log (2026-04-24) documented the planned
+  collapse but only the composer translation was supposed to be
+  there; the serializer side was missed. Fix: filter `"exact"`
+  out of the modifier chain in `_detection_item_key` before
+  joining. Load preserves the user's lexical input (so the editor
+  reflects what they wrote); emit normalizes (so the saved
+  artifact is canonical Sigma). Round-trip is idempotent after
+  one normalization pass.
+
+- **B3 — auditd taxonomy missing SOCKADDR-record fields**
+  (`49bbd93`, MEDIUM coverage). User authoring a network-syscall
+  detection had no path to `saddr` other than the freeform
+  observation fallback (which loses validation / autocomplete /
+  modifier defaults). Pure-data fix: extends `auditd.yml` with
+  `saddr`, `success`, `auid` plus a top-of-file note explaining
+  auditd's record-pair pattern (SYSCALL + SOCKADDR / PATH /
+  EXECVE / CWD context records). Pattern IV in ROADMAP — pure
+  frequency-driven catalog inclusion would never have surfaced
+  this (zero corpus rules use `saddr` precisely because the
+  catalog didn't expose it; feedback loop).
+
+- **B4 — UI dropdown defaults visually mask empty state**
+  (`b7601b0`, LOW UX, but the visibility compound for B1).
+  HTML `<select>` defaults to the first `<option>` whenever none
+  is `selected`. An item with `modifiers=[]` displayed the first
+  allowed modifier ("contains") as if the user picked it. Fix
+  renders a leading sentinel `<option value="">—</option>` with
+  `selected` when state is empty. The dropdown now visually
+  distinguishes "user explicitly picked contains" from "user
+  hasn't picked anything." Two render-side regression tests pin
+  the contract.
+
+### Known follow-up patterns (tracked in ROADMAP)
+
+- **Pattern I (largest)** — emit-path corpus-wide hardening sweep
+  (L4/L5/L6). The mirror of the now-shipped load-path sweep. Will
+  surface emit-side correctness gaps we don't yet know about.
+- **Pattern II** — converge to a single YAML emit path (preview
+  vs canonical have already drifted twice now: `8329d04`, B4).
+- **Pattern III** — handler-sequence test pass + minimum-mutation
+  audit (B1's handler over-reach is one instance of a class).
+- **Pattern V** — Jinja macro for the "—" sentinel, applied
+  across every `<select>` / radio group / pre-filled input
+  (B4 fixes the most visible instance; the macro extends the
+  pattern across the surface).
+
 ## 0.3.0 — 2026-04-29
 
 Minor bump — v1.x **load-path corpus-wide hardening sweep complete**.
