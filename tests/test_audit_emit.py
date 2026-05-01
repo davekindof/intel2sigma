@@ -168,6 +168,52 @@ level: high
     )
 
 
+def test_regex_modifier_value_round_trips_through_emit() -> None:
+    r"""``Field|re: '\?d=[0-9]+\.[0-9]+'`` round-trips bit-for-bit.
+
+    L4-surfaced regression. ``str(SigmaString)`` doubles backslashes
+    around pySigma's wildcard metacharacters (``?``, ``*``) so the
+    resulting string round-trips through pySigma's own parser. But
+    when that double-escaped string is emitted as YAML and re-parsed,
+    pySigma escapes AGAIN — every emit→re-parse cycle multiplies the
+    backslashes, drifting the regex value.
+
+    SigmaHQ rule 0066d244-… ("Potential CVE-2023-36884 Exploitation
+    Pattern") was the canonical instance — ``c-uri|re: '\?d=[0-9]
+    {1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}'`` (an IP-address
+    pattern). After one round-trip the value drifted from 1 backslash
+    before ``?`` to 2; another round-trip would have made it 3.
+
+    L5-D fix: the loader uses ``SigmaString.original`` (the user's
+    literal input as it appeared in source YAML) instead of
+    ``str(v)`` (pySigma's escape-doubled form). Re-emit puts that
+    literal back into YAML; re-parse produces an equivalent
+    SigmaString with the same ``.original``.
+
+    Affects all rules using ``|re``, ``|contains``, ``|startswith``,
+    ``|endswith`` with values containing literal ``?`` / ``*`` /
+    ``\\`` characters — ~48 corpus rules surfaced by L4.
+    """
+    yaml_text = r"""
+title: regex round-trip
+id: 99999999-aaaa-bbbb-cccc-dddddddddddd
+status: experimental
+date: 2026-04-30
+logsource:
+    category: proxy
+detection:
+    selection:
+        c-uri|re: '\?d=[0-9]{1,3}\.[0-9]{1,3}'
+    condition: selection
+level: medium
+"""
+    rec = categorise_emit_rule(_rule(yaml_text))
+    assert rec["category"] == "clean", (
+        f"Regex value drifted on round-trip: {rec['category']} "
+        f"({rec.get('symptom', '')[:200]})"
+    )
+
+
 def test_keyword_search_round_trips_clean() -> None:
     """Sigma's bare-list keyword idiom (no field) survives round-trip.
 

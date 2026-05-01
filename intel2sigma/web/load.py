@@ -417,23 +417,46 @@ _MOD_CLS_TO_TOKEN: dict[type, str] = _build_modifier_class_to_token()
 
 
 def _stringify_value(v: Any) -> str | None:
-    """Best-effort stringify a pySigma value.
+    """Best-effort stringify a pySigma value, preserving user-literal form.
 
-    For ``SigmaString`` this returns the original pattern including wildcards;
-    for ``SigmaNumber`` / ``SigmaBool`` it's the decimal / true-false form.
-    For ``SigmaNull`` (the YAML ``null`` literal) we return Python ``None``
-    so it round-trips through the draft and strict models. Without this
-    branch ``str(SigmaNull())`` produces an ugly ``<sigma.types.SigmaNull
-    object at 0x…>`` repr that gets serialized literally back into the
-    user's rule — the L2-P1d corpus audit found 27+ rules carrying
-    ``CommandLine: null`` filter blocks that hit this path.
+    For ``SigmaString``, returns ``v.original`` instead of ``str(v)``.
+    The two forms differ on values containing pySigma's wildcard
+    metacharacters (``?`` / ``*``):
+
+    * ``.original`` is the user's literal input as it appeared in the
+      source YAML — ``\\?d=[0-9]{1,3}\\.[0-9]{1,3}`` for a regex with
+      a literal ``?`` and escaped dots.
+    * ``str(v)`` (and ``.to_plain()``) escapes the wildcard
+      metacharacters so the result round-trips through pySigma's own
+      parser, but at the cost of doubling backslashes — ``\\\\?d=...``
+      — which then drifts when emitted as YAML and re-parsed.
+
+    The L4 corpus emit-audit found 48+ regex/wildcard rules drifting
+    this way (``c-uri|re``, ``ScriptBlockText|re``, etc.). Rules
+    without metacharacters (plain paths like ``\\powershell.exe``)
+    were unaffected because ``.original`` and ``str()`` agree there.
+
+    For ``SigmaNull`` (the YAML ``null`` literal) we return Python
+    ``None`` so it round-trips through the draft and strict models.
+    Without this branch ``str(SigmaNull())`` produces an ugly
+    ``<sigma.types.SigmaNull object at 0x…>`` repr that gets
+    serialized literally back into the user's rule — the L2-P1d
+    corpus audit found 27+ rules carrying ``CommandLine: null``
+    filter blocks that hit this path.
+
+    For ``SigmaNumber`` / ``SigmaBool`` (no ``.original`` attribute),
+    falls back to ``str(v)`` — those types stringify deterministically
+    to canonical decimal / ``true``-``false`` forms that survive
+    YAML round-trip.
     """
     # Lazy import: keeps ``sigma`` off the import path of any consumer
     # that doesn't actually translate values (e.g. ``list_examples``).
-    from sigma.types import SigmaNull  # noqa: PLC0415
+    from sigma.types import SigmaNull, SigmaString  # noqa: PLC0415
 
     if isinstance(v, SigmaNull):
         return None
+    if isinstance(v, SigmaString):
+        return v.original
     return str(v)
 
 
