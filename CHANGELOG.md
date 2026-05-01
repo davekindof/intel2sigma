@@ -24,9 +24,18 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
-## 0.4.0 — 2026-05-01
+## 0.3.2 — 2026-05-01
 
-Minor bump — v1.x **emit-path corpus-wide hardening sweep complete**.
+Patch bump — v1.x **emit-path corpus-wide hardening sweep complete**.
+
+> *Versioning note: an earlier draft of this entry was tagged 0.4.0
+> on the assumption that the sweep's milestone scope justified a
+> minor bump. On review the actual diff is bug fixes + new test/audit
+> infrastructure (zero new user-facing features), which sits firmly
+> in the patch tier per the policy in this file's preamble. Corrected
+> to 0.3.2 in the same release commit. The next genuinely user-facing
+> milestone — Pattern II / III / V or a new feature — will be the
+> next minor bump.*
 
 The mirror of the load-path sweep that closed in 0.3.0. The load
 sweep gave the project a corpus-driven ratchet for **what we
@@ -44,7 +53,7 @@ nearly all of them.
 
 ### Sweep result against the SigmaHQ corpus (3,708 rules)
 
-| | L4 v1 (baseline) | 0.4.0 | Δ |
+| | L4 v1 (baseline) | 0.3.2 | Δ |
 | --- | --- | --- | --- |
 | **clean** | 3247 (87.57%) | **3578 (96.49%)** | **+331 / +8.92 pp** |
 | degraded | 99 | 126 | +27 |

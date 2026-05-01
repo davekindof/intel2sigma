@@ -248,7 +248,7 @@ script and the test share one implementation. Floor at v0.3.0:
 
 **Status**: complete. L2-P3 lives in v2 below.
 
-## 🪦 v1.x — Emit-path corpus-wide hardening sweep *(SHIPPED in 0.4.0, 2026-05-01)*
+## 🪦 v1.x — Emit-path corpus-wide hardening sweep *(SHIPPED in 0.3.2, 2026-05-01)*
 
 The mirror of the L1–L3 load-path sweep above. The load-path sweep
 gave the project a corpus-driven ratchet for **what we ingest** — every
@@ -269,7 +269,7 @@ that no individual user had reported yet.
 Three phases, mirroring L1/L2/L3:
 
 **🪦 L4 — Audit script (one-shot, kept).** *Shipped as
-`scripts/audit_corpus_emits.py` in `9d29157` (0.4.0).* For every
+`scripts/audit_corpus_emits.py` in `9d29157` (0.3.2).* For every
 corpus rule that loads cleanly today, runs:
 
 ```
@@ -304,7 +304,7 @@ shares helpers with the L3 ratchet (`_source_structure` /
 side).
 
 **🪦 L5 — Fix every emit-side category surfaced by L4.** *Shipped
-as five sub-commits across 0.4.0.* Each fix references a specific
+as five sub-commits across 0.3.2.* Each fix references a specific
 L4 category from the audit report:
 
   * `5bec168` (L5-A) — audit's own SigmaNull stringification bug
@@ -337,7 +337,7 @@ L4 category from the audit report:
     16+ structural_drift cases cleared.
 
 **🪦 L6 — Emit-as-test ratchet.** *Shipped as `tests/test_corpus
-_emit_audit_ratchet.py` in `8920d39` (0.4.0).* Three slow-marked
+_emit_audit_ratchet.py` in `8920d39` (0.3.2).* Three slow-marked
 checks sharing one module-scoped audit pass:
 
   * emit_exception must stay at 0 (hard correctness gate)
