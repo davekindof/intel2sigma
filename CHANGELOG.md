@@ -24,6 +24,83 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.3.3 — 2026-05-01
+
+Patch bump — Pattern II (converge to a single YAML emit path)
+shipped in three commits.
+
+### What this fixes
+
+The composer had two YAML-emission codepaths:
+
+* `RuleDraft.to_partial_yaml()` — the right-pane preview, best-
+  effort, no validation gate.
+* `to_yaml(draft.to_sigma_rule())` — the canonical save artifact,
+  strict, fails if the draft can't validate.
+
+For drafts complete enough to validate, both paths *should* produce
+the same YAML. They drifted twice (`8329d04` filter-only condition
+parity in 0.2.14; B4 modifier-dropdown phantom selection in 0.3.1)
+because each one had its own orchestration code that could go out
+of sync independently.
+
+Pattern II makes drift structurally impossible for valid drafts.
+`to_partial_yaml` short-circuits through `to_sigma_rule` + `to_yaml`
+when the draft validates — preview and canonical share the SAME
+emission code by construction. The "render whatever fields are set"
+fallback for incomplete drafts is preserved (so the preview pane
+still updates as the user types) and now delegates to canonical
+helpers wherever it can.
+
+### User-visible change
+
+The keyword-search-bare preview shape:
+
+```
+before:                        after:
+detection:                     detection:
+  keywords:                      keywords:
+    '':                            - samr
+      - samr                       - lsarpc
+      - lsarpc                     - winreg
+      - winreg                   condition: keywords
+  condition: keywords
+```
+
+The before-state is what the partial path produced; the after-state
+matches canonical and SigmaHQ idiom. Every other valid-draft shape
+already agreed (the L4-L6 sweep + `8329d04` had kept them in
+lockstep); this is the lone remaining preview/canonical drift in
+the project's known-fixture surface.
+
+### Phases
+
+- **Step 1** (`df408d4`) — parity property test scaffold
+  (`tests/test_preview_canonical_parity.py`) under an xfail mark.
+  Discovery report identified the keyword-search-bare drift; six
+  other shapes already agreed.
+- **Step 2** (`a7aaf12`) — `to_partial_yaml` becomes a thin
+  dispatcher: empty-shell early return, canonical when valid,
+  partial fallback otherwise. Lifts the xfail mark; all 7
+  parametric fixtures + 3 behavioural tests pass parity as hard
+  gates.
+- **Step 3** (`a118e7d`) — partial fallback's
+  `_block_to_partial_yaml` delegates to the canonical
+  `_emit_keyword_block` for pure-keyword blocks. Even mid-edit
+  drafts emit the canonical keyword shape.
+
+### What this preserves
+
+- Empty-draft early return (preview pane stays blank for a fresh
+  shell).
+- Mid-edit partial rendering (drafts that don't validate yet still
+  produce non-empty preview YAML — the "preview updates as I type"
+  feel).
+- Canonical correctness — L6 ratchet's `MIN_EMIT_CLEAN_COUNT`
+  (3578) untouched; canonical path emits the same bytes.
+
+Test count: 366 → 377 fast tests.
+
 ## 0.3.2 — 2026-05-01
 
 Patch bump — v1.x **emit-path corpus-wide hardening sweep complete**.
