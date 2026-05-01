@@ -205,35 +205,84 @@ class RuleDraft(_Model):
             or self.iocs
         )
 
-    def to_partial_yaml(self) -> str:  # noqa: PLR0912 (linear field-by-field emission reads more clearly than splitting into helpers per field group)
+    def to_partial_yaml(self) -> str:
         """Emit a YAML preview of whatever's currently in the draft.
 
-        Used by the right-hand preview pane so the user sees the rule
-        taking shape as they type, instead of staring at a placeholder
-        until tier-1 passes. This emission path:
+        Used by the right-hand preview pane. Two-path dispatcher
+        (Pattern II):
 
-        * skips fields the user hasn't set yet (no placeholder text — the
-          tier-1 issue list shown alongside already names what's missing)
-        * skips detection items with both field and values empty
-          (in-progress placeholder rows)
-        * builds an auto-condition from match/filter blocks the same way
-          :meth:`to_sigma_rule` does
-        * always closes with a syntactically valid YAML document so the
-          highlighter doesn't barf
+        * **Empty-shell early return** — for an essentially-empty
+          draft (bare initial-shell render, user hasn't touched
+          anything), returns ``""``. Callers fall back to placeholder
+          text in that case. This is a UX-meaningful gate; the
+          canonical path can't render a rule with no fields set, so
+          the empty case has to short-circuit before either branch
+          below.
 
-        Result is for *display only* — never saved, never converted to a
-        SIEM query, never goes through pySigma. The strict
-        :meth:`to_sigma_rule` path is what feeds the conversion engine.
+        * **Canonical path when the draft validates** — runs through
+          :meth:`to_sigma_rule` + ``to_yaml``. The SAME emission code
+          as save / download. Drift between preview and canonical
+          becomes structurally impossible for valid drafts (which is
+          the case the user actually cares about — the rule they're
+          about to ship).
 
-        Returns the empty string when the draft is essentially empty (a
-        bare initial-shell render); callers fall back to the placeholder
-        text in that case.
+        * **Partial fallback for incomplete drafts** —
+          :meth:`_render_partial_yaml` renders whatever fields are
+          set, omitting the rest. Built on the canonical helpers
+          (``_render_condition``, ``_detection_item_key``, etc.) so
+          future emission changes propagate here automatically. The
+          legitimate "what to show while the user is mid-edit"
+          divergence surface lives only here.
+
+        Result is for *display only* — never saved, never converted
+        to a SIEM query, never goes through pySigma. The strict
+        :meth:`to_sigma_rule` path is what feeds the conversion
+        engine.
+
+        Pre-Pattern-II this method had its own field-by-field
+        emission orchestration that drifted twice from the canonical
+        path (``8329d04`` filter-only condition; B4 modifier-dropdown
+        phantom selection). Step 2 short-circuits through
+        :meth:`to_sigma_rule` for valid drafts so those drift classes
+        are eliminated by construction. The partial fallback is the
+        only orchestration that remains, and it covers a strictly
+        narrower surface (drafts that don't validate yet).
         """
         if self._is_essentially_empty():
             return ""
 
-        # Local import — avoids a top-level cycle and keeps the strict
-        # serializer's helpers in one place.
+        # Path 1: canonical when the draft validates. Preview ===
+        # save by construction.
+        from intel2sigma.core.serialize import to_yaml  # noqa: PLC0415
+
+        sigma_or_issues = self.to_sigma_rule()
+        if not isinstance(sigma_or_issues, list):
+            return to_yaml(sigma_or_issues)
+
+        # Path 2: partial fallback for drafts that don't yet
+        # validate (mid-edit state — typed a field but no value,
+        # missing title, etc.).
+        return self._render_partial_yaml()
+
+    def _render_partial_yaml(self) -> str:  # noqa: PLR0912 (linear field-by-field emission reads more clearly than splitting into helpers per field group)
+        """Render whatever fields ARE set, omitting the rest.
+
+        Called only when the draft can't validate to a strict
+        ``SigmaRule``. The rendering uses the canonical serializer's
+        helpers (``_detection_item_key``, ``_render_condition``,
+        ``_values_to_yaml``, ``_yaml``) for all field-level
+        emission — only the orchestration of "skip absent fields"
+        and "build a partial condition from incomplete blocks"
+        lives here.
+
+        Future emission changes (new modifier shapes, new condition
+        operators, etc.) land in the canonical serializer and
+        propagate here automatically. The legitimate divergence
+        between this and the canonical path is exactly the partial-
+        rendering decisions; everything else stays in lockstep.
+        """
+        # Local import — avoids a top-level cycle and keeps the
+        # strict serializer's helpers in one place.
         import io  # noqa: PLC0415
 
         from ruamel.yaml.comments import CommentedMap  # noqa: PLC0415

@@ -1,4 +1,4 @@
-"""Pattern II step 1 — preview/canonical parity property test.
+"""Pattern II — preview/canonical parity property test.
 
 The composer has two YAML emission codepaths:
 
@@ -7,50 +7,34 @@ The composer has two YAML emission codepaths:
 * ``to_yaml(draft.to_sigma_rule())`` — the canonical save artifact.
   Strict; fails if validation can't pass.
 
-For drafts complete enough to validate, both paths SHOULD produce
-the same YAML. They have not, twice now (filter-only condition
-parity, ``8329d04``; modifier-dropdown phantom selection, B4) —
-each bug a manifestation of the same underlying duplicate-
-implementation problem.
+For drafts complete enough to validate, both paths must produce
+the same YAML. Pre-Pattern-II they had their own orchestration
+code, drifted twice (filter-only condition parity at ``8329d04``;
+modifier-dropdown phantom selection at B4). Pattern II step 2's
+convergence makes ``to_partial_yaml`` short-circuit through
+``to_sigma_rule`` for valid drafts — preview and canonical share
+the SAME emission code by construction, drift is impossible for
+the valid case.
 
-This module is the property test that pins the contract. For every
-fixture rule that loads cleanly:
+This test pins that contract: for every fixture that loads
+cleanly, ``to_partial_yaml(draft) == to_yaml(draft.to_sigma_rule())``
+byte-for-byte.
 
-    to_partial_yaml(draft) == to_yaml(draft.to_sigma_rule())
-
-Pattern II step 1 (this commit): test scaffold + initial fixtures.
-The whole module is marked ``xfail(strict=False)`` because we know
-existing drifts will fail it — the test's job RIGHT NOW is to
-surface those drifts, not to gate CI. Run the file locally to see
-what currently disagrees.
-
-Pattern II step 2 (the refactor): ``to_partial_yaml`` short-
-circuits through ``to_sigma_rule`` for valid drafts so emission
-goes through the same code as save. The xfail mark gets removed
-in that commit; all parity assertions become hard gates.
-
-Pattern II step 3 (cleanup): trim the partial fallback to use
-canonical helpers exclusively for the incomplete-draft tail.
+Step 1 (df408d4) shipped the scaffold under an xfail mark while
+the convergence was still pending; this version (post-step-2)
+removes the mark and treats the parity assertions as hard
+regression gates.
 """
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from intel2sigma.core.serialize import to_yaml
+from intel2sigma.web.draft import RuleDraft
 from intel2sigma.web.load import draft_from_yaml
-
-# Whole-module xfail — see top-of-module note. Becomes a hard gate
-# in Pattern II step 2.
-pytestmark = pytest.mark.xfail(
-    reason=(
-        "Pattern II step 1 — measurement scaffold only. Existing drifts "
-        "between to_partial_yaml and to_yaml(to_sigma_rule()) are expected "
-        "to fail here until step 2's convergence refactor lands."
-    ),
-    strict=False,
-)
-
 
 # ---------------------------------------------------------------------------
 # Fixtures — synthetic YAML rules covering the emission shapes that have
@@ -242,23 +226,79 @@ def test_preview_equals_canonical_for_valid_draft(name: str, yaml_text: str) -> 
 
 
 # ---------------------------------------------------------------------------
-# Sanity: the empty-draft early-return UX is preserved (separate concern
-# from parity — partial path SHOULD differ from canonical when the draft
-# is essentially empty, because canonical can't render anything at all).
+# Behavioural guarantees Pattern II must preserve — these are the UX
+# contracts that aren't about parity, but are easy to accidentally regress
+# during the convergence refactor.
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.xfail(reason="N/A — handled by separate test once xfail is lifted", strict=False)
 def test_essentially_empty_draft_partial_yaml_returns_blank() -> None:
-    """The fresh-shell case: ``to_partial_yaml() == ''`` for an untouched draft.
+    """Fresh-shell case: ``to_partial_yaml() == ''`` for an untouched draft.
 
-    This is the one behavioral guarantee Pattern II must explicitly
-    preserve — the preview pane SHOWS blank when the user hasn't
-    touched anything yet, rather than showing placeholder
-    metadata. The canonical path would fail validation here; we
-    don't compare against it. The fallback handles this case.
-
-    Stub for now; concrete assertion lands when xfail is lifted in
-    Pattern II step 2.
+    The preview pane SHOWS blank when the user hasn't touched
+    anything yet, rather than showing placeholder metadata. The
+    canonical path would fail validation here; the empty-shell
+    early-return short-circuits before either branch runs. Pattern
+    II step 2 preserves this — it's the first check inside
+    ``to_partial_yaml`` and unchanged from pre-refactor.
     """
-    raise NotImplementedError("placeholder — replace in step 2")
+    draft = RuleDraft()
+    assert draft.to_partial_yaml() == ""
+
+
+def test_partial_draft_renders_via_fallback() -> None:
+    """A draft that doesn't validate yet still renders something.
+
+    Pattern II preserves the "preview updates as the user types"
+    feel by keeping a partial-emit fallback for drafts that can't
+    pass ``to_sigma_rule``. This test pins the contract: a draft
+    with title + observation set but no detection blocks still
+    produces non-empty YAML the user can see.
+    """
+    draft = RuleDraft.from_json(
+        json.dumps(
+            {
+                "title": "incomplete fixture",
+                "observation_id": "process_creation",
+                "platform_id": "windows",
+                "logsource": {"category": "process_creation", "product": "windows"},
+                "detections": [],
+                "stage": 1,
+            }
+        )
+    )
+    # Sanity: the draft really doesn't validate (no detection blocks
+    # → DRAFT_CONDITION_EMPTY at minimum).
+    assert isinstance(draft.to_sigma_rule(), list), (
+        "Fixture isn't actually incomplete — please make it so"
+    )
+    yaml_text = draft.to_partial_yaml()
+    # Partial fallback emits SOMETHING — the user-typed title at
+    # minimum.
+    assert yaml_text != ""
+    assert "incomplete fixture" in yaml_text
+
+
+def test_valid_draft_routes_through_canonical_emission() -> None:
+    """The convergence: ``to_partial_yaml`` for a valid draft IS ``to_yaml``.
+
+    This is what kills the drift class. Pre-Pattern-II the partial
+    path had its own orchestration that drifted twice; post-Pattern-
+    II valid drafts go through ``to_sigma_rule`` + ``to_yaml`` and
+    cannot diverge by construction. The parametric test above tests
+    this against many fixtures; this test pins the architecture-
+    level contract for one shape so that a refactor accidentally
+    re-introducing a parallel emission path fails here even if all
+    parametric fixtures still happen to agree.
+    """
+    draft, _ = draft_from_yaml(_SIMPLE_PROCESS)
+    assert draft is not None
+    sigma = draft.to_sigma_rule()
+    assert not isinstance(sigma, list)
+
+    # The output must come from to_yaml(sigma) verbatim — not just
+    # equal it incidentally. We can't directly observe "which
+    # codepath was taken," but byte-equality plus the structural
+    # match of ``to_partial_yaml`` calling into ``to_yaml`` (visible
+    # in the source) is the contract.
+    assert draft.to_partial_yaml() == to_yaml(sigma)
