@@ -357,46 +357,60 @@ class RuleDraft(_Model):
     ) -> Any:
         """Render one detection block as a YAML mapping.
 
-        Returns ``None`` if the block has no usable items so the caller
-        can skip it cleanly. ``any_of`` blocks emit a list of single-key
-        mappings; ``all_of`` blocks (the default) merge into one mapping.
+        Returns ``None`` if the block has no usable items so the
+        caller can skip it cleanly. Three emission shapes — same as
+        the canonical ``_detections_to_map`` in core/serialize.py:
+
+        * **Pure keyword block** (every item is keyword-search,
+          ``field=""``): emit as a bare list at the block level
+          via the canonical ``_emit_keyword_block`` helper. This
+          handles both modifier-less keyword blocks (``[a, b, c]``)
+          and the modifier-bearing variant (``'|all': [a, b, c]``)
+          that L5-E added support for.
+        * **``any_of`` combinator**: list-of-mappings form.
+        * **``all_of`` combinator**: mapping form.
+
+        Pre-Pattern-II step 3 the keyword case fell through to the
+        ``all_of`` branch and emitted as ``{ '': [...] }``, drifting
+        from canonical's bare-list emission. Step 2 hid that drift
+        for valid drafts (they route through canonical entirely);
+        step 3 fixes it for the incomplete-draft case too by
+        delegating to the canonical keyword helper.
         """
         from ruamel.yaml.comments import CommentedMap, CommentedSeq  # noqa: PLC0415
 
         from intel2sigma.core.model import DetectionItem  # noqa: PLC0415
+        from intel2sigma.core.serialize import _emit_keyword_block  # noqa: PLC0415
 
         usable: list[DetectionItem] = []
         for item in block.items:
             field_set = bool(item.field.strip())
-            # Mirror the tier-1 contract in _block_to_strict: a non-empty
-            # values list (including ``[None]`` or ``[""]`` from the
-            # loader's null / empty-string idioms) counts as populated.
-            # The keyword-search shape (empty field + values) is also
-            # rendered, but only when values exist; an entirely blank
-            # row is still skipped as a placeholder.
+            # Mirror the tier-1 contract in _block_to_strict: a
+            # non-empty values list (including ``[None]`` or
+            # ``[""]`` from the loader's null / empty-string idioms)
+            # counts as populated. The keyword-search shape (empty
+            # field + values) is also rendered, but only when values
+            # exist; an entirely blank row is still skipped as a
+            # placeholder.
             values_set = bool(item.values)
             if not values_set:
                 continue
-            if not field_set:
-                # Keyword block — render below via the pure-keyword
-                # branch in _detections_to_map.
-                usable.append(
-                    DetectionItem.model_construct(
-                        field="",
-                        modifiers=list(item.modifiers),
-                        values=list(item.values),
-                    )
-                )
-                continue
             usable.append(
                 DetectionItem.model_construct(
-                    field=item.field,
+                    field=item.field if field_set else "",
                     modifiers=list(item.modifiers),
                     values=list(item.values),
                 )
             )
         if not usable:
             return None
+
+        # Pure keyword block — every item is a keyword-search shape.
+        # Delegate to the canonical helper so this matches the save
+        # artifact's keyword-block emission (bare list, or modifier-
+        # keyed mapping for ``|all`` etc.).
+        if all(it.is_keyword for it in usable):
+            return _emit_keyword_block(usable)
 
         if block.combinator == "any_of":
             seq = CommentedSeq()

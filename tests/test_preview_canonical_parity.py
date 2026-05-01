@@ -279,6 +279,58 @@ def test_partial_draft_renders_via_fallback() -> None:
     assert "incomplete fixture" in yaml_text
 
 
+def test_partial_fallback_keyword_block_emits_bare_list() -> None:
+    """Mid-edit keyword block in an incomplete draft renders correctly.
+
+    Pattern II step 3 regression. Step 2 routed VALID drafts
+    through canonical emission, hiding ``_block_to_partial_yaml``'s
+    broken keyword-block shape (it emitted ``keywords: { '': [...]
+    }`` instead of the canonical bare list). But for INCOMPLETE
+    drafts — title set but no date, missing required metadata —
+    the partial fallback is what runs. Step 3 fixes the fallback
+    to delegate to the canonical ``_emit_keyword_block`` so even
+    mid-edit keyword shapes render correctly.
+
+    This test pins the contract: a draft with a keyword block but
+    no date (so it doesn't validate) should still produce the
+    bare-list YAML in the preview pane.
+    """
+    draft = RuleDraft.from_json(
+        json.dumps(
+            {
+                "title": "incomplete keyword fixture",
+                "observation_id": "auditd",
+                "platform_id": "linux",
+                "logsource": {"product": "linux", "service": "auditd"},
+                "detections": [
+                    {
+                        "name": "keywords",
+                        "is_filter": False,
+                        "combinator": "all_of",
+                        "items": [
+                            {
+                                "field": "",
+                                "modifiers": [],
+                                "values": ["samr", "lsarpc", "winreg"],
+                            }
+                        ],
+                    }
+                ],
+                # Deliberately no date — forces the partial fallback path.
+                "stage": 1,
+            }
+        )
+    )
+    # Sanity: the draft really doesn't validate.
+    assert isinstance(draft.to_sigma_rule(), list), (
+        "Fixture validates unexpectedly — please make it incomplete"
+    )
+    yaml_text = draft.to_partial_yaml()
+    # Bare-list emission, not the broken `'': [...]` shape.
+    assert "samr" in yaml_text
+    assert "'':" not in yaml_text
+
+
 def test_valid_draft_routes_through_canonical_emission() -> None:
     """The convergence: ``to_partial_yaml`` for a valid draft IS ``to_yaml``.
 
