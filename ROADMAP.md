@@ -248,29 +248,29 @@ script and the test share one implementation. Floor at v0.3.0:
 
 **Status**: complete. L2-P3 lives in v2 below.
 
-## v1.x — Emit-path corpus-wide hardening sweep
+## 🪦 v1.x — Emit-path corpus-wide hardening sweep *(SHIPPED in 0.4.0, 2026-05-01)*
 
 The mirror of the L1–L3 load-path sweep above. The load-path sweep
 gave the project a corpus-driven ratchet for **what we ingest** — every
 SigmaHQ rule is categorised, the floor is locked in CI, regressions
-fail the build. The emit path (composer → strict YAML output) has
-**no equivalent**. The composer can author rules that downstream
-pySigma can't parse, with dropped operators or non-standard modifiers,
-and we'd ship them.
+fail the build. The emit path (composer → strict YAML output) had
+**no equivalent**, until now.
 
-Surfaced in 0.3.0 dogfood testing as four bugs (logged inline in the
-"Smaller polish" section below) — `|exact` modifier emitted but not
-in the Sigma spec; modifier-dropdown drops `contains` between user
-intent and emitted YAML; UI dropdown defaults visually mask empty
-state. The bugs are individually fixable, but the underlying pattern
-— **we author rules without verifying they parse back through
-pySigma** — needs the same treatment that load-path correctness got.
+**Result against the 3,708-rule corpus**: emit-clean 87.57% →
+**96.49%** (+331 rules / +8.92 pp), emit_exception 4 → **0**,
+structural_drift 358 → **4** (the residual is rules using pySigma
+modifiers our model doesn't represent, e.g. `|fieldreference`).
+Surfaced in 0.3.0 dogfood testing as four bugs (B1–B4 in the
+"Smaller polish" section below) — but the L4 corpus walk found
+that those four were the visible tip; the audit caught 350+
+additional silent emit-side regressions across the full corpus
+that no individual user had reported yet.
 
 Three phases, mirroring L1/L2/L3:
 
-**L4 — Audit script (one-shot, kept).** New
-`scripts/audit_corpus_emits.py`. For every corpus rule that loads
-cleanly today, runs:
+**🪦 L4 — Audit script (one-shot, kept).** *Shipped as
+`scripts/audit_corpus_emits.py` in `9d29157` (0.4.0).* For every
+corpus rule that loads cleanly today, runs:
 
 ```
    load via web/load.draft_from_yaml
@@ -303,44 +303,57 @@ shares helpers with the L3 ratchet (`_source_structure` /
 `_draft_structure` already exist; just reused on the re-emitted
 side).
 
-**L5 — Fix every emit-side category surfaced by L4.** Each fix lands
-as a separate commit referencing a category from the L4 report.
-Likely buckets, working from what we know today:
+**🪦 L5 — Fix every emit-side category surfaced by L4.** *Shipped
+as five sub-commits across 0.4.0.* Each fix references a specific
+L4 category from the audit report:
 
-  * `|exact` collapse to bare key (Bug 2). One change in
-    `core/serialize.py:_detection_item_key` plus the loader's
-    symmetric drop in `web/load.py:_translate_item`.
-  * Modifier preservation across `_set_item_field` (Bug 1). Narrow
-    the reset to "only when the new field's allowed-modifier list
-    excludes the current one."
-  * Likely a small tail of value-type-coercion mismatches (int vs
-    string, bool case sensitivity) similar to the value handling
-    we cleaned up in L2-P1d.
+  * `5bec168` (L5-A) — audit's own SigmaNull stringification bug
+    (`<sigma.types.SigmaNull object at 0x...>` non-deterministic
+    repr false-flagged 21+ rules as drift). Audit-only fix; no
+    product behaviour change.
+  * `8631a72` (L5-B) — loader's `_modifier_name(cls)` did class-
+    name munging, producing `windowsdash` instead of pySigma's
+    canonical `windash` token. The known-set filter then dropped
+    the modifier silently. Fix uses pySigma's `modifier_mapping`
+    inversely. Cleared 50+ structural_drift cases plus all 4
+    emit_exception cases that depended on this chain.
+  * `dc4101b` (L5-C) — `'no'` is a YAML 1.1 boolean (`False`) but
+    a plain scalar string in YAML 1.2. Ruamel emit (1.2)
+    unquoted, pySigma read (1.1) parsed as bool, rejected
+    contains-on-bool. Fix wraps strings matching YAML 1.1 boolean
+    literals in `SingleQuotedScalarString` to force quoting.
+  * `65cb708` (L5-D) — loader's `_stringify_value` called
+    `str(SigmaString)` which doubles backslashes around wildcard
+    metacharacters (`?`, `*`). Every round-trip cycle multiplied
+    backslashes, drifting the rule's regex/wildcard values. Fix
+    uses `SigmaString.original` (the user's literal input)
+    instead. ~115 structural_drift cases cleared.
+  * `14b29cd` (L5-E) — keyword-search blocks with item-level
+    modifiers (`keywords: { '|all': [pkexec, ...] }`) were
+    flattened to bare list on emit, dropping the `|all` modifier
+    and silently changing all-of semantics to any-of. Fix groups
+    keyword items by modifier chain and emits the
+    `'|mod1|mod2': [values]` shape when modifiers are present.
+    16+ structural_drift cases cleared.
 
-**L6 — Emit-as-test ratchet.** Wraps `audit_corpus_emits.py` as a
-`@pytest.mark.slow` ratchet test (`tests/test_corpus_emit_audit
-_ratchet.py`), parallel to the load-path ratchet
-(`tests/test_corpus_load_audit_ratchet.py`). Same three-check shape:
+**🪦 L6 — Emit-as-test ratchet.** *Shipped as `tests/test_corpus
+_emit_audit_ratchet.py` in `8920d39` (0.4.0).* Three slow-marked
+checks sharing one module-scoped audit pass:
 
-  * emit_exception / structural_drift must stay 0
-  * clean count must not drop below `MIN_EMIT_CLEAN_COUNT`
-  * stale-floor soft check (lag > 100 = bump the constant)
+  * emit_exception must stay at 0 (hard correctness gate)
+  * clean count must not drop below `MIN_EMIT_CLEAN_COUNT` (3578)
+  * stale-floor soft check (tolerance +100)
 
-After L4–L6 land, the project has symmetric ratchets in both
-directions: every regression on what we ingest OR what we emit fails
-CI. Together with the existing L1-L3 floor at 3582, this closes the
-"correctness blind spot in either direction" gap.
+structural_drift is intentionally NOT held at zero — 4 exotic
+residual cases remain (rules using pySigma modifiers our model
+doesn't represent: `|fieldreference` and one `userIdentity` shape).
+They're real fidelity gaps but represent <0.11% of the corpus and
+don't block shipping. L7-class follow-up if they accumulate.
 
-**Sequencing**: L4 first (audit feeds the fix list, same pattern as
-L1). L5 fixes can ship independently as they're discovered. L6
-trails L5 — until L5's first wave lands, the floor is too low to be
-useful as a ratchet. The whole sweep bumps minor (`0.4.0`) on
-completion — same versioning shape as the load-path sweep.
-
-The four bugs filed during 0.3.0 testing
-(see "Bugs from 0.3.0 testing" in the polish section below) are the
-**input** to this sweep, not its output — fix individually in
-0.3.1 patch, then run L4 to surface what we don't yet know about.
+**Status**: complete. The project now has symmetric ratchets in
+both directions: every regression on what we ingest OR what we
+emit fails CI. Together with the L1-L3 floor at 3582, the
+"correctness blind spot in either direction" gap is closed.
 
 ## v1.x — Smaller post-v1.0 polish
 

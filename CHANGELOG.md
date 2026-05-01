@@ -24,6 +24,101 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.4.0 — 2026-05-01
+
+Minor bump — v1.x **emit-path corpus-wide hardening sweep complete**.
+
+The mirror of the load-path sweep that closed in 0.3.0. The load
+sweep gave the project a corpus-driven ratchet for **what we
+ingest**; the emit path (composer → strict YAML output) had no
+equivalent until now. The composer could author rules downstream
+pySigma can't parse (`|exact` modifier, B2), with dropped operators
+or doubly-escaped regex values, and we'd ship them — and the audit
+ratchet would never catch it.
+
+The 0.3.1 patch fixed the four bugs from 0.3.0 dogfood testing,
+but the L4 corpus walk found that those four were the visible tip:
+**350+ silent emit-side regressions** across the full corpus that
+no individual user had reported yet. The L5 fix wave cleared
+nearly all of them.
+
+### Sweep result against the SigmaHQ corpus (3,708 rules)
+
+| | L4 v1 (baseline) | 0.4.0 | Δ |
+| --- | --- | --- | --- |
+| **clean** | 3247 (87.57%) | **3578 (96.49%)** | **+331 / +8.92 pp** |
+| degraded | 99 | 126 | +27 |
+| **structural_drift** | 358 | **4 (0.11%)** | **-354** |
+| **emit_exception** | 4 | **0** | **-4** |
+| skipped_no_strict_rule | 0 | 0 | held |
+
+### Phases shipped
+
+- **L4** (`9d29157`) — `scripts/audit_corpus_emits.py`. Walks every
+  corpus rule through load → strict → emit → re-parse → compare,
+  categorises into clean / degraded / structural_drift /
+  emit_exception / skipped_no_strict_rule. Output:
+  `reports/corpus_emit_audit.json`. Categorisation logic in
+  `intel2sigma._audit` shares helpers with the L3 ratchet.
+
+- **L5 a–e** — five sub-fixes, each commit referencing a specific
+  L4 category from the audit report:
+  * `5bec168` (L5-A) — audit's own SigmaNull stringification bug
+    (`<sigma.types.SigmaNull object at 0x...>` non-deterministic
+    repr false-flagged 21+ rules as drift).
+  * `8631a72` (L5-B) — loader's `_modifier_name(cls)` did class-
+    name munging, producing `windowsdash` instead of pySigma's
+    canonical `windash` token. Fix uses pySigma's
+    `modifier_mapping` inversely. Cleared 50+ structural_drift
+    + all 4 emit_exception cases.
+  * `dc4101b` (L5-C) — `'no'` is a YAML 1.1 boolean (`False`)
+    but a plain scalar string in YAML 1.2. Ruamel emit (1.2)
+    unquoted, pySigma read (1.1) parsed as bool. Fix wraps
+    YAML 1.1 boolean literal strings in
+    `SingleQuotedScalarString` to force quoting.
+  * `65cb708` (L5-D) — `str(SigmaString)` doubles backslashes
+    around wildcard metacharacters; every round-trip multiplied
+    backslashes, drifting regex/wildcard values. Fix uses
+    `SigmaString.original` (the user's literal input). ~115
+    structural_drift cases cleared.
+  * `14b29cd` (L5-E) — keyword-search blocks with item-level
+    modifiers (`keywords: { '|all': [pkexec, ...] }`) were
+    flattened to bare list, silently changing all-of semantics
+    to any-of. Fix groups by modifier chain and emits
+    `'|mod1|mod2': [values]` when modifiers are present. ~16
+    cases cleared.
+
+- **L6** (`8920d39`) — `tests/test_corpus_emit_audit_ratchet.py`.
+  Three slow-marked checks sharing one module-scoped audit pass:
+  emit_exception must stay 0; clean count >=
+  `MIN_EMIT_CLEAN_COUNT` (3578); stale-floor soft check
+  (tolerance +100). The CI gate that locks in the 96.49% floor
+  for every future PR.
+
+### Remaining audit residual (4 structural_drift, all benign)
+
+Rules using pySigma modifiers our model doesn't represent —
+`|fieldreference` (3 cases) and one `userIdentity` field shape.
+These are real fidelity gaps but <0.11% of the corpus. L7-class
+follow-up if they accumulate; for now the freeform-observation
+path covers them.
+
+### Coming next
+
+- **Pattern II** — converge to a single YAML emit path (preview
+  vs canonical). Architectural cleanup; the sweep work makes the
+  emit path correct, but two paths still exist.
+- **Pattern III** — handler-sequence test pass + minimum-mutation
+  audit (B1's handler over-reach is one instance of a class).
+- **Pattern V** — Jinja macro for the "—" sentinel pattern
+  applied across every `<select>` / radio group / pre-filled
+  input.
+- **B2d–B2g** — remaining 10 heuristics (parallel work).
+
+Symmetric ratchets are now in place: every regression on what we
+ingest (L1-L3, floor 3582) OR what we emit (L4-L6, floor 3578)
+fails CI immediately.
+
 ## 0.3.1 — 2026-04-29
 
 Patch bump — four bugs filed during 0.3.0 deploy testing
