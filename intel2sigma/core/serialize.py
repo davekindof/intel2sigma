@@ -274,13 +274,32 @@ def _detections_to_map(blocks: list[DetectionBlock]) -> CommentedMap:
     out = CommentedMap()
     for block in blocks:
         # Pure keyword block — every item is a keyword-search shape
-        # (no field set). Emit as a bare list at the block level
-        # rather than as a mapping with empty keys.
+        # (no field set). Two sub-shapes depending on whether the
+        # keyword items carry modifiers:
+        #
+        #   * No modifiers — emit as a bare list at the block level:
+        #       filter_keywords:
+        #         - samr
+        #         - lsarpc
+        #         - winreg
+        #     Default Sigma semantics: any of the listed strings
+        #     matching any event field fires.
+        #
+        #   * With modifiers — emit as a mapping where the key is
+        #     the modifier-only chain ``'|mod1|mod2'`` (no field
+        #     name before the pipe):
+        #       keywords:
+        #         '|all':
+        #           - pkexec
+        #           - 'The value for environment variable XAUTHORITY...'
+        #     SigmaHQ rule 0506a799-… (PwnKit) uses ``'|all'`` to
+        #     require ALL of the listed strings in the same event;
+        #     pre-L5-E emit silently dropped the ``|all`` modifier
+        #     and reverted to any-of semantics, changing the rule's
+        #     meaning. The L4 corpus emit-audit found 16+ rules with
+        #     ``|all`` keyword blocks drifting this way.
         if block.items and all(item.is_keyword for item in block.items):
-            all_values: list[str | int | bool | None] = []
-            for item in block.items:
-                all_values.extend(item.values)
-            out[block.name] = list(all_values)
+            out[block.name] = _emit_keyword_block(block.items)
             continue
 
         if block.combinator == "any_of":
@@ -293,6 +312,48 @@ def _detections_to_map(blocks: list[DetectionBlock]) -> CommentedMap:
                 block_map[_detection_item_key(item)] = _values_to_yaml(item.values)
             out[block.name] = block_map
     return out
+
+
+def _emit_keyword_block(items: list[DetectionItem]) -> Any:
+    """Render a pure-keyword block, preserving any item-level modifiers.
+
+    Three cases (precedence order):
+
+    1. All items have no modifiers (or only ``"exact"`` which collapses
+       per L5-B): emit as a bare list — the canonical SigmaHQ idiom.
+    2. All items share a single non-empty modifier chain: emit as a
+       one-key mapping with the modifier-only key ``'|mod1|mod2'``
+       and the merged value list. This is the ``|all`` case and any
+       future Sigma-spec extensions that put modifiers on keyword
+       blocks.
+    3. Items have differing modifier chains (rare — the loader can
+       produce this if source YAML had multiple modifier-keyed
+       entries under one keyword block, e.g.
+       ``keywords: { '': [a, b], '|all': [c, d] }``): emit as a
+       multi-key mapping with one entry per modifier chain.
+    """
+    # Group values by their (exact-collapsed) modifier chain.
+    # Key is plain ``tuple[str, ...]`` even though the source items
+    # carry the narrower ``ValueModifier`` Literal — once we filter
+    # ``"exact"`` out, mypy can't keep the narrower type and we
+    # don't need it for the join below.
+    by_mods: dict[tuple[str, ...], list[str | int | bool | None]] = {}
+    for item in items:
+        chain: tuple[str, ...] = tuple(m for m in item.modifiers if m != "exact")
+        by_mods.setdefault(chain, []).extend(item.values)
+
+    # Case 1: single empty-chain group → bare list.
+    if len(by_mods) == 1 and () in by_mods:
+        return [_emit_safe(v) for v in by_mods[()]]
+
+    # Cases 2 & 3: one entry per modifier chain. Empty-chain group
+    # (if present) gets the bare-key form ``'': [values]``; otherwise
+    # the modifier-only key ``'|mod1|mod2': [values]``.
+    body = CommentedMap()
+    for chain, values in by_mods.items():
+        key = "" if not chain else "|" + "|".join(chain)
+        body[key] = [_emit_safe(v) for v in values]
+    return body
 
 
 def to_yaml(rule: SigmaRule) -> str:

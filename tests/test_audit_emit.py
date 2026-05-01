@@ -209,8 +209,57 @@ level: medium
 """
     rec = categorise_emit_rule(_rule(yaml_text))
     assert rec["category"] == "clean", (
-        f"Regex value drifted on round-trip: {rec['category']} "
-        f"({rec.get('symptom', '')[:200]})"
+        f"Regex value drifted on round-trip: {rec['category']} ({rec.get('symptom', '')[:200]})"
+    )
+
+
+def test_keyword_block_with_all_modifier_round_trips() -> None:
+    """``keywords: { '|all': [a, b, c] }`` round-trips with the modifier.
+
+    L4-surfaced regression. Sigma's keyword-search shape supports
+    optional modifier-only keys: ``'|all'`` requires ALL of the
+    listed strings in the same event (vs the default any-of
+    semantics of a bare-list keyword block). Pre-L5-E the serializer's
+    pure-keyword branch flattened EVERY keyword block to a bare list
+    regardless of the items' modifier chain — silently changing
+    any-of-of-all to plain any-of and breaking the rule's meaning.
+
+    SigmaHQ rule 0506a799-… ("PwnKit Local Privilege Escalation")
+    was the canonical instance: matches when ALL three strings
+    (``pkexec``, the XAUTHORITY environment-variable warning, the
+    USER=root TTY indicator) appear in the same auth-log line.
+    Pre-fix re-emit dropped ``|all``, making the rule fire on any
+    of the three — wildly more false positives.
+
+    L5-E fix: the keyword-block emission groups items by their
+    (exact-collapsed) modifier chain. All-empty → bare list (the
+    canonical idiom). Single non-empty chain → ``'|mod1|mod2':
+    [values]`` mapping form. Mixed chains → multi-key mapping.
+
+    L4 found 16+ rules with this shape — all PwnKit-style
+    ``|all``-keyword detections plus a handful of less-common
+    ``|contains``-keyword shapes.
+    """
+    yaml_text = """
+title: keyword-with-all round-trip
+id: aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee
+status: experimental
+date: 2026-04-30
+logsource:
+    product: linux
+    service: auth
+detection:
+    keywords:
+        '|all':
+            - 'pkexec'
+            - 'The value for environment variable XAUTHORITY contains suspicious content'
+            - '[USER=root]'
+    condition: keywords
+level: high
+"""
+    rec = categorise_emit_rule(_rule(yaml_text))
+    assert rec["category"] == "clean", (
+        f"|all keyword block regressed: {rec['category']} ({rec.get('symptom', '')[:200]})"
     )
 
 
