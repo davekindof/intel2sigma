@@ -148,6 +148,82 @@ def test_audit_corpus_fidelity_rollup_matches_inputs() -> None:
     assert any(ex["rule_id"] == _SERVICE_ONLY_RULE["id"] for ex in examples)
 
 
+def test_description_trailing_whitespace_does_not_count_as_drift() -> None:
+    """L8-B-1 contract: trailing/leading whitespace in description
+    is normalization, not drift.
+
+    L8-A discovery flagged 955 rules failing this dimension on the
+    same artifact: source has ``"text\\n"`` (literal block YAML
+    scalar's implicit trailing newline), loaded has ``"text"``
+    because ``RuleDraft.str_strip_whitespace=True`` calls ``.strip()``
+    on every assignment. The user's intent is the description text;
+    the trailing newline is a YAML emit artifact.
+
+    The contract is captured here:
+
+    * trailing newline → PASS (audit-side normalization)
+    * leading whitespace → PASS
+    * internal whitespace → still compared verbatim, drift IS drift
+
+    The third bullet is the safety property — we're not papering
+    over real differences, just the edge-whitespace artifact.
+    """
+    rule = {
+        "id": "12345678-1234-5678-1234-567812345678",
+        "title": "trailing-newline fixture",
+        "raw_yaml": """
+title: trailing-newline fixture
+id: 12345678-1234-5678-1234-567812345678
+status: experimental
+description: |
+    A literal block scalar leaves a trailing newline in
+    pySigma's output. The loaded draft strips it. Audit
+    must treat that as PASS.
+date: 2026-05-02
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection:
+        Image|endswith: '\\powershell.exe'
+    condition: selection
+level: high
+""",
+    }
+    report = check_fidelity(rule)
+    desc = report.dimensions["description"]
+    assert desc.status is Status.PASS, (
+        f"Expected PASS on trailing-newline-only difference; got {desc.status} ({desc.detail})"
+    )
+
+
+def test_description_internal_whitespace_difference_still_drifts() -> None:
+    """Sanity: the L8-B-1 normalization doesn't paper over real drift.
+
+    A description that genuinely differs in internal content (more
+    than just edge whitespace) MUST still report FAIL. Otherwise
+    the dimension is useless — every difference looks like a
+    "normalization" mismatch and we'd never catch real corruption.
+
+    Verified by directly checking the dimension function with hand-
+    constructed source/loaded values; this avoids needing a fixture
+    where the loader actually corrupts the description (which
+    would itself be a bug to fix).
+    """
+    from intel2sigma._fidelity import _check_description  # noqa: PLC0415
+
+    class _FakePy:
+        description = "Detects suspicious activity in real life."
+
+    class _FakeDraft:
+        description = "Detects suspicious activity in REAL LIFE."  # different case mid-string
+
+    result = _check_description(_FakePy(), _FakeDraft())  # type: ignore[arg-type]
+    assert result.status is Status.FAIL, (
+        f"Expected FAIL on real internal difference; got {result.status} ({result.detail})"
+    )
+
+
 def test_dimension_catalogue_is_non_empty_and_grouped() -> None:
     """Sanity: the catalogue is populated and dimensions have valid
     metadata (name, group, description, callable check).

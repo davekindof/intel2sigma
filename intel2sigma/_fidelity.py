@@ -166,13 +166,25 @@ def _check_level(py: PySigmaRule, d: RuleDraft) -> DimensionResult:
 def _check_description(py: PySigmaRule, d: RuleDraft) -> DimensionResult:
     if py.description is None:
         return DimensionResult(Status.NA, "source omitted this field")
-    # Whitespace normalization: pySigma preserves multi-line YAML
-    # description verbatim; draft stores the same. Compare verbatim.
-    if py.description == d.description:
+    # Trailing/leading whitespace normalization: pySigma preserves
+    # the YAML scalar verbatim, so a literal block (``description:
+    # |\n  text``) yields ``"text\n"`` with a trailing newline.
+    # ``RuleDraft`` has ``str_strip_whitespace=True`` (Pydantic
+    # config), which calls ``.strip()`` on every assignment, so
+    # the loaded value is the same content with edge whitespace
+    # removed. That's not semantic drift — the user's intent is
+    # the description text, not the YAML-emit whitespace artifact.
+    # The L8-A discovery report flagged 955 rules failing this
+    # dimension on exactly this artifact; the contract decision
+    # is "leading/trailing whitespace doesn't count as drift,"
+    # implemented by stripping both sides. Internal whitespace
+    # (paragraph breaks, indentation in code samples) IS
+    # preserved on both sides and still compared verbatim.
+    if py.description.strip() == d.description.strip():
         return DimensionResult(Status.PASS)
     return DimensionResult(
         Status.FAIL,
-        f"source[:60]={py.description[:60]!r} loaded[:60]={d.description[:60]!r}",
+        f"source[:60]={py.description.strip()[:60]!r} loaded[:60]={d.description.strip()[:60]!r}",
     )
 
 
