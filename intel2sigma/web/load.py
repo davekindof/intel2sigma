@@ -26,6 +26,8 @@ from sigma.rule import SigmaDetection, SigmaDetectionItem
 from sigma.rule import SigmaRule as PySigmaRule
 
 from intel2sigma._data import data_path
+from intel2sigma.core.model import LogSource
+from intel2sigma.core.taxonomy.schema import ObservationTypeSpec
 from intel2sigma.core.validate.issues import ValidationIssue
 from intel2sigma.web.draft import (
     DetectionBlockDraft,
@@ -171,11 +173,35 @@ def _render_tag(tag: Any) -> str:
 def _translate_observation(
     draft: RuleDraft, py_rule: PySigmaRule, issues: list[ValidationIssue]
 ) -> None:
-    """Best-effort map the rule's logsource category to our observation catalog.
+    """Best-effort map the rule's logsource to our observation catalog.
 
-    We don't hard-require a match — catalogues miss things — but flag a
-    ``LOAD_OBSERVATION_UNKNOWN`` issue so the composer knows to skip the
-    taxonomy-driven field dropdown if the category isn't recognized.
+    Match by any combination of (category, product, service) — Sigma
+    rules use any non-empty subset to identify their logsource shape.
+    Each catalog spec also specifies any subset; matching is "spec
+    fields that are set must equal the source's value." Spec fields
+    set to ``None`` are wildcards.
+
+    When multiple specs match, the most-specific one wins (highest
+    count of explicitly-set logsource fields). This ensures
+    ``process_creation_linux`` (cat + product) beats
+    ``process_creation`` (cat only) for a rule with both, and
+    ``application_kubernetes`` (cat + product) beats nothing
+    spurious for k8s rules.
+
+    We don't hard-require a match — catalogues miss things — but
+    flag a ``LOAD_OBSERVATION_UNKNOWN`` issue and route to
+    ``_freeform`` so the composer keeps a usable Stage 1+ rendering
+    instead of falling back to Stage 0.
+
+    Pre-L8-B-2 the matcher only handled category-keyed specs and
+    bailed early when ``category`` was unset. The L8-A discovery
+    audit found 797 corpus rules (21%) with service-only logsources
+    landing with ``observation_id=""`` because of that early-return
+    — the screenshot bug from 2026-05-02. 14 of 36 catalog entries
+    are service-keyed (windows-security, auditd, cloudtrail, all
+    Azure logs, Okta, GitHub, GCP audit, Defender, Task Scheduler,
+    application_log, system_log) and were unreachable; this fix
+    closes them.
     """
     # Lazy import: core.taxonomy.load_taxonomy has side-effects (I/O) we
     # don't want at module import time.
@@ -196,28 +222,53 @@ def _translate_observation(
     ls = draft.logsource
     category = ls.category
     product = ls.product
-    if not category:
+    service = ls.service
+
+    # No logsource info at all → nothing to route by. Leave
+    # observation_id empty; the renderer falls back to Stage 0,
+    # which is the correct UX for a rule with no logsource.
+    if not (category or product or service):
         return
 
+    # Find every spec compatible with the source's logsource —
+    # see ``_logsource_compatible``. Score each by how many of the
+    # source's set fields the spec agrees with; most-specific match
+    # wins.
+    candidates: list[tuple[ObservationTypeSpec, int]] = []
     for obs_id in registry.all_ids():
         spec = registry.get(obs_id)
-        if spec.logsource.category != category:
+        if not _logsource_compatible(ls, spec.logsource):
             continue
-        # Prefer a platform-matching entry when product is specified.
+        # Platform check: when source has a product, the spec must
+        # offer a platform with that product (otherwise the rule
+        # can't be authored under this observation as written).
+        # ``unspecified`` on a platform is a wildcard, same idiom
+        # as ``unspecified`` on the logsource (preserves the pre-
+        # L8-B-2 behaviour for proxy.yml and linux_misc.yml).
         if product and spec.platforms:
-            products = {p.product for p in spec.platforms}
-            if product not in products:
+            products = {_wildcard_or(p.product) for p in spec.platforms}
+            if None not in products and product not in products:
                 continue
+        candidates.append((spec, _spec_match_score(ls, spec)))
+
+    if candidates:
+        # Most-specific match wins; ties broken by alphabetical id
+        # (deterministic). Existing tests rely on the
+        # ``process_creation`` (less-specific) → ``process_creation
+        # _linux`` (more-specific) preference, plus the
+        # alphabetical-tiebreaker fallback for ambiguous routing.
+        spec, _score = max(candidates, key=lambda c: (c[1], -len(c[0].id)))
         draft.observation_id = spec.id
-        # Pick the platform whose product matches the loaded rule. Pre-
-        # L2-P2 the catalog had one platform per file so this was always
-        # ``spec.platforms[0]``; once multi-platform entries land
-        # (network_connection now carries both windows + linux,
-        # file_event windows + macos) the first-platform default would
-        # silently route a Linux rule to platform_id="windows" — wrong
-        # field set in Stage 1, wrong logsource.product on save. Match
-        # by product when we can; fall back to the first platform when
-        # the loaded rule has no product (e.g. ``category: webserver``).
+        # Pick the platform whose product matches the loaded rule.
+        # Pre-L2-P2 the catalog had one platform per file so this
+        # was always ``spec.platforms[0]``; once multi-platform
+        # entries land (network_connection windows + linux,
+        # file_event windows + macos) the first-platform default
+        # would silently route a Linux rule to platform_id="windows"
+        # — wrong field set in Stage 1, wrong logsource.product on
+        # save. Match by product when we can; fall back to the first
+        # platform when the loaded rule has no product (e.g.
+        # ``category: webserver``).
         matched_platform = next(
             (p for p in spec.platforms if product and p.product == product),
             spec.platforms[0] if spec.platforms else None,
@@ -225,28 +276,138 @@ def _translate_observation(
         draft.platform_id = matched_platform.id if matched_platform else ""
         return
 
-    # No catalogue match. Route to the freeform observation path so the
-    # composer treats this as a custom logsource (text-input field rows
-    # instead of taxonomy-driven dropdowns) and the breadcrumb / stage
-    # render stay in sync with draft.stage. Without this, an unknown
-    # logsource left observation_id="" and the render fallback in
-    # _render_composer_panel dropped to Stage 0 regardless of the
-    # loaded stage — a rule landing at stage 3 (review) would render
-    # Stage 0 cards while the breadcrumb still highlighted Stage 3.
+    # No catalogue match. Route to the freeform observation path so
+    # the composer treats this as a custom logsource (text-input
+    # field rows instead of taxonomy-driven dropdowns) and the
+    # breadcrumb / stage render stay in sync with draft.stage.
+    # Without this, an unknown logsource left observation_id="" and
+    # the render fallback in _render_composer_panel dropped to
+    # Stage 0 regardless of the loaded stage — a rule landing at
+    # stage 3 (review) would render Stage 0 cards while the
+    # breadcrumb still highlighted Stage 3.
     draft.observation_id = _FREEFORM_OBSERVATION_ID
+    fields = (("category", category), ("product", product), ("service", service))
+    surface = ", ".join(f"{k}={v!r}" for k, v in fields if v)
     issues.append(
         ValidationIssue(
             tier=1,
             code=f"{_ISSUE_CODE_PREFIX}OBSERVATION_UNKNOWN",
             message=(
-                f"Rule's logsource ({category}"
-                + (f", {product}" if product else "")
-                + ") doesn't match any catalogued observation type. "
-                "Composer will use freeform field-name inputs; field "
-                "values won't be validated against the taxonomy."
+                f"Rule's logsource ({surface}) doesn't match any catalogued "
+                "observation type. Composer will use freeform field-name "
+                "inputs; field values won't be validated against the taxonomy."
             ),
         )
     )
+
+
+def _logsource_compatible(source_ls: LogSourceDraft, spec_ls: LogSource) -> bool:
+    """Spec matches source iff their logsource shapes align — every
+    field set on both agrees, and the spec doesn't require fields
+    the source omits.
+
+    The matching rule for L8-B-2's multi-axis routing.
+
+    Two-direction check:
+
+    * **No contradiction**: when both source and spec set a given
+      field (category / product / service), they must agree.
+    * **No over-claim**: when the spec sets a field the source
+      omits, the spec is more specific than the source — they
+      describe different shapes, no match. This guards against the
+      "system_log spec false-matching a process_creation rule"
+      class that ``at-least-one-match`` permits.
+
+    Wildcard handling: the catalog uses ``"unspecified"`` as a
+    placeholder for product/category in generic-shape logsources
+    (``proxy.yml``, ``linux_misc.yml``) — the schema requires non-
+    empty strings on platforms, and "unspecified" is the convention
+    for "no specific constraint." :func:`_wildcard_or` normalizes
+    it to ``None`` for matching, so a spec with ``product:
+    unspecified`` doesn't reject sources that omit product.
+
+    Spec must have at least one constraint that AGREES with the
+    source — guards the no-info case where spec and source both
+    have no logsource fields set (would otherwise vacuously match
+    every spec).
+    """
+    spec_cat = _wildcard_or(spec_ls.category)
+    spec_prod = _wildcard_or(spec_ls.product)
+    spec_svc = _wildcard_or(spec_ls.service)
+    matched = 0
+    for src, spec in (
+        (source_ls.category, spec_cat),
+        (source_ls.product, spec_prod),
+        (source_ls.service, spec_svc),
+    ):
+        if spec is not None and src is not None:
+            if src != spec:
+                return False  # contradiction
+            matched += 1
+        elif spec is not None and src is None:
+            return False  # over-claim: spec requires field source omits
+        # src set, spec unset → spec is unconstrained, source is
+        # more specific. OK.
+    return matched > 0
+
+
+def _wildcard_or(value: str | None) -> str | None:
+    """The catalog's ``"unspecified"`` placeholder normalizes to None
+    for matching. See :func:`_logsource_compatible`.
+    """
+    if value == "unspecified":
+        return None
+    return value
+
+
+def _spec_match_score(source_ls: LogSourceDraft, spec: ObservationTypeSpec) -> int:
+    """Weighted match score: how meaningfully does this spec describe
+    the source's logsource shape?
+
+    Different axes carry different semantic weight:
+
+    * **category** (weight 4) — names a specific event TYPE
+      (process_creation, dns_query, file_event). Most semantically
+      meaningful — a category match means the spec describes the
+      same kind of event the rule is about.
+    * **service** (weight 2) — names a log SOURCE / channel
+      (security, auditd, cloudtrail). Distinguishes between
+      logging systems on the same product.
+    * **product** (weight 1) — names the underlying SYSTEM
+      (windows, linux, aws). Necessary but not sufficient on its
+      own — every product has many event types.
+
+    The weighting matters when multiple specs match. Without it, a
+    rule with ``category: network_connection, product: linux`` would
+    tie between ``network_connection`` (cat-only) and ``linux_misc``
+    (prod-only after wildcard normalization), and a length-based or
+    alphabetical tiebreak would arbitrarily pick the wrong one.
+    The weights make the category match clearly dominant, picking
+    ``network_connection`` regardless of registry order.
+
+    Examples:
+      * ``{category: process_creation, product: linux}`` vs
+        ``process_creation_linux``: cat (+4) + prod (+1) = 5.
+      * Same source vs ``process_creation``: cat (+4) only = 4.
+        process_creation_linux wins.
+      * ``{product: windows, service: security}`` vs ``security_log``:
+        prod (+1) + svc (+2) = 3.
+      * ``{category: network_connection, product: linux}`` vs
+        ``network_connection``: cat (+4) only = 4.
+      * Same source vs ``linux_misc`` (cat unspecified→None,
+        prod=linux): prod (+1) only = 1. network_connection wins.
+    """
+    score = 0
+    spec_cat = _wildcard_or(spec.logsource.category)
+    spec_prod = _wildcard_or(spec.logsource.product)
+    spec_svc = _wildcard_or(spec.logsource.service)
+    if spec_cat is not None and source_ls.category is not None and spec_cat == source_ls.category:
+        score += 4
+    if spec_svc is not None and source_ls.service is not None and spec_svc == source_ls.service:
+        score += 2
+    if spec_prod is not None and source_ls.product is not None and spec_prod == source_ls.product:
+        score += 1
+    return score
 
 
 def _translate_detection_blocks(

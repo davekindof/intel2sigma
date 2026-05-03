@@ -87,50 +87,91 @@ def test_clean_rule_passes_every_applicable_dimension() -> None:
     assert report.all_passed
 
 
-def test_service_only_logsource_flags_observation_id_populated() -> None:
-    """The screenshot-bug fixture trips the routing dimension.
+def test_service_only_logsource_now_routes_correctly() -> None:
+    """Post-L8-B-2: the screenshot-bug fixture routes to the catalog.
 
     A rule with ``logsource: { product: windows, service: security }``
-    (no category) currently leaves ``observation_id=""`` in the draft.
-    The ``observation_id_populated`` dimension must flag this as
-    FAIL — that's the L8-A discovery surface.
+    (no category) used to leave ``observation_id=""`` because the
+    loader's matcher only handled category-keyed lookups. L8-B-2
+    extended ``_translate_observation`` to multi-axis matching with
+    weighted scoring — windows/security now routes to the
+    ``security_log`` catalog entry.
 
-    Other dimensions (logsource_category being N/A, logsource_product
-    pass, logsource_service pass, etc.) should be reported as
-    expected. This test pins the dimension's behaviour against the
-    canonical instance of the bug.
+    This test pins the fix: the screenshot fixture should pass
+    ``observation_id_populated`` AND
+    ``observation_id_matches_catalog`` post-L8-B-2. Pre-L8-B-2 it
+    failed both — the L8-A discovery report's most-cited symptom.
     """
     report = check_fidelity(_SERVICE_ONLY_RULE)
     populated = report.dimensions["observation_id_populated"]
-    assert populated.status is Status.FAIL, (
-        f"Expected FAIL on observation_id_populated for service-only "
-        f"logsource; got {populated.status} ({populated.detail})"
+    assert populated.status is Status.PASS, (
+        f"Expected PASS post-L8-B-2; got {populated.status} ({populated.detail})"
     )
-    # Sanity: logsource fields preserved (those dimensions PASS) —
-    # the routing failure is independent of logsource preservation.
+    matches = report.dimensions["observation_id_matches_catalog"]
+    assert matches.status is Status.PASS, (
+        f"Expected PASS on matches_catalog; got {matches.status} ({matches.detail})"
+    )
+    # Sanity: logsource fields preserved.
     assert report.dimensions["logsource_product"].status is Status.PASS
     assert report.dimensions["logsource_service"].status is Status.PASS
     assert report.dimensions["logsource_category"].status is Status.NA
 
 
+def test_observation_id_populated_dimension_can_still_detect_failure() -> None:
+    """Verify the dimension hasn't lost its detection capability.
+
+    L8-B-2 fixed the loader so the screenshot-fixture passes. We
+    still want the dimension to FAIL when observation_id is empty
+    for a rule with logsource info — otherwise a future regression
+    could leave routing broken without the dimension noticing.
+
+    Constructs a fake (py_rule, draft) pair directly to exercise
+    the FAIL branch without depending on a corpus rule that the
+    loader can't route (which would itself be a bug we'd want to
+    fix).
+    """
+    from intel2sigma._fidelity import _check_observation_id_populated  # noqa: PLC0415
+
+    class _FakeLogsource:
+        category = "process_creation"
+        product = "windows"
+        service = None
+
+    class _FakePy:
+        logsource = _FakeLogsource()
+
+    class _FakeDraft:
+        observation_id = ""  # the failure mode
+
+    result = _check_observation_id_populated(_FakePy(), _FakeDraft())  # type: ignore[arg-type]
+    assert result.status is Status.FAIL
+    assert "Stage 0" in result.detail or "empty observation_id" in result.detail
+
+
 def test_audit_corpus_fidelity_rollup_matches_inputs() -> None:
     """The corpus rollup correctly sums per-dimension counts.
 
-    Walks 2 rules: the clean fixture and the service-only fixture.
-    For each dimension, expects:
-      - clean fixture contributes one of {pass, n/a}
-      - service-only fixture contributes the appropriate result
+    Walks 2 rules: the clean fixture (process_creation/windows —
+    routes to ``process_creation``) and the screenshot fixture
+    (windows/security — post-L8-B-2 routes to ``security_log``).
+
+    Both fixtures now pass routing dimensions; the rollup just
+    confirms the framework's count semantics on dimensions that
+    legitimately differ (e.g. tags, set on one fixture and not
+    the other).
     """
     summary = audit_corpus_fidelity([_CLEAN_RULE, _SERVICE_ONLY_RULE])
 
     assert summary["total_rules"] == 2
 
-    # observation_id_populated: clean fixture passes (process_creation
-    # is catalogued); service-only fixture fails. So per-dim should
-    # be pass=1, fail=1.
+    # Both fixtures route correctly post-L8-B-2 — observation_id
+    # populated AND matches a catalog entry.
     obs_id = summary["per_dimension"]["observation_id_populated"]
-    assert obs_id["pass"] == 1
-    assert obs_id["fail"] == 1
+    assert obs_id["pass"] == 2
+    assert obs_id["fail"] == 0
+    matches = summary["per_dimension"]["observation_id_matches_catalog"]
+    assert matches["pass"] == 2
+    assert matches["fail"] == 0
 
     # title preservation: both should pass.
     assert summary["per_dimension"]["title"]["pass"] == 2
@@ -142,10 +183,9 @@ def test_audit_corpus_fidelity_rollup_matches_inputs() -> None:
     assert tags["pass"] == 1
     assert tags["n/a"] == 1
 
-    # Fail examples: should include the service-only id under
-    # observation_id_populated.
-    examples = summary["fail_examples"]["observation_id_populated"]
-    assert any(ex["rule_id"] == _SERVICE_ONLY_RULE["id"] for ex in examples)
+    # No fail examples for any routing dimension on these fixtures.
+    assert summary["fail_examples"]["observation_id_populated"] == []
+    assert summary["fail_examples"]["observation_id_matches_catalog"] == []
 
 
 def test_description_trailing_whitespace_does_not_count_as_drift() -> None:
