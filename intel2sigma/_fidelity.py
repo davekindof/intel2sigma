@@ -325,18 +325,31 @@ def _check_observation_id_matches_catalog(py: PySigmaRule, d: RuleDraft) -> Dime
     """If observation_id points to a catalog entry, that entry's
     logsource must match the source's logsource.
 
-    Stricter than _populated — checks that the routing was *correct*,
-    not just that something got assigned. ``_freeform`` is N/A
-    (the freeform path doesn't have a single catalog logsource to
-    match against).
+    Stricter than ``_populated`` — checks that the routing was
+    *correct*, not just that something got assigned. ``_freeform``
+    is N/A (the freeform path doesn't have a single catalog
+    logsource to match against).
+
+    Wildcard handling is identical to the loader's
+    ``_logsource_compatible``: the catalog's ``"unspecified"``
+    placeholder normalizes to ``None`` for matching. Without this,
+    the audit reported 27 false-positive fails on this dimension
+    after L8-B-2 — proxy.yml and linux_misc.yml use ``"unspecified"``
+    as a wildcard, the loader correctly routes through them, but
+    the audit's strict ``spec.category != source.category`` check
+    flagged the routing as wrong. Audit and loader now share the
+    same wildcard semantics by construction.
     """
     if not d.observation_id:
         return DimensionResult(Status.NA, "observation_id empty (covered by _populated)")
     if d.observation_id == _FREEFORM_OBSERVATION_ID:
         return DimensionResult(Status.NA, "freeform path doesn't bind to catalog logsource")
-    # Lazy import: catalog is a runtime-loaded resource, not part of
-    # the model surface.
+    # Lazy imports: catalog is a runtime-loaded resource, not part
+    # of the model surface; the loader's wildcard helper lives in
+    # web/load.py and is the single source of truth for the
+    # placeholder-handling convention.
     from intel2sigma.core.taxonomy import load_taxonomy  # noqa: PLC0415
+    from intel2sigma.web.load import _wildcard_or  # noqa: PLC0415
 
     try:
         spec = load_taxonomy().get(d.observation_id)
@@ -347,15 +360,17 @@ def _check_observation_id_matches_catalog(py: PySigmaRule, d: RuleDraft) -> Dime
         )
     src_cat = py.logsource.category
     src_svc = py.logsource.service
-    if spec.logsource.category is not None and spec.logsource.category != src_cat:
+    spec_cat = _wildcard_or(spec.logsource.category)
+    spec_svc = _wildcard_or(spec.logsource.service)
+    if spec_cat is not None and spec_cat != src_cat:
         return DimensionResult(
             Status.FAIL,
-            f"spec.category={spec.logsource.category!r} but source.category={src_cat!r}",
+            f"spec.category={spec_cat!r} but source.category={src_cat!r}",
         )
-    if spec.logsource.service is not None and spec.logsource.service != src_svc:
+    if spec_svc is not None and spec_svc != src_svc:
         return DimensionResult(
             Status.FAIL,
-            f"spec.service={spec.logsource.service!r} but source.service={src_svc!r}",
+            f"spec.service={spec_svc!r} but source.service={src_svc!r}",
         )
     return DimensionResult(Status.PASS)
 
