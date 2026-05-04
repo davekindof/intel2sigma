@@ -355,6 +355,94 @@ both directions: every regression on what we ingest OR what we
 emit fails CI. Together with the L1-L3 floor at 3582, the
 "correctness blind spot in either direction" gap is closed.
 
+## 🪦 v1.x — State-fidelity audit framework *(SHIPPED in 0.3.4, 2026-05-02)*
+
+The third audit in the v1.x sweep family. After L1 (load-content)
+and L4 (emit-content) shipped, three live bugs still escaped both:
+``8329d04`` (filter-only condition parity, fixed in 0.2.14), B1
+(modifier dropped on field-name keystroke, fixed in 0.3.1), and
+the screenshot bug from 2026-05-02 (service-only logsource →
+``observation_id=""`` → renderer falls back to Stage 0).
+
+Each was the symptom of an unmeasured ``RuleDraft`` property. The
+ad-hoc fix-the-symptom pattern would have landed a fourth eventually.
+L8 makes the unmeasured surface measurable: it enumerates **every**
+observable property of ``RuleDraft`` post-load — identity, prose
+metadata, list metadata, logsource, routing, and UI state — and
+checks each as a separate "fidelity dimension."
+
+Three phases, mirroring L1/L2/L3 and L4/L5/L6:
+
+**🪦 L8-A — discovery framework** (`533c9d0`, 0.3.4). 18-dimension
+catalogue in ``intel2sigma/_fidelity.py``. Each ``FidelityDimension``
+is data: name + group + description + check callable. Adding a new
+dimension is one entry, no categoriser branches to rewrite. The
+script ``scripts/audit_corpus_fidelity.py`` walks the corpus, runs
+every dimension on every rule, produces per-dimension pass/fail/n/a
+counts plus 5 fail examples per drifting dimension.
+
+  Initial discovery report against 3,708 corpus rules surfaced
+  three drifting dimensions and fifteen clean:
+
+    description                       955 fails (26%)
+    observation_id_populated          797 fails (21%)
+    observation_id_matches_catalog    212 fails  (6%)
+
+  Every other dimension (title, id, status, level, author, date,
+  modified, references, tags, falsepositives, all three logsource
+  fields, platform_id, stage) at zero drift — the systematic
+  measurement proved most of ``RuleDraft``'s state actually does
+  survive load fine.
+
+**🪦 L8-B — fix every drifting dimension** (`c8b9b66` /
+`dc47960` / `a06e946`, 0.3.4). One commit per dimension:
+
+  * **L8-B-1** (description) — audit-side normalization.
+    Trailing/leading whitespace stripped on both sides before
+    compare. Source rules with ``description: |\n  text`` left a
+    trailing newline that ``RuleDraft.str_strip_whitespace=True``
+    correctly removed; the audit was over-strict.
+  * **L8-B-2** (observation_id_populated + matches_catalog) —
+    real loader fix. ``_translate_observation`` rewritten as a
+    multi-axis matcher: spec compatible with source when every
+    field set on both agrees AND spec doesn't require fields
+    source omits. Weighted scoring (category 4, service 2,
+    product 1) disambiguates ties — category match dominates
+    because it names the event TYPE. The screenshot bug class is
+    structurally closed; 14 service-keyed catalog entries
+    (windows-security, auditd, cloudtrail, all Azure logs, Okta,
+    GitHub, GCP audit, Defender, application_log, system_log,
+    create_task) become reachable.
+  * **L8-B-3** (matches_catalog residual) — audit/loader wildcard
+    alignment. Audit dimension imports the loader's
+    ``_wildcard_or`` helper so the catalog's ``"unspecified"``
+    placeholder normalizes to None on both sides identically.
+
+  Final: every dimension at 0 fails across the 3,708-rule
+  corpus. Total drift surface across 18 dimensions × 3,708 rules
+  ≈ 67,000 individual checks — all green.
+
+**🪦 L8-C — corpus-fidelity ratchet** (`[hash]`, 0.3.4). Mirrors
+L3 (load-path) and L6 (emit-path). ``tests/test_corpus_fidelity
+_ratchet.py`` with three slow-marked checks: meta dimensions
+(``_meta_source_parse``, ``_meta_load``) must stay 0;
+per-dimension fail counts must stay at-or-below their declared
+floor (currently all 0); soft staleness check that flags floors
+lagging actual by >50.
+
+The contract this closes: **adding a new property to ``RuleDraft``
+requires adding a fidelity dimension.** ``test_no_dimension_drifts
+_above_its_floor`` flags any dimension whose floor isn't declared.
+Future undiscovered drift dimensions can't slip past the framework.
+
+**Status**: complete. The project now has THREE symmetric audits
+in the v1.x sweep family: L1 (load-content), L4 (emit-content), L8
+(state-fidelity). Together they cover every direction the
+composer's data can drift: input fidelity, output fidelity, and
+internal-state fidelity. The next class of bug surfaces by
+extending the framework — adding a dimension to L8 — not by
+reading bug reports.
+
 ## v1.x — Smaller post-v1.0 polish
 
 Doesn't fit a milestone:

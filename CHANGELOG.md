@@ -24,6 +24,77 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.3.4 — 2026-05-02
+
+Patch bump — **L8 state-fidelity audit shipped** + the screenshot-
+bug routing fix that was its first surfaced finding.
+
+### What this fixes
+
+The screenshot bug from 2026-05-02: a rule with `logsource:
+{ product: windows, service: security }` (or any other service-
+keyed shape — auditd, cloudtrail, all Azure logs, Okta, GitHub
+audit, etc.) loaded with `observation_id=""` because the loader
+only matched by category. The renderer then fell back to Stage 0
+even though `draft.stage` said 3. **14 of 36 catalog entries were
+unreachable** for service-keyed rules. **780 corpus rules (21%)
+were affected.**
+
+L8-B-2 rewrites `_translate_observation` as a multi-axis matcher:
+spec compatible with source when every field set on both agrees
+AND spec doesn't require fields source omits. Weighted scoring
+(category 4, service 2, product 1) picks the most semantically-
+meaningful match when multiple specs apply. Catalog wildcards
+(`"unspecified"` placeholder in proxy.yml, linux_misc.yml)
+normalized to None for matching.
+
+### What's new — the L8 framework
+
+The third audit in the v1.x sweep family. After L1 (load-content)
+and L4 (emit-content), three live bugs still escaped both — each
+the symptom of a different unmeasured `RuleDraft` property.
+Patching one symptom at a time would have landed a fourth bug
+eventually; L8 enumerates **every** observable property as a
+"fidelity dimension" and measures all 18 against the corpus.
+
+* **L8-A** (`533c9d0`) — discovery framework. 18 dimensions across
+  identity, prose metadata, list metadata, logsource, routing, and
+  UI state. Initial corpus run surfaced three drifting dimensions:
+  `description` (955 fails, 26%), `observation_id_populated` (797,
+  21%), `observation_id_matches_catalog` (212, 6%). Fifteen
+  dimensions clean — most of `RuleDraft`'s state survives load
+  fine; the audit proved it.
+* **L8-B-1** (`c8b9b66`) — description normalization. Trailing/
+  leading whitespace stripped on both sides; matches what
+  `RuleDraft.str_strip_whitespace=True` already does.
+* **L8-B-2** (`dc47960`) — multi-axis observation routing.
+  Real loader fix; the screenshot bug class.
+* **L8-B-3** (`a06e946`) — audit/loader wildcard alignment.
+* **L8-C** (`483b10d`) — slow-marked ratchet test, 3 checks at
+  0-fail floors per dimension. Future PRs that touch the loader,
+  serializer, or model surface fail CI on any dimension drift.
+
+**Final corpus result: every dimension at 0 fails.** ~67,000
+individual checks (3,708 rules × 18 dimensions) all green.
+
+### The structural payoff
+
+The contract this closes: **adding a new property to `RuleDraft`
+requires adding a fidelity dimension AND adding its floor to the
+ratchet.** A missing entry fails the ratchet immediately. The
+meta-loop where new bug classes go undetected is closed — every
+direction the composer's data can drift has a structural audit
+gating it now (L1 input, L4 output, L8 internal state).
+
+### Slow-suite cost note
+
+The L8 ratchet adds ~49 minutes to the slow suite (each corpus
+rule pays for two pySigma parses + 18 dimension checks). With L3
+(7 min) + L6 (25 min) + L8 (49 min), the full slow suite is now
+~80 min. Optimization (sharing pySigma parse across audits) is a
+follow-up if this becomes painful in CI; routine fast-suite
+runtime unchanged.
+
 ## 0.3.3 — 2026-05-01
 
 Patch bump — Pattern II (converge to a single YAML emit path)
