@@ -1,0 +1,562 @@
+[
+ {
+  "id": "0022869c-49f7-4ff2-ba03-85ac42ddac58",
+  "title": "System Information Discovery via Registry Queries",
+  "logsource": "windows/process_creation/-"
+ },
+ {
+  "id": "002bdb95-0cf1-46a6-9e08-d38c128a6127",
+  "title": "WScript or CScript Dropper - File",
+  "logsource": "windows/file_event/-"
+ },
+ {
+  "id": "00321fee-ca72-4cce-b011-5415af3b9960",
+  "title": "MSSQL Destructive Query",
+  "logsource": "windows/-/application"
+ },
+ {
+  "id": "0055ad1f-be85-4798-83cf-a6da17c993b3",
+  "title": "Application URI Configuration Changes",
+  "logsource": "azure/-/auditlogs"
+ },
+ {
+  "id": "0066d244-c277-4c3e-88ec-9e7b777cc8bc",
+  "title": "Potential CVE-2023-36884 Exploitation Pattern",
+  "logsource": "-/proxy/-"
+ },
+ {
+  "id": "00a8e92a-776b-425f-80f2-82d8f8fab2e5",
+  "title": "Okta 2023 Breach Indicator Of Compromise",
+  "logsource": "okta/-/okta"
+ },
+ {
+  "id": "00b90cc1-17ec-402c-96ad-3a8117d7a582",
+  "title": "Suspicious Curl File Upload - Linux",
+  "logsource": "linux/process_creation/-"
+ },
+ {
+  "id": "00ba9da1-b510-4f6b-b258-8d338836180f",
+  "title": "Password Protected ZIP File Opened",
+  "logsource": "windows/-/security"
+ },
+ {
+  "id": "00bb5bd5-1379-4fcf-a965-a5b6f7478064",
+  "title": "Windows Firewall Settings Have Been Changed",
+  "logsource": "windows/-/firewall-as"
+ },
+ {
+  "id": "00eee2a5-fdb0-4746-a21d-e43fbdea5681",
+  "title": "Linux Doas Conf File Creation",
+  "logsource": "linux/file_event/-"
+ },
+ {
+  "id": "02122374-b74e-495c-b285-9e4da973f3d6",
+  "title": "DMSA Service Account Created in Specific OUs - PowerShell",
+  "logsource": "windows/ps_script/-"
+ },
+ {
+  "id": "0250638a-2b28-4541-86fc-ea4c558fa0c6",
+  "title": "Suspicious Browser Child Process - MacOS",
+  "logsource": "macos/process_creation/-"
+ },
+ {
+  "id": "025bd229-fd1f-4fdb-97ab-20006e1a5368",
+  "title": "Unusual File Download from Direct IP Address",
+  "logsource": "windows/create_stream_hash/-"
+ },
+ {
+  "id": "025c9fe7-db72-49f9-af0d-31341dd7dd57",
+  "title": "Azure Firewall Rule Collection Modified or Deleted",
+  "logsource": "azure/-/activitylogs"
+ },
+ {
+  "id": "02cf536a-cf21-4876-8842-4159c8aee3cc",
+  "title": "Github Push Protection Bypass Detected",
+  "logsource": "github/-/audit"
+ },
+ {
+  "id": "02d1d718-dd13-41af-989d-ea85c7fab93f",
+  "title": "Rare Remote Thread Creation By Uncommon Source Image",
+  "logsource": "windows/create_remote_thread/-"
+ },
+ {
+  "id": "02ee49e2-e294-4d0f-9278-f5b3212fc588",
+  "title": "New RUN Key Pointing to Suspicious Folder",
+  "logsource": "windows/registry_set/-"
+ },
+ {
+  "id": "02fb90de-c321-4e63-a6b9-25f4b03dfd14",
+  "title": "Windows Spooler Service Suspicious Binary Load",
+  "logsource": "windows/image_load/-"
+ },
+ {
+  "id": "0322d9f2-289a-47c2-b5e1-b63c90901a3e",
+  "title": "Google Cloud Kubernetes RoleBinding",
+  "logsource": "gcp/-/gcp.audit"
+ },
+ {
+  "id": "04017cd5-621e-4ec4-a762-1f042fe3d3e5",
+  "title": "Potential CVE-2023-46214 Exploitation Attempt",
+  "logsource": "-/webserver/-"
+ },
+ {
+  "id": "04e2a23a-9b29-4a5c-be3a-3542e3f982ba",
+  "title": "Google Workspace Granted Domain API Access",
+  "logsource": "gcp/-/google_workspace.admin"
+ },
+ {
+  "id": "0506a799-698b-43b4-85a1-ac4c84c720e9",
+  "title": "PwnKit Local Privilege Escalation",
+  "logsource": "linux/-/auth"
+ },
+ {
+  "id": "05296024-fe8a-4baf-8f3d-9a5f5624ceb2",
+  "title": "Malicious Driver Load",
+  "logsource": "windows/driver_load/-"
+ },
+ {
+  "id": "0531e43a-d77d-47c2-b89f-5fe50321c805",
+  "title": "RegAsm.EXE Initiating Network Connection To Public IP",
+  "logsource": "windows/network_connection/-"
+ },
+ {
+  "id": "06125661-3814-4e03-bfa2-1e4411c60ac3",
+  "title": "Backup Files Deleted",
+  "logsource": "windows/file_delete/-"
+ },
+ {
+  "id": "065cceea-77ec-4030-9052-fc0affea7110",
+  "title": "DNS Query for Anonfiles.com Domain - Sysmon",
+  "logsource": "windows/dns_query/-"
+ },
+ {
+  "id": "071d5e5a-9cef-47ec-bc4e-a42e34d8d0ed",
+  "title": "Possible Coin Miner CPU Priority Param",
+  "logsource": "linux/-/auditd"
+ },
+ {
+  "id": "07330162-dba1-4746-8121-a9647d49d297",
+  "title": "AWS Config Disabling Channel/Recorder",
+  "logsource": "aws/-/cloudtrail"
+ },
+ {
+  "id": "07ad2ea8-6a55-4ac6-bf3e-91b8e59676eb",
+  "title": "Invoke-Obfuscation Via Use MSHTA - PowerShell Module",
+  "logsource": "windows/ps_module/-"
+ },
+ {
+  "id": "07bdd2f5-9c58-4f38-aec8-e101bb79ef8d",
+  "title": "Terminal Server Client Connection History Cleared - Registry",
+  "logsource": "windows/registry_delete/-"
+ },
+ {
+  "id": "07e97cc6-aed1-43ae-9081-b3470d2367f1",
+  "title": "Okta Suspicious Activity Reported by End-user",
+  "logsource": "okta/-/okta"
+ },
+ {
+  "id": "090ffaad-c01a-4879-850c-6d57da98452d",
+  "title": "DNS Query To Ufile.io - DNS Client",
+  "logsource": "windows/-/dns-client"
+ },
+ {
+  "id": "09570ae5-889e-43ea-aac0-0e1221fb3d95",
+  "title": "Remove Exported Mailbox from Exchange Webserver",
+  "logsource": "windows/-/msexchange-management"
+ },
+ {
+  "id": "09706624-b7f6-455d-9d02-adee024cee1d",
+  "title": "HackTool - CobaltStrike BOF Injection Pattern",
+  "logsource": "windows/process_access/-"
+ },
+ {
+  "id": "09d3b48b-be17-47f5-bf4e-94e7e75d09ce",
+  "title": "Potential Malicious AppX Package Installation Attempts",
+  "logsource": "windows/-/appxdeployment-server"
+ },
+ {
+  "id": "0a3ff354-93fc-4273-8a03-1078782de5b7",
+  "title": "Recon Activity via SASec",
+  "logsource": "rpc_firewall/application/-"
+ },
+ {
+  "id": "0adc67e0-a68f-4ffd-9c43-28905aad5d6a",
+  "title": "HackTool - Koh Default Named Pipe",
+  "logsource": "windows/pipe_created/-"
+ },
+ {
+  "id": "0b0ea3cc-99c8-4730-9c53-45deee2a4c86",
+  "title": "Microsoft Defender Blocked from Loading Unsigned DLL",
+  "logsource": "windows/-/security-mitigations"
+ },
+ {
+  "id": "0c97c1d3-4057-45c9-b148-1de94b631931",
+  "title": "Okta Policy Rule Modified or Deleted",
+  "logsource": "okta/-/okta"
+ },
+ {
+  "id": "0c9b3bda-41a6-4442-9345-356ae86343dc",
+  "title": "Kubernetes CronJob/Job Modification",
+  "logsource": "kubernetes/-/audit"
+ },
+ {
+  "id": "0d58814b-1660-4d31-8c93-d1086ed24cba",
+  "title": "Okta Password Health Report Query",
+  "logsource": "okta/-/okta"
+ },
+ {
+  "id": "0f06a3a5-6a09-413f-8743-e6cf35561297",
+  "title": "WMI Event Subscription",
+  "logsource": "windows/wmi_event/-"
+ },
+ {
+  "id": "0f2468a2-5055-4212-a368-7321198ee706",
+  "title": "Activity from Infrequent Country",
+  "logsource": "m365/-/threat_management"
+ },
+ {
+  "id": "100ef69e-3327-481c-8e5c-6d80d9507556",
+  "title": "Important Windows Eventlog Cleared",
+  "logsource": "windows/-/system"
+ },
+ {
+  "id": "128faeef-79dd-44ca-b43c-a9e236a60f49",
+  "title": "Unfamiliar Sign-In Properties",
+  "logsource": "azure/-/riskdetection"
+ },
+ {
+  "id": "1321dc4e-a1fe-481d-a016-52c45f0c8b4f",
+  "title": "Windows Defender Exclusions Added",
+  "logsource": "windows/-/windefend"
+ },
+ {
+  "id": "139bdd4b-9cd7-49ba-a2f4-744d0a8f5d8c",
+  "title": "Okta Admin Role Assignment Created",
+  "logsource": "okta/-/okta"
+ },
+ {
+  "id": "13f2d3f5-6497-44a7-bf5f-dc13ffafe5dc",
+  "title": "Azure Login Bypassing Conditional Access Policies",
+  "logsource": "m365/-/audit"
+ },
+ {
+  "id": "152f3630-77c1-4284-bcc0-4cc68ab2f6e7",
+  "title": "Shell Open Registry Keys Manipulation",
+  "logsource": "windows/registry_event/-"
+ },
+ {
+  "id": "16ab6143-510a-44e2-a615-bdb80b8317fc",
+  "title": "Bitbucket Global SSH Settings Changed",
+  "logsource": "bitbucket/-/audit"
+ },
+ {
+  "id": "19bf6fdb-7721-4f3d-867f-53467f6a5db6",
+  "title": "Communication To Ngrok Tunneling Service - Linux",
+  "logsource": "linux/network_connection/-"
+ },
+ {
+  "id": "1a4bd6e3-4c6e-405d-a9a3-53a116e341d4",
+  "title": "USB Device Plugged",
+  "logsource": "windows/-/driver-framework"
+ },
+ {
+  "id": "1d218616-71b0-4c40-855b-9dbe75510f7f",
+  "title": "Potential NetWire RAT Activity - Registry",
+  "logsource": "windows/registry_add/-"
+ },
+ {
+  "id": "1fc0809e-06bf-4de3-ad52-25e5263b7623",
+  "title": "Publicly Accessible RDP Service",
+  "logsource": "zeek/-/rdp"
+ },
+ {
+  "id": "1ff315dc-2a3a-4b71-8dde-873818d25d39",
+  "title": "New BITS Job Created Via Bitsadmin",
+  "logsource": "windows/-/bits-client"
+ },
+ {
+  "id": "22777c9e-873a-4b49-855f-6072ab861a52",
+  "title": "OpenCanary - SMB File Open Request",
+  "logsource": "opencanary/application/-"
+ },
+ {
+  "id": "238527ad-3c2c-4e4f-a1f6-92fd63adb864",
+  "title": "Antivirus Exploitation Framework Detection",
+  "logsource": "-/antivirus/-"
+ },
+ {
+  "id": "23b71bc5-953e-4971-be4c-c896cda73fc2",
+  "title": "Sysmon Blocked Executable",
+  "logsource": "windows/-/sysmon"
+ },
+ {
+  "id": "23c43900-e732-45a4-8354-63e4a6c187ce",
+  "title": "MacOS Emond Launch Daemon",
+  "logsource": "macos/file_event/-"
+ },
+ {
+  "id": "248649b7-d64f-46f0-9fb2-a52774166fb5",
+  "title": "Application Using Device Code Authentication Flow",
+  "logsource": "azure/-/signinlogs"
+ },
+ {
+  "id": "286b47ed-f6fe-40b3-b3a8-35129acd43bc",
+  "title": "Suspicious Access to Sensitive File Extensions - Zeek",
+  "logsource": "zeek/-/smb_files"
+ },
+ {
+  "id": "2975af79-28c4-4d2f-a951-9095f229df29",
+  "title": "Cobalt Strike DNS Beaconing",
+  "logsource": "-/dns/-"
+ },
+ {
+  "id": "2bfb6216-0c31-4d20-8501-2629b29a3fa2",
+  "title": "FortiGate - New VPN SSL Web Portal Added",
+  "logsource": "fortigate/-/event"
+ },
+ {
+  "id": "2bfc1373-0220-4fbd-8b10-33ddafd2a142",
+  "title": "Scheduled Tasks Names Used By SVR For GraphicalProton Backdoor - Task Scheduler",
+  "logsource": "windows/-/taskscheduler"
+ },
+ {
+  "id": "2f8cd7a0-9d5a-4f62-9f8b-2c951aa0dd1f",
+  "title": "CodeIntegrity - Unmet WHQL Requirements For Loaded Kernel Module",
+  "logsource": "windows/-/codeintegrity-operational"
+ },
+ {
+  "id": "30a8cb77-8eb3-4cfb-8e79-ad457c5a4592",
+  "title": "Renamed Powershell Under Powershell Channel",
+  "logsource": "windows/ps_classic_start/-"
+ },
+ {
+  "id": "3132570d-cab2-4561-9ea6-1743644b2290",
+  "title": "Kubernetes Events Deleted",
+  "logsource": "kubernetes/application/audit"
+ },
+ {
+  "id": "31d68132-4038-47c7-8f8e-635a39a7c174",
+  "title": "Potential Active Directory Reconnaissance/Enumeration Via LDAP",
+  "logsource": "windows/-/ldap"
+ },
+ {
+  "id": "337a31c6-46c4-46be-886a-260d7aa78cac",
+  "title": "Access To .Reg/.Hive Files By Uncommon Applications",
+  "logsource": "windows/file_access/-"
+ },
+ {
+  "id": "3ce8e9a4-bc61-4c9b-8e69-d7e2492a8781",
+  "title": "OpenSSH Server Listening On Socket",
+  "logsource": "windows/-/openssh"
+ },
+ {
+  "id": "3db10f25-2527-4b79-8d4b-471eb900ee29",
+  "title": "GALLIUM Artefacts - Builtin",
+  "logsource": "windows/-/dns-server-analytic"
+ },
+ {
+  "id": "401e5d00-b944-11ea-8f9a-00163ecd60ae",
+  "title": "AppLocker Prevented Application or Script from Running",
+  "logsource": "windows/-/applocker"
+ },
+ {
+  "id": "4096842a-8f9f-4d36-92b4-d0b2a62f9b2a",
+  "title": "Potential PetitPotam Attack Via EFS RPC Calls",
+  "logsource": "zeek/-/dce_rpc"
+ },
+ {
+  "id": "42127bdd-9133-474f-a6f1-97b6c08a4339",
+  "title": "New Federated Domain Added - Exchange",
+  "logsource": "m365/-/exchange"
+ },
+ {
+  "id": "503fe26e-b5f2-4944-a126-eab405cc06e5",
+  "title": "Kerberos Network Traffic RC4 Ticket Encryption",
+  "logsource": "zeek/-/kerberos"
+ },
+ {
+  "id": "50cb47b8-2c33-4b23-a2e9-4600657d9746",
+  "title": "Loading Diagcab Package From Remote Path",
+  "logsource": "windows/-/diagnosis-scripted"
+ },
+ {
+  "id": "5588576c-5898-4fac-bcdd-7475a60e8f43",
+  "title": "Suspicious DNS Query Indicating Kerberos Coercion via DNS Object SPN Spoofing - Network",
+  "logsource": "zeek/-/dns"
+ },
+ {
+  "id": "558eebe5-f2ba-4104-b339-36f7902bcc1a",
+  "title": "File Creation Date Changed to Another Year",
+  "logsource": "windows/file_change/-"
+ },
+ {
+  "id": "56fa3cd6-f8d6-4520-a8c7-607292971886",
+  "title": "Cisco BGP Authentication Failures",
+  "logsource": "cisco/-/bgp"
+ },
+ {
+  "id": "58af08eb-f9e1-43c8-9805-3ad9b0482bd8",
+  "title": "Invalid PIM License",
+  "logsource": "azure/-/pim"
+ },
+ {
+  "id": "58c0bff0-40a0-46e8-b5e8-b734b84d2017",
+  "title": "Certificate Exported From Local Certificate Store",
+  "logsource": "windows/-/certificateservicesclient-lifecycle-system"
+ },
+ {
+  "id": "62fff148-278d-497e-8ecd-ad6083231a35",
+  "title": "OneLogin User Assumed Another User",
+  "logsource": "onelogin/-/onelogin.events"
+ },
+ {
+  "id": "64d51a51-32a6-49f0-9f3d-17e34d640272",
+  "title": "Ngrok Usage with Remote Desktop Service",
+  "logsource": "windows/-/terminalservices-localsessionmanager"
+ },
+ {
+  "id": "68c2c604-92ad-468b-bf4a-aac49adad08c",
+  "title": "HTTP Request to Low Reputation TLD or Suspicious File Extension",
+  "logsource": "zeek/-/http"
+ },
+ {
+  "id": "6d444368-6da1-43fe-b2fc-44202430480e",
+  "title": "Failed DNS Zone Transfer",
+  "logsource": "windows/-/dns-server"
+ },
+ {
+  "id": "6f7e1c10-2dc9-4312-adb6-9574ff09a5c8",
+  "title": "Cisco Duo Successful MFA Authentication Via Bypass Code",
+  "logsource": "cisco/-/duo"
+ },
+ {
+  "id": "7100f7e3-92ce-4584-b7b7-01b40d3d4118",
+  "title": "Default Cobalt Strike Certificate",
+  "logsource": "zeek/-/x509"
+ },
+ {
+  "id": "71886b70-d7b4-4dbf-acce-87d2ca135262",
+  "title": "Suspicious Rejected SMB Guest Logon From IP",
+  "logsource": "windows/-/smbclient-security"
+ },
+ {
+  "id": "71ff406e-b633-4989-96ec-bc49d825a412",
+  "title": "Zip A Folder With PowerShell For Staging In Temp - PowerShell",
+  "logsource": "windows/-/powershell-classic"
+ },
+ {
+  "id": "7ac407cc-0f48-4328-aede-de1d2e6fef41",
+  "title": "Standard User In High Privileged Group",
+  "logsource": "windows/-/lsa-server"
+ },
+ {
+  "id": "7ba05b43-adad-4c02-b5e9-c8c35cdf9fa8",
+  "title": "Potential Nimbuspwn Exploit CVE-2022-29799 and CVE-2022-27800",
+  "logsource": "linux/-/-"
+ },
+ {
+  "id": "7fcc54cb-f27d-4684-84b7-436af096f858",
+  "title": "Sudo Privilege Escalation CVE-2019-14287 - Builtin",
+  "logsource": "linux/-/sudo"
+ },
+ {
+  "id": "815cd91b-7dbc-4247-841a-d7dd1392b0a8",
+  "title": "Sysmon Configuration Error",
+  "logsource": "windows/sysmon_error/-"
+ },
+ {
+  "id": "83c161b6-ca67-4f33-8ad0-644a0737cf07",
+  "title": "Suspicious Application Installed",
+  "logsource": "windows/-/shell-core"
+ },
+ {
+  "id": "881834a4-6659-4773-821e-1c151789d873",
+  "title": "Equation Group C2 Communication",
+  "logsource": "-/firewall/-"
+ },
+ {
+  "id": "8d91f6e4-9f3b-4c21-ae41-2c5b7d9f7a12",
+  "title": "Unsigned or Unencrypted SMB Connection to Share Established",
+  "logsource": "windows/-/smbserver-connectivity"
+ },
+ {
+  "id": "98c3bcf1-56f2-49dc-9d8d-c66cf190238b",
+  "title": "NTLM Logon",
+  "logsource": "windows/-/ntlm"
+ },
+ {
+  "id": "9e1a1fdf-ee58-40ce-8e15-b66ca5a80e1f",
+  "title": "Previously Installed IIS Module Was Removed",
+  "logsource": "windows/-/iis-configuration"
+ },
+ {
+  "id": "a3501e8e-af9e-43c6-8cd6-9360bdaae498",
+  "title": "Activity from Suspicious IP Addresses",
+  "logsource": "m365/-/threat_detection"
+ },
+ {
+  "id": "a557ffe6-ac54-43d2-ae69-158027082350",
+  "title": "Huawei BGP Authentication Failures",
+  "logsource": "huawei/-/bgp"
+ },
+ {
+  "id": "a7c0ae48-8df8-42bf-91bd-2ea57e2f9d43",
+  "title": "Juniper BGP Missing MD5",
+  "logsource": "juniper/-/bgp"
+ },
+ {
+  "id": "ab90dab8-c7da-4010-9193-563528cfa347",
+  "title": "Potentially Suspicious Self Extraction Directive File Created",
+  "logsource": "windows/file_executable_detected/-"
+ },
+ {
+  "id": "b5aa7d60-c17e-4538-97de-09029d6cd76b",
+  "title": "Suspicious Digital Signature Of AppX Package",
+  "logsource": "windows/-/appxpackaging-om"
+ },
+ {
+  "id": "bbfd974c-248e-4435-8de6-1e938c79c5c1",
+  "title": "Non-DLL Extension File Renamed With DLL Extension",
+  "logsource": "windows/file_rename/-"
+ },
+ {
+  "id": "bcd95697-e3e7-4c6f-8584-8e3503e6929f",
+  "title": "Potential CVE-2024-3400 Exploitation - Palo Alto GlobalProtect OS Command Injection - File Creation",
+  "logsource": "paloalto/file_event/globalprotect"
+ },
+ {
+  "id": "c4b890e5-8d8c-4496-8c66-c805753817cd",
+  "title": "Potential Process Hollowing Activity",
+  "logsource": "windows/process_tampering/-"
+ },
+ {
+  "id": "d29a20b2-be4b-4827-81f2-3d8a59eab5fc",
+  "title": "Sysinternals Tools AppX Versions Execution",
+  "logsource": "windows/-/appmodel-runtime"
+ },
+ {
+  "id": "db809f10-56ce-4420-8c86-d6a7d793c79c",
+  "title": "Potential Defense Evasion Via Raw Disk Access By Uncommon Tools",
+  "logsource": "windows/raw_access_thread/-"
+ },
+ {
+  "id": "de96b824-02b0-4241-9356-7e9b47f04bac",
+  "title": "Potential CVE-2023-23397 Exploitation Attempt - SMB",
+  "logsource": "windows/-/smbclient-connectivity"
+ },
+ {
+  "id": "e032f5bc-4563-4096-ae3b-064bab588685",
+  "title": "Potential Local File Read Vulnerability In JVM Based Application",
+  "logsource": "jvm/application/-"
+ },
+ {
+  "id": "e2b5163d-7deb-4566-9af3-40afea6858c3",
+  "title": "Certificate Private Key Acquired",
+  "logsource": "windows/-/capi2"
+ },
+ {
+  "id": "ec19ebab-72dc-40e1-9728-4c0b805d722c",
+  "title": "Tamper Windows Defender - PSClassic",
+  "logsource": "windows/ps_classic_provider_start/-"
+ }
+]

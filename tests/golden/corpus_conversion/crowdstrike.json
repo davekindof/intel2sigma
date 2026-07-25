@@ -1,0 +1,450 @@
+{
+ "0022869c-49f7-4ff2-ba03-85ac42ddac58": {
+  "status": "ok",
+  "output": "event_platform=/^Win$/i event_simpleName=/^ProcessRollup2$/i or event_simpleName=/^SyntheticProcessRollup2$/i (ImageFileName=/\\\\reg\\.exe$/i CommandLine=/query/i CommandLine=/-v/i or CommandLine=/\\/v/i or CommandLine=/–v/i or CommandLine=/—v/i or CommandLine=/―v/i) or (ImageFileName=/\\\\powershell\\.exe$/i or ImageFileName=/\\\\pwsh\\.exe$/i CommandLine=/Get-ItemPropertyValue/i or CommandLine=/gpv/i) CommandLine=/\\\\SOFTWARE\\\\Microsoft\\\\Windows Defender/i or CommandLine=/\\\\SOFTWARE\\\\Microsoft\\\\Windows NT\\\\CurrentVersion/i or CommandLine=/\\\\SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Uninstall/i or CommandLine=/\\\\SYSTEM\\\\CurrentControlSet\\\\Control\\\\TimeZoneInformation/i or CommandLine=/\\\\SYSTEM\\\\CurrentControlSet\\\\Services/i"
+ },
+ "002bdb95-0cf1-46a6-9e08-d38c128a6127": {
+  "status": "ok",
+  "output": "Image=/\\\\wscript\\.exe$/i or Image=/\\\\cscript\\.exe$/i TargetFilename=/^C:\\\\Users\\\\/i or TargetFilename=/^C:\\\\ProgramData/i TargetFilename=/\\.jse$/i or TargetFilename=/\\.vbe$/i or TargetFilename=/\\.js$/i or TargetFilename=/\\.vba$/i or TargetFilename=/\\.vbs$/i"
+ },
+ "00321fee-ca72-4cce-b011-5415af3b9960": {
+  "status": "ok",
+  "output": "Provider_Name=/^MSSQLSERVER\\$AUDIT$/i EventID=33205 Data=/statement:TRUNCATE TABLE/i or Data=/statement:DROP TABLE/i or Data=/statement:DROP DATABASE/i"
+ },
+ "0055ad1f-be85-4798-83cf-a6da17c993b3": {
+  "status": "ok",
+  "output": "properties.message=/^Update Application Sucess- Property Name AppAddress$/i"
+ },
+ "0066d244-c277-4c3e-88ec-9e7b777cc8bc": {
+  "status": "ok",
+  "output": "\"cs-method\"=/^GET$/i \"c-uri\"=/\\/MSHTML_C7\\//i \"c-uri\"=/\\?d=[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}/"
+ },
+ "00a8e92a-776b-425f-80f2-82d8f8fab2e5": {
+  "status": "ok",
+  "output": "eventtype=/^user\\.lifecycle\\.create$/i or eventtype=/^user\\.lifecycle\\.activate$/i target.user.display.name=/svc_network_backup/i"
+ },
+ "00b90cc1-17ec-402c-96ad-3a8117d7a582": {
+  "status": "ok",
+  "output": "event_platform=/^Lin$/i ImageFileName=/\\/curl$/i CommandLine=/ --form/i or CommandLine=/ --upload-file /i or CommandLine=/ --data /i or CommandLine=/ --data-/i or CommandLine=/\\s-[FTd]\\s/ not (CommandLine=/:\\/\\/localhost/i or CommandLine=/:\\/\\/127\\.0\\.0\\.1/i)"
+ },
+ "00ba9da1-b510-4f6b-b258-8d338836180f": {
+  "status": "ok",
+  "output": "EventID=5379 TargetName=/Microsoft_Windows_Shell_ZipFolder:filename/i not TargetName=/\\\\Temporary Internet Files\\\\Content\\.Outlook/i"
+ },
+ "00bb5bd5-1379-4fcf-a965-a5b6f7478064": {
+  "status": "ok",
+  "output": "EventID=2002 or EventID=2083 or EventID=2003 or EventID=2082 or EventID=2008"
+ },
+ "00eee2a5-fdb0-4746-a21d-e43fbdea5681": {
+  "status": "ok",
+  "output": "TargetFilename=/\\/etc\\/doas\\.conf$/i"
+ },
+ "02122374-b74e-495c-b285-9e4da973f3d6": {
+  "status": "ok",
+  "output": "event_platform=/^Win$/i event_simpleName=/^CommandHistory$/i or event_simpleName=/^ScriptControlScanTelemetry$/i (CommandHistory=/New-ADServiceAccount/i CommandHistory=/-CreateDelegatedServiceAccount/i CommandHistory=/-path/i) or (ScriptContent=/New-ADServiceAccount/i ScriptContent=/-CreateDelegatedServiceAccount/i ScriptContent=/-path/i)"
+ },
+ "0250638a-2b28-4541-86fc-ea4c558fa0c6": {
+  "status": "ok",
+  "output": "ParentImage=/com\\.apple\\.WebKit\\.WebContent/i or ParentImage=/firefox/i or ParentImage=/Google Chrome Helper/i or ParentImage=/Google Chrome/i or ParentImage=/Microsoft Edge/i or ParentImage=/Opera/i or ParentImage=/Safari/i or ParentImage=/Tor Browser/i Image=/\\/bash$/i or Image=/\\/curl$/i or Image=/\\/dash$/i or Image=/\\/ksh$/i or Image=/\\/osascript$/i or Image=/\\/perl$/i or Image=/\\/php$/i or Image=/\\/pwsh$/i or Image=/\\/python$/i or Image=/\\/sh$/i or Image=/\\/tcsh$/i or Image=/\\/wget$/i or Image=/\\/zsh$/i not (CommandLine=/--defaults-torrc/i or CommandLine=/\\/Library\\/Application Support\\/Microsoft\\/MAU.*\\/Microsoft AutoUpdate\\.app\\/Contents\\/MacOS\\/msupdate/i or (ParentImage=/Google Chrome Helper/i or ParentImage=/Google Chrome/i CommandLine=/\\/Volumes\\/Google Chrome\\/Google Chrome\\.app\\/Contents\\/Frameworks\\/.*\\/Resources\\/install\\.sh/i or CommandLine=/\\/Applications\\/Google Chrome\\.app\\/Contents\\/Frameworks\\/Google Chrome Framework\\.framework\\/.*\\/Resources\\/keystone_promote_preflight\\.sh/i or CommandLine=/\\/Applications\\/Google Chrome\\.app\\/Contents\\/Frameworks\\/Google Chrome Framework\\.framework\\/.*\\/Resources\\/keystone_promote_postflight\\.sh/i) or (ParentImage=/Microsoft Edge/i CommandLine=/IOPlatformExpertDevice/i or CommandLine=/hw\\.model/i) or (ParentImage=/Google Chrome Helper/i or ParentImage=/Google Chrome/i CommandLine=/\\/Users\\//i CommandLine=/\\/Library\\/Application Support\\/Google\\/Chrome\\/recovery\\//i CommandLine=/\\/ChromeRecovery/i)) not (CommandLine!=* or CommandLine=/^$/i)"
+ },
+ "025bd229-fd1f-4fdb-97ab-20006e1a5368": {
+  "status": "ok",
+  "output": "Contents=/http[s]?://[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}/ TargetFilename=/\\.ps1:Zone/i or TargetFilename=/\\.bat:Zone/i or TargetFilename=/\\.exe:Zone/i or TargetFilename=/\\.vbe:Zone/i or TargetFilename=/\\.vbs:Zone/i or TargetFilename=/\\.dll:Zone/i or TargetFilename=/\\.one:Zone/i or TargetFilename=/\\.cmd:Zone/i or TargetFilename=/\\.hta:Zone/i or TargetFilename=/\\.xll:Zone/i or TargetFilename=/\\.lnk:Zone/i"
+ },
+ "025c9fe7-db72-49f9-af0d-31341dd7dd57": {
+  "status": "ok",
+  "output": "operationName=/^MICROSOFT\\.NETWORK\\/AZUREFIREWALLS\\/APPLICATIONRULECOLLECTIONS\\/WRITE$/i or operationName=/^MICROSOFT\\.NETWORK\\/AZUREFIREWALLS\\/APPLICATIONRULECOLLECTIONS\\/DELETE$/i or operationName=/^MICROSOFT\\.NETWORK\\/AZUREFIREWALLS\\/NATRULECOLLECTIONS\\/WRITE$/i or operationName=/^MICROSOFT\\.NETWORK\\/AZUREFIREWALLS\\/NATRULECOLLECTIONS\\/DELETE$/i or operationName=/^MICROSOFT\\.NETWORK\\/AZUREFIREWALLS\\/NETWORKRULECOLLECTIONS\\/WRITE$/i or operationName=/^MICROSOFT\\.NETWORK\\/AZUREFIREWALLS\\/NETWORKRULECOLLECTIONS\\/DELETE$/i"
+ },
+ "02cf536a-cf21-4876-8842-4159c8aee3cc": {
+  "status": "ok",
+  "output": "action=/secret_scanning_push_protection\\.bypass/i"
+ },
+ "02d1d718-dd13-41af-989d-ea85c7fab93f": {
+  "status": "ok",
+  "output": "SourceImage=/\\\\bash\\.exe$/i or SourceImage=/\\\\cscript\\.exe$/i or SourceImage=/\\\\cvtres\\.exe$/i or SourceImage=/\\\\defrag\\.exe$/i or SourceImage=/\\\\dialer\\.exe$/i or SourceImage=/\\\\dnx\\.exe$/i or SourceImage=/\\\\esentutl\\.exe$/i or SourceImage=/\\\\excel\\.exe$/i or SourceImage=/\\\\expand\\.exe$/i or SourceImage=/\\\\find\\.exe$/i or SourceImage=/\\\\findstr\\.exe$/i or SourceImage=/\\\\forfiles\\.exe$/i or SourceImage=/\\\\gpupdate\\.exe$/i or SourceImage=/\\\\hh\\.exe$/i or SourceImage=/\\\\installutil\\.exe$/i or SourceImage=/\\\\lync\\.exe$/i or SourceImage=/\\\\makecab\\.exe$/i or SourceImage=/\\\\mDNSResponder\\.exe$/i or SourceImage=/\\\\monitoringhost\\.exe$/i or SourceImage=/\\\\msbuild\\.exe$/i or SourceImage=/\\\\mshta\\.exe$/i or SourceImage=/\\\\mspaint\\.exe$/i or SourceImage=/\\\\outlook\\.exe$/i or SourceImage=/\\\\ping\\.exe$/i or SourceImage=/\\\\provtool\\.exe$/i or SourceImage=/\\\\python\\.exe$/i or SourceImage=/\\\\regsvr32\\.exe$/i or SourceImage=/\\\\robocopy\\.exe$/i or SourceImage=/\\\\runonce\\.exe$/i or SourceImage=/\\\\sapcimc\\.exe$/i or SourceImage=/\\\\smartscreen\\.exe$/i or SourceImage=/\\\\spoolsv\\.exe$/i or SourceImage=/\\\\tstheme\\.exe$/i or SourceImage=/\\\\userinit\\.exe$/i or SourceImage=/\\\\vssadmin\\.exe$/i or SourceImage=/\\\\vssvc\\.exe$/i or SourceImage=/\\\\w3wp\\.exe$/i or SourceImage=/\\\\winscp\\.exe$/i or SourceImage=/\\\\winword\\.exe$/i or SourceImage=/\\\\wmic\\.exe$/i or SourceImage=/\\\\wscript\\.exe$/i not ((SourceImage=/^C:\\\\Windows\\\\System32\\\\Defrag\\.exe$/i or SourceImage=/^C:\\\\Windows\\\\System32\\\\makecab\\.exe$/i TargetImage=/^C:\\\\Windows\\\\System32\\\\conhost\\.exe$/i) or (SourceImage=/^C:\\\\Windows\\\\System32\\\\provtool\\.exe$/i TargetImage=/^C:\\\\Windows\\\\System32\\\\svchost\\.exe$/i) or (SourceImage=/^C:\\\\Windows\\\\System32\\\\provtool\\.exe$/i TargetImage=/^System$/i) or (SourceImage=/^C:\\\\Windows\\\\System32\\\\userinit\\.exe$/i TargetImage=/^C:\\\\Windows\\\\explorer\\.exe$/i) or (SourceImage=/\\\\WINWORD\\.EXE$/i TargetImage=/^C:\\\\Program Files \\(x86\\)\\\\/i or TargetImage=/^C:\\\\Program Files\\\\/i) or (SourceImage=/^C:\\\\Program Files\\\\Microsoft Office\\\\/i or SourceImage=/^C:\\\\Program Files \\(x86\\)\\\\Microsoft Office\\\\/i TargetImage=/^System$/i)) not (SourceImage=/\\\\SysWOW64\\\\explorer\\.exe$/i TargetImage=/^C:\\\\Program Files \\(x86\\)\\\\VMware\\\\VMware Tools\\\\vmtoolsd\\.exe$/i or TargetImage=/^C:\\\\Program Files\\\\VMware\\\\VMware Tools\\\\vmtoolsd\\.exe$/i)"
+ },
+ "02ee49e2-e294-4d0f-9278-f5b3212fc588": {
+  "status": "ok",
+  "output": "TargetObject=/\\\\Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Run/i or TargetObject=/\\\\Software\\\\WOW6432Node\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Run/i or TargetObject=/\\\\Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Policies\\\\Explorer\\\\Run/i Details=/:\\\\Perflogs/i or Details=/:\\\\ProgramData'/i or Details=/:\\\\Windows\\\\Temp/i or Details=/:\\\\Temp/i or Details=/\\\\AppData\\\\Local\\\\Temp/i or Details=/\\\\AppData\\\\Roaming/i or Details=/:\\\\\\$Recycle\\.bin/i or Details=/:\\\\Users\\\\Default/i or Details=/:\\\\Users\\\\public/i or Details=/%temp%/i or Details=/%tmp%/i or Details=/%Public%/i or Details=/%AppData%/i or (Details=/:\\\\Users\\\\/i Details=/\\\\Favorites/i or Details=/\\\\Favourites/i or Details=/\\\\Contacts/i or Details=/\\\\Music/i or Details=/\\\\Pictures/i or Details=/\\\\Documents/i or Details=/\\\\Photos/i) not (TargetObject=/\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\RunOnce\\\\/i Image=/^C:\\\\Windows\\\\SoftwareDistribution\\\\Download\\\\/i Details=/rundll32\\.exe /i Details=/C:\\\\WINDOWS\\\\system32\\\\advpack\\.dll,DelNodeRunDLL32/i Details=/\\\\AppData\\\\Local\\\\Temp\\\\/i or Details=/C:\\\\Windows\\\\Temp\\\\/i) not (Image=/C:\\\\Program Files\\\\Spotify\\\\Spotify\\.exe$/i or Image=/C:\\\\Program Files \\(x86\\)\\\\Spotify\\\\Spotify\\.exe$/i or Image=/\\\\AppData\\\\Roaming\\\\Spotify\\\\Spotify\\.exe$/i TargetObject=/SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\Run\\\\Spotify$/i Details=/Spotify\\.exe --autostart --minimized$/i)"
+ },
+ "02fb90de-c321-4e63-a6b9-25f4b03dfd14": {
+  "status": "ok",
+  "output": "event_platform=/^Win$/i event_simpleName=/^ClassifiedModuleLoad$/i TargetImageFileName=/\\\\spoolsv\\.exe$/i ImageFileName=/\\\\Windows\\\\System32\\\\spool\\\\drivers\\\\x64\\\\3\\\\/i or ImageFileName=/\\\\Windows\\\\System32\\\\spool\\\\drivers\\\\x64\\\\4\\\\/i ImageFileName=/\\.dll$/i"
+ },
+ "0322d9f2-289a-47c2-b5e1-b63c90901a3e": {
+  "status": "ok",
+  "output": "gcp.audit.method_name=/^io\\.k8s\\.authorization\\.rbac\\.v.*\\.clusterrolebindings\\.create$/i or gcp.audit.method_name=/^io\\.k8s\\.authorization\\.rbac\\.v.*\\.rolebindings\\.create$/i or gcp.audit.method_name=/^io\\.k8s\\.authorization\\.rbac\\.v.*\\.clusterrolebindings\\.patch$/i or gcp.audit.method_name=/^io\\.k8s\\.authorization\\.rbac\\.v.*\\.rolebindings\\.patch$/i or gcp.audit.method_name=/^io\\.k8s\\.authorization\\.rbac\\.v.*\\.clusterrolebindings\\.update$/i or gcp.audit.method_name=/^io\\.k8s\\.authorization\\.rbac\\.v.*\\.rolebindings\\.update$/i or gcp.audit.method_name=/^io\\.k8s\\.authorization\\.rbac\\.v.*\\.clusterrolebindings\\.delete$/i or gcp.audit.method_name=/^io\\.k8s\\.authorization\\.rbac\\.v.*\\.rolebindings\\.delete$/i"
+ },
+ "04017cd5-621e-4ec4-a762-1f042fe3d3e5": {
+  "status": "ok",
+  "output": "\"cs-method\"=/^POST$/i \"cs-uri-query\"=/NO_BINARY_CHECK=1/i \"cs-uri-query\"=/input\\.path/i \"cs-uri-query\"=/\\.xsl$/i \"sc-status\"=200 or \"sc-status\"=302"
+ },
+ "04e2a23a-9b29-4a5c-be3a-3542e3f982ba": {
+  "status": "ok",
+  "output": "eventService=/^admin\\.googleapis\\.com$/i eventName=/^AUTHORIZE_API_CLIENT_ACCESS$/i"
+ },
+ "0506a799-698b-43b4-85a1-ac4c84c720e9": {
+  "status": "ok",
+  "output": "/\"pkexec\"/i /\"The value for environment variable XAUTHORITY contains suspicious content\"/i /\"[USER=root] [TTY=/dev/pts/0]\"/i"
+ },
+ "05296024-fe8a-4baf-8f3d-9a5f5624ceb2": {
+  "status": "error",
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'crowdstrike' with pipelines [crowdstrike_fdr]: CrowdStrike Query Language does not support the Hashes field"
+ },
+ "0531e43a-d77d-47c2-b89f-5fe50321c805": {
+  "status": "error",
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'crowdstrike' with pipelines [crowdstrike_fdr]: ORing CIDR matching is not yet supported by LogScale backend"
+ },
+ "06125661-3814-4e03-bfa2-1e4411c60ac3": {
+  "status": "ok",
+  "output": "Image=/\\\\cmd\\.exe$/i or Image=/\\\\powershell\\.exe$/i or Image=/\\\\pwsh\\.exe$/i or Image=/\\\\wt\\.exe$/i or Image=/\\\\rundll32\\.exe$/i or Image=/\\\\regsvr32\\.exe$/i TargetFilename=/\\.VHD$/i or TargetFilename=/\\.bac$/i or TargetFilename=/\\.bak$/i or TargetFilename=/\\.wbcat$/i or TargetFilename=/\\.bkf$/i or TargetFilename=/\\.set$/i or TargetFilename=/\\.win$/i or TargetFilename=/\\.dsk$/i"
+ },
+ "065cceea-77ec-4030-9052-fc0affea7110": {
+  "status": "ok",
+  "output": "event_platform=/^Win$/i event_simpleName=/^DnsRequest$/i DomainName=/\\.anonfiles\\.com/i"
+ },
+ "071d5e5a-9cef-47ec-bc4e-a42e34d8d0ed": {
+  "status": "ok",
+  "output": "a1=/^--cpu-priority/i or a2=/^--cpu-priority/i or a3=/^--cpu-priority/i or a4=/^--cpu-priority/i or a5=/^--cpu-priority/i or a6=/^--cpu-priority/i or a7=/^--cpu-priority/i"
+ },
+ "07330162-dba1-4746-8121-a9647d49d297": {
+  "status": "ok",
+  "output": "eventSource=/^config\\.amazonaws\\.com$/i eventName=/^DeleteDeliveryChannel$/i or eventName=/^StopConfigurationRecorder$/i"
+ },
+ "07ad2ea8-6a55-4ac6-bf3e-91b8e59676eb": {
+  "status": "ok",
+  "output": "Payload=/set/i Payload=/&&/i Payload=/mshta/i Payload=/vbscript:createobject/i Payload=/\\.run/i Payload=/\\(window\\.close\\)/i"
+ },
+ "07bdd2f5-9c58-4f38-aec8-e101bb79ef8d": {
+  "status": "ok",
+  "output": "(EventType=/^DeleteValue$/i TargetObject=/\\\\Microsoft\\\\Terminal Server Client\\\\Default\\\\MRU/i) or (EventType=/^DeleteKey$/i TargetObject=/\\\\Microsoft\\\\Terminal Server Client\\\\Servers\\\\/i)"
+ },
+ "07e97cc6-aed1-43ae-9081-b3470d2367f1": {
+  "status": "ok",
+  "output": "eventtype=/^user\\.account\\.report_suspicious_activity_by_enduser$/i"
+ },
+ "090ffaad-c01a-4879-850c-6d57da98452d": {
+  "status": "ok",
+  "output": "EventID=3008 QueryName=/ufile\\.io/i"
+ },
+ "09570ae5-889e-43ea-aac0-0e1221fb3d95": {
+  "status": "ok",
+  "output": "/\"Remove-MailboxExportRequest\"/i /\" -Identity \"/i /\" -Confirm \\\"False\\\"\"/i"
+ },
+ "09706624-b7f6-455d-9d02-adee024cee1d": {
+  "status": "ok",
+  "output": "CallTrace=/^C:\\\\Windows\\\\SYSTEM32\\\\ntdll\\.dll\\+[a-z0-9]{4,6}\\|C:\\\\Windows\\\\System32\\\\KERNELBASE\\.dll\\+[a-z0-9]{4,6}\\|UNKNOWN\\([A-Z0-9]{16}\\)$/ GrantedAccess=/^0x1028$/i or GrantedAccess=/^0x1fffff$/i"
+ },
+ "09d3b48b-be17-47f5-bf4e-94e7e75d09ce": {
+  "status": "ok",
+  "output": "EventID=400 or EventID=401 PackageFullName=/3669e262-ec02-4e9d-bcb4-3d008b4afac9/i"
+ },
+ "0a3ff354-93fc-4273-8a03-1078782de5b7": {
+  "status": "ok",
+  "output": "EventLog=/^RPCFW$/i EventID=3 InterfaceUuid=/^378e52b0-c0a9-11cf-822d-00aa0051e40f$/i not (OpNum=0 or OpNum=1)"
+ },
+ "0adc67e0-a68f-4ffd-9c43-28905aad5d6a": {
+  "status": "ok",
+  "output": "PipeName=/\\\\imposecost/i or PipeName=/\\\\imposingcost/i"
+ },
+ "0b0ea3cc-99c8-4730-9c53-45deee2a4c86": {
+  "status": "ok",
+  "output": "EventID=11 or EventID=12 ProcessPath=/\\\\MpCmdRun\\.exe$/i or ProcessPath=/\\\\NisSrv\\.exe$/i"
+ },
+ "0c97c1d3-4057-45c9-b148-1de94b631931": {
+  "status": "ok",
+  "output": "eventtype=/^policy\\.rule\\.update$/i or eventtype=/^policy\\.rule\\.delete$/i"
+ },
+ "0c9b3bda-41a6-4442-9345-356ae86343dc": {
+  "status": "ok",
+  "output": "objectRef.apiGroup=/^batch$/i objectRef.resource=/^cronjobs$/i or objectRef.resource=/^jobs$/i verb=/^create$/i or verb=/^delete$/i or verb=/^patch$/i or verb=/^replace$/i or verb=/^update$/i"
+ },
+ "0d58814b-1660-4d31-8c93-d1086ed24cba": {
+  "status": "ok",
+  "output": "debugContext.debugData.requestUri=/\\/reports\\/password-health\\//i"
+ },
+ "0f06a3a5-6a09-413f-8743-e6cf35561297": {
+  "status": "ok",
+  "output": "EventID=19 or EventID=20 or EventID=21"
+ },
+ "0f2468a2-5055-4212-a368-7321198ee706": {
+  "status": "ok",
+  "output": "eventSource=/^SecurityComplianceCenter$/i eventName=/^Activity from infrequent country$/i status=/^success$/i"
+ },
+ "100ef69e-3327-481c-8e5c-6d80d9507556": {
+  "status": "ok",
+  "output": "EventID=104 Provider_Name=/^Microsoft-Windows-Eventlog$/i Channel=/^Microsoft-Windows-PowerShell\\/Operational$/i or Channel=/^Microsoft-Windows-Sysmon\\/Operational$/i or Channel=/^PowerShellCore\\/Operational$/i or Channel=/^Security$/i or Channel=/^System$/i or Channel=/^Windows PowerShell$/i"
+ },
+ "128faeef-79dd-44ca-b43c-a9e236a60f49": {
+  "status": "ok",
+  "output": "riskEventType=/^unfamiliarFeatures$/i"
+ },
+ "1321dc4e-a1fe-481d-a016-52c45f0c8b4f": {
+  "status": "ok",
+  "output": "EventID=5007 NewValue=/\\\\Microsoft\\\\Windows Defender\\\\Exclusions/i"
+ },
+ "139bdd4b-9cd7-49ba-a2f4-744d0a8f5d8c": {
+  "status": "ok",
+  "output": "eventtype=/^iam\\.resourceset\\.bindings\\.add$/i"
+ },
+ "13f2d3f5-6497-44a7-bf5f-dc13ffafe5dc": {
+  "status": "error",
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'crowdstrike' with pipelines [crowdstrike_fdr]: record_type needs to be one of A,NS,CNAME,PTR,MX,TXT,AAAA,ANY"
+ },
+ "152f3630-77c1-4284-bcc0-4cc68ab2f6e7": {
+  "status": "ok",
+  "output": "(EventType=/^SetValue$/i TargetObject=/Classes\\\\ms-settings\\\\shell\\\\open\\\\command\\\\SymbolicLinkValue$/i Details=/\\\\Software\\\\Classes\\\\\\{/i) or TargetObject=/Classes\\\\ms-settings\\\\shell\\\\open\\\\command\\\\DelegateExecute$/i or (EventType=/^SetValue$/i TargetObject=/Classes\\\\ms-settings\\\\shell\\\\open\\\\command\\\\\\(Default\\)$/i or TargetObject=/Classes\\\\exefile\\\\shell\\\\open\\\\command\\\\\\(Default\\)$/i not Details=/^\\(Empty\\)$/i)"
+ },
+ "16ab6143-510a-44e2-a615-bdb80b8317fc": {
+  "status": "ok",
+  "output": "auditType.category=/^Global administration$/i auditType.action=/^SSH settings changed$/i"
+ },
+ "19bf6fdb-7721-4f3d-867f-53467f6a5db6": {
+  "status": "ok",
+  "output": "DestinationHostname=/tunnel\\.us\\.ngrok\\.com/i or DestinationHostname=/tunnel\\.eu\\.ngrok\\.com/i or DestinationHostname=/tunnel\\.ap\\.ngrok\\.com/i or DestinationHostname=/tunnel\\.au\\.ngrok\\.com/i or DestinationHostname=/tunnel\\.sa\\.ngrok\\.com/i or DestinationHostname=/tunnel\\.jp\\.ngrok\\.com/i or DestinationHostname=/tunnel\\.in\\.ngrok\\.com/i"
+ },
+ "1a4bd6e3-4c6e-405d-a9a3-53a116e341d4": {
+  "status": "ok",
+  "output": "EventID=2003 or EventID=2100 or EventID=2102"
+ },
+ "1d218616-71b0-4c40-855b-9dbe75510f7f": {
+  "status": "ok",
+  "output": "TargetObject=/\\\\software\\\\NetWire/i"
+ },
+ "1fc0809e-06bf-4de3-ad52-25e5263b7623": {
+  "status": "error",
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'crowdstrike' with pipelines [crowdstrike_fdr]: ORing CIDR matching is not yet supported by LogScale backend"
+ },
+ "1ff315dc-2a3a-4b71-8dde-873818d25d39": {
+  "status": "ok",
+  "output": "EventID=3 processPath=/\\\\bitsadmin\\.exe$/i"
+ },
+ "22777c9e-873a-4b49-855f-6072ab861a52": {
+  "status": "ok",
+  "output": "logtype=5000"
+ },
+ "238527ad-3c2c-4e4f-a1f6-92fd63adb864": {
+  "status": "ok",
+  "output": "Signature=/Backdoor\\.Cobalt/i or Signature=/Brutel/i or Signature=/BruteR/i or Signature=/CobaltStr/i or Signature=/CobaltStrike/i or Signature=/COBEACON/i or Signature=/Cometer/i or Signature=/Exploit\\.Script\\.CVE/i or Signature=/IISExchgSpawnCMD/i or Signature=/Metasploit/i or Signature=/Meterpreter/i or Signature=/MeteTool/i or Signature=/Mpreter/i or Signature=/MsfShell/i or Signature=/PowerSploit/i or Signature=/Razy/i or Signature=/Rozena/i or Signature=/Sbelt/i or Signature=/Seatbelt/i or Signature=/Sliver/i or Signature=/Swrort/i"
+ },
+ "23b71bc5-953e-4971-be4c-c896cda73fc2": {
+  "status": "ok",
+  "output": "EventID=27"
+ },
+ "23c43900-e732-45a4-8354-63e4a6c187ce": {
+  "status": "ok",
+  "output": "(TargetFilename=/\\/etc\\/emond\\.d\\/rules\\//i TargetFilename=/\\.plist$/i) or TargetFilename=/\\/private\\/var\\/db\\/emondClients\\//i"
+ },
+ "248649b7-d64f-46f0-9fb2-a52774166fb5": {
+  "status": "ok",
+  "output": "properties.message=/^Device Code$/i"
+ },
+ "286b47ed-f6fe-40b3-b3a8-35129acd43bc": {
+  "status": "ok",
+  "output": "name=/\\.pst$/i or name=/\\.ost$/i or name=/\\.msg$/i or name=/\\.nst$/i or name=/\\.oab$/i or name=/\\.edb$/i or name=/\\.nsf$/i or name=/\\.bak$/i or name=/\\.dmp$/i or name=/\\.kirbi$/i or name=/\\.rdp$/i"
+ },
+ "2975af79-28c4-4d2f-a951-9095f229df29": {
+  "status": "ok",
+  "output": "query=/^aaa\\.stage\\./i or query=/^post\\.1/i or query=/\\.stage\\.123456\\./i"
+ },
+ "2bfb6216-0c31-4d20-8501-2629b29a3fa2": {
+  "status": "ok",
+  "output": "action=/^Add$/i cfgpath=/^vpn\\.ssl\\.web\\.portal$/i"
+ },
+ "2bfc1373-0220-4fbd-8b10-33ddafd2a142": {
+  "status": "ok",
+  "output": "EventID=129 or EventID=140 or EventID=141 TaskName=/^\\\\defender$/i or TaskName=/^\\\\Microsoft\\\\DefenderService$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Application Experience\\\\StartupAppTaskCheck$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Application Experience\\\\StartupAppTaskCkeck$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\ATPUpd$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Data Integrity Scan\\\\Data Integrity Update$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\DefenderUPDService$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\IISUpdateService$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Speech\\\\SpeechModelInstallTask$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\WiMSDFS$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Windows Defender\\\\Defender Update Service$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Windows Defender\\\\Service Update$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Windows Error Reporting\\\\CheckReporting$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Windows Error Reporting\\\\SubmitReporting$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Windows Filtering Platform\\\\BfeOnServiceStart$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\WindowsDefenderService$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\WindowsDefenderService2$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\WindowsUpdate\\\\Scheduled AutoCheck$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\WindowsUpdate\\\\Scheduled Check$/i or TaskName=/^\\\\WindowUpdate$/i"
+ },
+ "2f8cd7a0-9d5a-4f62-9f8b-2c951aa0dd1f": {
+  "status": "ok",
+  "output": "EventID=3082 or EventID=3083 not (FileNameBuffer=/^system32\\\\drivers\\\\vsock\\.sys$/i or FileNameBuffer=/^System32\\\\drivers\\\\vmci\\.sys$/i)"
+ },
+ "30a8cb77-8eb3-4cfb-8e79-ad457c5a4592": {
+  "status": "ok",
+  "output": "Data=/HostName=ConsoleHost/i not (Data=/HostApplication=powershell/i or Data=/HostApplication=C:\\\\Windows\\\\System32\\\\WindowsPowerShell\\\\v1\\.0\\\\powershell/i or Data=/HostApplication=C:\\\\Windows\\\\SysWOW64\\\\WindowsPowerShell\\\\v1\\.0\\\\powershell/i or Data=/HostApplication=C:\\/Windows\\/System32\\/WindowsPowerShell\\/v1\\.0\\/powershell/i or Data=/HostApplication=C:\\/Windows\\/SysWOW64\\/WindowsPowerShell\\/v1\\.0\\/powershell/i or Data=/HostApplication=C:\\\\\\\\WINDOWS\\\\\\\\system32\\\\\\\\WindowsPowerShell\\\\\\\\v1\\.0\\\\\\\\powershell\\.exe/i or Data=/HostApplication=C:\\\\\\\\WINDOWS\\\\\\\\SysWOW64\\\\\\\\WindowsPowerShell\\\\\\\\v1\\.0\\\\\\\\powershell\\.exe/i or Data=/HostId=[a-zA-Z0-9-]{36}\\s+EngineVersion=/)"
+ },
+ "3132570d-cab2-4561-9ea6-1743644b2290": {
+  "status": "ok",
+  "output": "verb=/^delete$/i objectRef.resource=/^events$/i"
+ },
+ "31d68132-4038-47c7-8f8e-635a39a7c174": {
+  "status": "ok",
+  "output": "(EventID=30 SearchFilter=/\\(groupType:1\\.2\\.840\\.113556\\.1\\.4\\.803:=2147483648\\)/i or SearchFilter=/\\(groupType:1\\.2\\.840\\.113556\\.1\\.4\\.803:=2147483656\\)/i or SearchFilter=/\\(groupType:1\\.2\\.840\\.113556\\.1\\.4\\.803:=2147483652\\)/i or SearchFilter=/\\(groupType:1\\.2\\.840\\.113556\\.1\\.4\\.803:=2147483650\\)/i or SearchFilter=/\\(sAMAccountType=805306369\\)/i or SearchFilter=/\\(sAMAccountType=805306368\\)/i or SearchFilter=/\\(sAMAccountType=536870913\\)/i or SearchFilter=/\\(sAMAccountType=536870912\\)/i or SearchFilter=/\\(sAMAccountType=268435457\\)/i or SearchFilter=/\\(sAMAccountType=268435456\\)/i or SearchFilter=/\\(objectCategory=groupPolicyContainer\\)/i or SearchFilter=/\\(objectCategory=organizationalUnit\\)/i or SearchFilter=/\\(objectCategory=nTDSDSA\\)/i or SearchFilter=/\\(objectCategory=server\\)/i or SearchFilter=/\\(objectCategory=domain\\)/i or SearchFilter=/\\(objectCategory=person\\)/i or SearchFilter=/\\(objectCategory=group\\)/i or SearchFilter=/\\(objectCategory=user\\)/i or SearchFilter=/\\(objectClass=trustedDomain\\)/i or SearchFilter=/\\(objectClass=computer\\)/i or SearchFilter=/\\(objectClass=server\\)/i or SearchFilter=/\\(objectClass=group\\)/i or SearchFilter=/\\(objectClass=user\\)/i or SearchFilter=/\\(primaryGroupID=521\\)/i or SearchFilter=/\\(primaryGroupID=516\\)/i or SearchFilter=/\\(primaryGroupID=515\\)/i or SearchFilter=/\\(primaryGroupID=512\\)/i or SearchFilter=/Domain Admins/i or SearchFilter=/objectGUID=\\*/i or SearchFilter=/\\(schemaIDGUID=\\*\\)/i or SearchFilter=/admincount=1/i not (EventID=30 SearchFilter=/\\(domainSid=.*\\)/i or SearchFilter=/\\(objectSid=.*\\)/i)) or (EventID=30 SearchFilter=/\\(userAccountControl:1\\.2\\.840\\.113556\\.1\\.4\\.803:=4194304\\)/i or SearchFilter=/\\(userAccountControl:1\\.2\\.840\\.113556\\.1\\.4\\.803:=2097152\\)/i or SearchFilter=/!\\(userAccountControl:1\\.2\\.840\\.113556\\.1\\.4\\.803:=1048574\\)/i or SearchFilter=/\\(userAccountControl:1\\.2\\.840\\.113556\\.1\\.4\\.803:=524288\\)/i or SearchFilter=/\\(userAccountControl:1\\.2\\.840\\.113556\\.1\\.4\\.803:=65536\\)/i or SearchFilter=/\\(userAccountControl:1\\.2\\.840\\.113556\\.1\\.4\\.803:=8192\\)/i or SearchFilter=/\\(userAccountControl:1\\.2\\.840\\.113556\\.1\\.4\\.803:=544\\)/i or SearchFilter=/!\\(UserAccountControl:1\\.2\\.840\\.113556\\.1\\.4\\.803:=2\\)/i or SearchFilter=/msDS-AllowedToActOnBehalfOfOtherIdentity/i or SearchFilter=/msDS-AllowedToDelegateTo/i or SearchFilter=/msDS-GroupManagedServiceAccount/i or SearchFilter=/\\(accountExpires=9223372036854775807\\)/i or SearchFilter=/\\(accountExpires=0\\)/i or SearchFilter=/\\(adminCount=1\\)/i or SearchFilter=/ms-MCS-AdmPwd/i) or (EventID=30 SearchFilter=/^\\(objectclass=\\*\\)$/i DistinguishedName=/CN=Domain Admins/i or DistinguishedName=/CN=Enterprise Admins/i or DistinguishedName=/CN=Group Policy Creator Owners/i)"
+ },
+ "337a31c6-46c4-46be-886a-260d7aa78cac": {
+  "status": "ok",
+  "output": "FileName=/\\.hive$/i or FileName=/\\.reg$/i not (Image=/^C:\\\\Program Files \\(x86\\)\\\\/i or Image=/^C:\\\\Program Files\\\\/i or Image=/^C:\\\\Windows\\\\System32\\\\/i or Image=/^C:\\\\Windows\\\\SysWOW64\\\\/i)"
+ },
+ "3ce8e9a4-bc61-4c9b-8e69-d7e2492a8781": {
+  "status": "ok",
+  "output": "EventID=4 process=/^sshd$/i payload=/^Server listening on /i"
+ },
+ "3db10f25-2527-4b79-8d4b-471eb900ee29": {
+  "status": "ok",
+  "output": "EventID=257 QNAME=/^asyspy256\\.ddns\\.net$/i or QNAME=/^hotkillmail9sddcc\\.ddns\\.net$/i or QNAME=/^rosaf112\\.ddns\\.net$/i or QNAME=/^cvdfhjh1231\\.myftp\\.biz$/i or QNAME=/^sz2016rose\\.ddns\\.net$/i or QNAME=/^dffwescwer4325\\.myftp\\.biz$/i or QNAME=/^cvdfhjh1231\\.ddns\\.net$/i"
+ },
+ "401e5d00-b944-11ea-8f9a-00163ecd60ae": {
+  "status": "ok",
+  "output": "EventID=8004 or EventID=8007 or EventID=8022 or EventID=8025"
+ },
+ "4096842a-8f9f-4d36-92b4-d0b2a62f9b2a": {
+  "status": "ok",
+  "output": "operation=/^efs/i"
+ },
+ "42127bdd-9133-474f-a6f1-97b6c08a4339": {
+  "status": "ok",
+  "output": "eventSource=/^Exchange$/i eventName=/^Add-FederatedDomain$/i status=/^success$/i"
+ },
+ "503fe26e-b5f2-4944-a126-eab405cc06e5": {
+  "status": "ok",
+  "output": "request_type=/^TGS$/i cipher=/^rc4-hmac$/i not service=/^\\$/i"
+ },
+ "50cb47b8-2c33-4b23-a2e9-4600657d9746": {
+  "status": "ok",
+  "output": "EventID=101 PackagePath=/\\\\\\\\/i"
+ },
+ "5588576c-5898-4fac-bcdd-7475a60e8f43": {
+  "status": "ok",
+  "output": "query=/UWhRCA/i query=/BAAAA/i"
+ },
+ "558eebe5-f2ba-4104-b339-36f7902bcc1a": {
+  "status": "ok",
+  "output": "PreviousCreationUtcTime=/^202/i not (CreationUtcTime=/^202/i or TargetFilename=/^C:\\\\Program Files\\\\/i or TargetFilename=/^C:\\\\Program Files \\(x86\\)\\\\/i or Image=/^C:\\\\Program Files\\\\/i or Image=/^C:\\\\Program Files \\(x86\\)\\\\/i) not (Image=/^C:\\\\Windows\\\\system32\\\\ProvTool\\.exe$/i or Image=/^C:\\\\Windows\\\\System32\\\\usocoreworker\\.exe$/i or Image=/^C:\\\\Windows\\\\ImmersiveControlPanel\\\\SystemSettings\\.exe$/i or TargetFilename=/^C:\\\\ProgramData\\\\USOPrivate\\\\UpdateStore\\\\/i or TargetFilename=/\\.tmp$/i or TargetFilename=/\\.temp$/i or (Image=/^C:\\\\WINDOWS\\\\System32\\\\/i Image=/\\\\TiWorker\\.exe$/i or Image=/\\\\svchost\\.exe$/i or Image=/\\\\sihclient\\.exe$/i TargetFilename=/\\.cab$/i) or Image=/^C:\\\\Windows\\\\system32\\\\msiexec\\.exe$/i or (Image=/^C:\\\\Windows\\\\Temp\\\\/i Image=/\\\\VCREDI~1\\.EXE$/i))"
+ },
+ "56fa3cd6-f8d6-4520-a8c7-607292971886": {
+  "status": "ok",
+  "output": "/\":179\"/i /\"IP-TCP-3-BADAUTH\"/i"
+ },
+ "58af08eb-f9e1-43c8-9805-3ad9b0482bd8": {
+  "status": "ok",
+  "output": "riskEventType=/^invalidLicenseAlertIncident$/i"
+ },
+ "58c0bff0-40a0-46e8-b5e8-b734b84d2017": {
+  "status": "ok",
+  "output": "EventID=1007"
+ },
+ "62fff148-278d-497e-8ecd-ad6083231a35": {
+  "status": "ok",
+  "output": "event_type_id=3"
+ },
+ "64d51a51-32a6-49f0-9f3d-17e34d640272": {
+  "status": "ok",
+  "output": "EventID=21 Address=/16777216/i"
+ },
+ "68c2c604-92ad-468b-bf4a-aac49adad08c": {
+  "status": "ok",
+  "output": "host=/\\.bid$/i or host=/\\.by$/i or host=/\\.cf$/i or host=/\\.click$/i or host=/\\.cm$/i or host=/\\.ga$/i or host=/\\.gq$/i or host=/\\.ir$/i or host=/\\.kp$/i or host=/\\.loan$/i or host=/\\.ml$/i or host=/\\.mm$/i or host=/\\.party$/i or host=/\\.pw$/i or host=/\\.ru$/i or host=/\\.su$/i or host=/\\.sy$/i or host=/\\.tk$/i or host=/\\.top$/i or host=/\\.tv$/i or host=/\\.ve$/i or host=/\\.work$/i or host=/\\.xyz$/i uri=/\\.bat$/i or uri=/\\.bin$/i or uri=/\\.cmd$/i or uri=/\\.cpl$/i or uri=/\\.dll$/i or uri=/\\.dylib$/i or uri=/\\.elf$/i or uri=/\\.exe$/i or uri=/\\.hta$/i or uri=/\\.iso$/i or uri=/\\.jar$/i or uri=/\\.js$/i or uri=/\\.lnk$/i or uri=/\\.msi$/i or uri=/\\.pif$/i or uri=/\\.ps1$/i or uri=/\\.py$/i or uri=/\\.reg$/i or uri=/\\.scr$/i or uri=/\\.sh$/i or uri=/\\.so$/i or uri=/\\.vbs$/i or uri=/\\.wsf$/i or resp_mime_types=/^application\\/vnd\\.microsoft\\.portable-executable$/i or resp_mime_types=/^application\\/x-bat$/i or resp_mime_types=/^application\\/x-dosexec$/i or resp_mime_types=/^application\\/x-elf$/i or resp_mime_types=/^application\\/x-iso9660-image$/i or resp_mime_types=/^application\\/x-java-archive$/i or resp_mime_types=/^application\\/x-ms-shortcut$/i or resp_mime_types=/^application\\/x-msdos-program$/i or resp_mime_types=/^application\\/x-msdownload$/i or resp_mime_types=/^application\\/x-python-code$/i or resp_mime_types=/^application\\/x-sh$/i"
+ },
+ "6d444368-6da1-43fe-b2fc-44202430480e": {
+  "status": "ok",
+  "output": "EventID=6004"
+ },
+ "6f7e1c10-2dc9-4312-adb6-9574ff09a5c8": {
+  "status": "ok",
+  "output": "event_type=/^authentication$/i reason=/^bypass_user$/i"
+ },
+ "7100f7e3-92ce-4584-b7b7-01b40d3d4118": {
+  "status": "ok",
+  "output": "certificate.serial=/^8BB00EE$/i"
+ },
+ "71886b70-d7b4-4dbf-acce-87d2ca135262": {
+  "status": "ok",
+  "output": "EventID=31017 UserName=/^$/i ServerName=/^\\\\1/i"
+ },
+ "71ff406e-b633-4989-96ec-bc49d825a412": {
+  "status": "ok",
+  "output": "Data=/Compress-Archive -Path.*-DestinationPath \\$env:TEMP/i or Data=/Compress-Archive -Path.*-DestinationPath.*\\\\AppData\\\\Local\\\\Temp\\\\/i or Data=/Compress-Archive -Path.*-DestinationPath.*:\\\\Windows\\\\Temp\\\\/i"
+ },
+ "7ac407cc-0f48-4328-aede-de1d2e6fef41": {
+  "status": "ok",
+  "output": "EventID=300 TargetUserSid=/^S-1-5-21-/i SidList=/S-1-5-32-544/i or SidList=/-500\\}/i or SidList=/-518\\}/i or SidList=/-519\\}/i not (TargetUserSid=/-500$/i or TargetUserSid=/-518$/i or TargetUserSid=/-519$/i)"
+ },
+ "7ba05b43-adad-4c02-b5e9-c8c35cdf9fa8": {
+  "status": "ok",
+  "output": "/\"networkd-dispatcher\"/i /\"Error handling notification for interface\"/i /\"\\.\\./\\.\\./\"/i"
+ },
+ "7fcc54cb-f27d-4684-84b7-436af096f858": {
+  "status": "ok",
+  "output": "USER=/^#-/i or USER=/^#.*4294967295$/i"
+ },
+ "815cd91b-7dbc-4247-841a-d7dd1392b0a8": {
+  "status": "ok",
+  "output": "Description=/Failed to open service configuration with error/i or Description=/Failed to connect to the driver to update configuration/i not ((Description=/Failed to open service configuration with error/i Description=/Last error: The media is write protected\\./i) or Description=/Failed to open service configuration with error 19/i or Description=/Failed to open service configuration with error 93/i)"
+ },
+ "83c161b6-ca67-4f33-8ad0-644a0737cf07": {
+  "status": "ok",
+  "output": "(EventID=28115 Name=/Zenmap/i or Name=/AnyDesk/i or Name=/wireshark/i or Name=/openvpn/i) or (EventID=28115 AppID=/zenmap\\.exe/i or AppID=/prokzult ad/i or AppID=/wireshark/i or AppID=/openvpn/i)"
+ },
+ "881834a4-6659-4773-821e-1c151789d873": {
+  "status": "ok",
+  "output": "dst_ip=/^69\\.42\\.98\\.86$/i or dst_ip=/^89\\.185\\.234\\.145$/i or src_ip=/^69\\.42\\.98\\.86$/i or src_ip=/^89\\.185\\.234\\.145$/i"
+ },
+ "8d91f6e4-9f3b-4c21-ae41-2c5b7d9f7a12": {
+  "status": "error",
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'crowdstrike' with pipelines [crowdstrike_fdr]: ORing CIDR matching is not yet supported by LogScale backend"
+ },
+ "98c3bcf1-56f2-49dc-9d8d-c66cf190238b": {
+  "status": "ok",
+  "output": "EventID=8002"
+ },
+ "9e1a1fdf-ee58-40ce-8e15-b66ca5a80e1f": {
+  "status": "ok",
+  "output": "EventID=29 Configuration=/\\/system\\.webServer\\/modules\\/remove/i"
+ },
+ "a3501e8e-af9e-43c6-8cd6-9360bdaae498": {
+  "status": "ok",
+  "output": "eventSource=/^SecurityComplianceCenter$/i eventName=/^Activity from suspicious IP addresses$/i status=/^success$/i"
+ },
+ "a557ffe6-ac54-43d2-ae69-158027082350": {
+  "status": "ok",
+  "output": "/\":179\"/i /\"BGP_AUTH_FAILED\"/i"
+ },
+ "a7c0ae48-8df8-42bf-91bd-2ea57e2f9d43": {
+  "status": "ok",
+  "output": "/\":179\"/i /\"missing MD5 digest\"/i"
+ },
+ "ab90dab8-c7da-4010-9193-563528cfa347": {
+  "status": "ok",
+  "output": "TargetFilename=/\\.sed$/i"
+ },
+ "b5aa7d60-c17e-4538-97de-09029d6cd76b": {
+  "status": "ok",
+  "output": "EventID=157 subjectName=/^CN=Foresee Consulting Inc\\., O=Foresee Consulting Inc\\., L=North York, S=Ontario, C=CA, SERIALNUMBER=1004913-1, OID\\.1\\.3\\.6\\.1\\.4\\.1\\.311\\.60\\.2\\.1\\.3=CA, OID\\.2\\.5\\.4\\.15=Private Organization$/i"
+ },
+ "bbfd974c-248e-4435-8de6-1e938c79c5c1": {
+  "status": "ok",
+  "output": "TargetFilename=/\\.dll$/i not (SourceFilename=/\\.dll$/i or SourceFilename=/\\.tmp$/i or SourceFilename=/^$/i or SourceFilename!=* or (Image=/:\\\\Windows\\\\WinSxS\\\\/i Image=/\\\\TiWorker\\.exe$/i) or Image=/:\\\\Windows\\\\System32\\\\wuauclt\\.exe$/i or TargetFilename=/:\\\\\\$WINDOWS\\.~BT\\\\Sources\\\\/i or Image=/:\\\\Program Files \\(x86\\)\\\\/i or Image=/:\\\\Program Files\\\\/i) not SourceFilename=/\\\\SquirrelTemp\\\\temp/i"
+ },
+ "bcd95697-e3e7-4c6f-8584-8e3503e6929f": {
+  "status": "ok",
+  "output": "TargetFilename=/\\{IFS\\}/i or TargetFilename=/base64/i or TargetFilename=/bash/i or TargetFilename=/curl/i or TargetFilename=/http/i TargetFilename=/^\\/opt\\/panlogs\\/tmp\\/device_telemetry\\//i"
+ },
+ "c4b890e5-8d8c-4496-8c66-c805753817cd": {
+  "status": "ok",
+  "output": "Type=/^Image is replaced$/i not (Image=/:\\\\Program Files \\(x86\\)/i or Image=/:\\\\Program Files\\\\/i or Image=/:\\\\Windows\\\\System32\\\\wbem\\\\WMIADAP\\.exe/i or Image=/:\\\\Windows\\\\SysWOW64\\\\wbem\\\\WMIADAP\\.exe/i) not ((Image=/\\\\AppData\\\\Local\\\\Programs\\\\Opera\\\\/i Image=/\\\\opera\\.exe$/i) or Image=/\\\\WindowsApps\\\\MicrosoftEdge\\.exe$/i)"
+ },
+ "d29a20b2-be4b-4827-81f2-3d8a59eab5fc": {
+  "status": "ok",
+  "output": "EventID=201 ImageName=/^procdump\\.exe$/i or ImageName=/^psloglist\\.exe$/i or ImageName=/^psexec\\.exe$/i or ImageName=/^livekd\\.exe$/i or ImageName=/^ADExplorer\\.exe$/i"
+ },
+ "db809f10-56ce-4420-8c86-d6a7d793c79c": {
+  "status": "ok",
+  "output": "not (Device=/floppy/i or Image=/^C:\\\\\\$WINDOWS\\.~BT\\\\/i or Image=/^C:\\\\Program Files \\(x86\\)\\\\/i or Image=/^C:\\\\Program Files\\\\/i or Image=/^C:\\\\Windows\\\\CCM\\\\/i or Image=/^C:\\\\Windows\\\\explorer\\.exe/i or Image=/^C:\\\\Windows\\\\servicing\\\\/i or Image=/^C:\\\\Windows\\\\SoftwareDistribution\\\\/i or Image=/^C:\\\\Windows\\\\System32\\\\/i or Image=/^C:\\\\Windows\\\\SystemApps\\\\/i or Image=/^C:\\\\Windows\\\\SysWOW64\\\\/i or Image=/^C:\\\\Windows\\\\uus\\\\/i or Image=/^C:\\\\Windows\\\\WinSxS\\\\/i or Image=/^Registry$/i or Image=/^System$/i or (Image=/^C:\\\\ProgramData\\\\Microsoft\\\\Windows Defender\\\\Platform\\\\/i Image=/\\\\MsMpEng\\.exe$/i or Image=/\\\\MpDefenderCoreService\\.exe$/i) or (Image=/^C:\\\\Users\\\\/i Image=/\\\\AppData\\\\/i Image=/\\\\Microsoft\\\\/i) or (Image=/^C:\\\\Windows\\\\Temp\\\\/i Image=/\\\\Executables\\\\SSDUpdate\\.exe$/i or Image=/\\\\HostMetadata\\\\NVMEHostmetadata\\.exe$/i) or Image!=* or Image=/^C:\\\\Windows\\\\ImmersiveControlPanel\\\\SystemSettings\\.exe$/i or Image=/^C:\\\\\\$WinREAgent\\\\Scratch\\\\/i) not ((Image=/^C:\\\\Users\\\\/i Image=/\\\\AppData\\\\Local\\\\GitHubDesktop\\\\app-/i Image=/\\\\resources\\\\app\\\\git\\\\mingw64\\\\bin\\\\git\\.exe$/i) or (Image=/^C:\\\\Windows\\\\Temp\\\\asgard2-agent\\\\/i Image=/\\\\thor\\.exe$/i) or (Image=/^C:\\\\Users\\\\/i Image=/\\\\AppData\\\\Local\\\\Keybase\\\\upd\\.exe/i))"
+ },
+ "de96b824-02b0-4241-9356-7e9b47f04bac": {
+  "status": "error",
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'crowdstrike' with pipelines [crowdstrike_fdr]: ORing CIDR matching is not yet supported by LogScale backend"
+ },
+ "e032f5bc-4563-4096-ae3b-064bab588685": {
+  "status": "ok",
+  "output": "/\"FileNotFoundException\"/i /\"/\\.\\./\\.\\./\\.\\.\"/i"
+ },
+ "e2b5163d-7deb-4566-9af3-40afea6858c3": {
+  "status": "ok",
+  "output": "EventID=70"
+ },
+ "ec19ebab-72dc-40e1-9728-4c0b805d722c": {
+  "status": "ok",
+  "output": "Data=/Set-MpPreference/i Data=/-dbaf \\$true/i or Data=/-dbaf 1/i or Data=/-dbm \\$true/i or Data=/-dbm 1/i or Data=/-dips \\$true/i or Data=/-dips 1/i or Data=/-DisableArchiveScanning \\$true/i or Data=/-DisableArchiveScanning 1/i or Data=/-DisableBehaviorMonitoring \\$true/i or Data=/-DisableBehaviorMonitoring 1/i or Data=/-DisableBlockAtFirstSeen \\$true/i or Data=/-DisableBlockAtFirstSeen 1/i or Data=/-DisableCatchupFullScan \\$true/i or Data=/-DisableCatchupFullScan 1/i or Data=/-DisableCatchupQuickScan \\$true/i or Data=/-DisableCatchupQuickScan 1/i or Data=/-DisableIntrusionPreventionSystem \\$true/i or Data=/-DisableIntrusionPreventionSystem 1/i or Data=/-DisableIOAVProtection \\$true/i or Data=/-DisableIOAVProtection 1/i or Data=/-DisableRealtimeMonitoring \\$true/i or Data=/-DisableRealtimeMonitoring 1/i or Data=/-DisableRemovableDriveScanning \\$true/i or Data=/-DisableRemovableDriveScanning 1/i or Data=/-DisableScanningMappedNetworkDrivesForFullScan \\$true/i or Data=/-DisableScanningMappedNetworkDrivesForFullScan 1/i or Data=/-DisableScanningNetworkFiles \\$true/i or Data=/-DisableScanningNetworkFiles 1/i or Data=/-DisableScriptScanning \\$true/i or Data=/-DisableScriptScanning 1/i or Data=/-MAPSReporting \\$false/i or Data=/-MAPSReporting 0/i or Data=/-drdsc \\$true/i or Data=/-drdsc 1/i or Data=/-drtm \\$true/i or Data=/-drtm 1/i or Data=/-dscrptsc \\$true/i or Data=/-dscrptsc 1/i or Data=/-dsmndf \\$true/i or Data=/-dsmndf 1/i or Data=/-dsnf \\$true/i or Data=/-dsnf 1/i or Data=/-dss \\$true/i or Data=/-dss 1/i or Data=/HighThreatDefaultAction Allow/i or Data=/htdefac Allow/i or Data=/LowThreatDefaultAction Allow/i or Data=/ltdefac Allow/i or Data=/ModerateThreatDefaultAction Allow/i or Data=/mtdefac Allow/i or Data=/SevereThreatDefaultAction Allow/i or Data=/stdefac Allow/i"
+ }
+}
