@@ -337,7 +337,9 @@ _ATTACK_TAG_SUGGESTIONS: tuple[str, ...] = (
     "attack.execution",
     "attack.persistence",
     "attack.privilege-escalation",
-    "attack.defense-evasion",
+    # ATT&CK v18 retired defense-evasion, splitting it into these two.
+    "attack.stealth",
+    "attack.defense-impairment",
     "attack.credential-access",
     "attack.discovery",
     "attack.lateral-movement",
