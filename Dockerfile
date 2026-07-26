@@ -24,7 +24,12 @@
 # -----------------------------------------------------------------------------
 # Use the official Astral uv image with Python 3.14 already installed, so we
 # don't have to install uv from the network at build time.
-FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
+#
+# Debian 13 (trixie). Both stages move together: a builder and runtime on
+# different Debian releases risk a glibc/OpenSSL skew in the compiled
+# wheels the venv carries across. Moved off bookworm to clear an open
+# zlib1g CVE.
+FROM ghcr.io/astral-sh/uv:python3.14-trixie-slim AS builder
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -51,7 +56,7 @@ RUN uv sync --frozen --no-dev --no-editable
 # -----------------------------------------------------------------------------
 # Stage 2 — runtime
 # -----------------------------------------------------------------------------
-FROM python:3.14-slim-bookworm AS runtime
+FROM python:3.14-slim-trixie AS runtime
 
 ARG BUILD_SHA=dev
 ENV INTEL2SIGMA_BUILD_SHA=${BUILD_SHA} \
