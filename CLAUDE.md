@@ -11,6 +11,7 @@ Before touching any code:
 3. `docs/architecture.md` — how it fits together at runtime
 4. `docs/ui.md` — presentation layer contract
 5. Domain docs (`docs/taxonomy.md`, `docs/heuristics.md`) if your task touches those areas
+6. `docs/recalibration.md` — the quarterly runbook, if your task bumps any pinned upstream (SigmaHQ corpus, MITRE ATT&CK, curated examples). Its calibration history is the log of what moved and why.
 
 SPEC.md is the authoritative source for product and architecture decisions. If SPEC and code disagree, update whichever is wrong — do not silently reconcile by changing only one side.
 
@@ -124,6 +125,7 @@ intel2sigma/
     ├── examples/          # Curated SigmaHQ rules (v1.5 load modal)
     ├── pipelines.yml      # Backend/pipeline selection matrix
     ├── mitre_attack.json  # ATT&CK tree (built by scripts/build_mitre_tree.py)
+    ├── sigmahq_corpus.json # Browse-index (built by scripts/build_sigmahq_corpus.py)
     └── heuristics.yml     # Per-heuristic severity + enablement (v1.0 MVP)
 
 tests/

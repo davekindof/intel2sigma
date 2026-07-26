@@ -125,6 +125,12 @@ two-test-cases-each, ship.
 uv run python scripts/curate_examples.py --check-only
 ```
 
+> **Caveat (2026-07-26):** the script does not implement `--check-only`;
+> the flag is accepted and ignored, and the examples are always
+> rewritten. Treat this step as "re-curate and review the diff" until
+> the script grows the flag. Expect the header comments to churn too if
+> the committed examples predate the current template.
+
 This re-validates each `intel2sigma/data/examples/*.yml` rule against:
 
 - Tier 1 + 2 validation
@@ -164,4 +170,48 @@ deltas. Useful for "when did detection X become ambiguous" forensics.
 
 | Date | MITRE | SigmaHQ | Catalog | Heuristics | PR |
 |---|---|---|---|---|---|
-| _(populated as the cycles run)_ | | | | | |
+| 2026-07-26 | v15.1 → v19.1 | `03412947` → `552f3fee` (r2026-07-01) | `okta.yml` fields recased to CamelCase | none | _(this branch)_ |
+
+### 2026-07-26 — notes
+
+Three things this cycle taught, worth carrying into the next one.
+
+**The corpus pin and the ATT&CK pin are not independent.** r2026-07-01
+adopted the ATT&CK v18 tactic split: `attack.defense-evasion` was retired
+in favour of `attack.stealth` (1,088 corpus occurrences) and
+`attack.defense-impairment` (410), and the T1562 family was renumbered
+into T1685/T1686. Refreshing the corpus alone would have left 18.2% of
+corpus tag occurrences unresolvable against the bundled tree. Step 3 is
+not optional when a SigmaHQ release crosses an ATT&CK major version —
+check the release notes for retagging before assuming the steps are
+independent. ATT&CK version was chosen by scoring v17.1/v18.1/v19.1
+against the actual corpus tag set, not by taking the newest tag.
+
+**Okta field renames — why this needed a catalog fix.** Upstream recased
+every Okta field (`eventtype` → `eventType`, `actor.alternateid` →
+`actor.alternateId`, and `target.user.display.name` → `target.displayName`,
+which is a replacement rather than a recasing). Tracing the full path
+found *no* Okta field name hardcoded or mapped anywhere — no
+`pipelines.yml` entry, no Python reference. Names pass verbatim from the
+catalog into the emitted query, so nothing breaks loudly; instead
+`okta.yml` silently becomes the only place a wrong spelling can live, and
+a composer user picking `eventtype` gets a rule that matches nothing.
+Conversion output changed for 4 Okta rules × 3 backends, all faithful
+passthrough. Both Kusto backends were unaffected because they already
+fail on Okta — pySigma has no table mapping for it.
+
+**Pin to the release tag, not to HEAD.** The previous pin was
+HEAD-at-the-time and sat 30 commits past r2026-04-01, so "calibrated
+against release X" was only ever approximate. Step 1's `git ls-remote
+HEAD` example encourages this; prefer the tag commit.
+
+Two problems found in passing and deliberately **not** fixed here:
+
+* The load-audit and emit-audit clean-count ratchets were already failing
+  on `main` before this refresh (verified by running both at the previous
+  pin): load clean 3,180 vs floor 3,582, emit clean 3,176 vs floor 3,578.
+  This refresh improves both by +32. The floors were left untouched —
+  lowering them would mask a pre-existing ~400-rule regression unrelated
+  to the corpus.
+* `scripts/curate_examples.py` ignores `--check-only` and always writes.
+  Step 5 above documents a flag the script does not implement.
