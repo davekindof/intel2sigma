@@ -5,7 +5,7 @@
  },
  "002bdb95-0cf1-46a6-9e08-d38c128a6127": {
   "status": "ok",
-  "output": "(process.executable:(*\\\\wscript.exe OR *\\\\cscript.exe)) AND (file.path:(C\\:\\\\Users\\\\* OR C\\:\\\\ProgramData*)) AND (file.path:(*.jse OR *.vbe OR *.js OR *.vba OR *.vbs))"
+  "output": "(process.executable:(*\\\\wscript.exe OR *\\\\cscript.exe)) AND (file.path:(*\\:\\\\Perflogs\\\\* OR *\\:\\\\ProgramData\\\\* OR *\\:\\\\Temp\\\\* OR *\\:\\\\Tmp\\\\* OR *\\:\\\\Users\\\\* OR *\\:\\\\Windows\\\\Temp\\\\* OR *\\\\AppData\\\\Local\\\\Temp* OR *\\\\AppData\\\\Roaming\\\\Temp* OR *\\\\Start\\ Menu\\\\Programs\\\\Startup\\\\* OR *\\\\Temporary\\ Internet*)) AND (file.path:(*.js OR *.jse OR *.vba OR *.vbe OR *.vbs OR *.wsf OR *.wsh))"
  },
  "00321fee-ca72-4cce-b011-5415af3b9960": {
   "status": "ok",
@@ -21,7 +21,7 @@
  },
  "00a8e92a-776b-425f-80f2-82d8f8fab2e5": {
   "status": "ok",
-  "output": "(eventtype:(user.lifecycle.create OR user.lifecycle.activate)) AND target.user.display.name:*svc_network_backup*"
+  "output": "(eventType:(user.lifecycle.create OR user.lifecycle.activate)) AND target.displayName:*svc_network_backup*"
  },
  "00b90cc1-17ec-402c-96ad-3a8117d7a582": {
   "status": "ok",
@@ -121,7 +121,7 @@
  },
  "07e97cc6-aed1-43ae-9081-b3470d2367f1": {
   "status": "ok",
-  "output": "eventtype:user.account.report_suspicious_activity_by_enduser"
+  "output": "eventType:user.account.report_suspicious_activity_by_enduser"
  },
  "090ffaad-c01a-4879-850c-6d57da98452d": {
   "status": "ok",
@@ -153,7 +153,7 @@
  },
  "0c97c1d3-4057-45c9-b148-1de94b631931": {
   "status": "ok",
-  "output": "eventtype:(policy.rule.update OR policy.rule.delete)"
+  "output": "eventType:(policy.rule.update OR policy.rule.delete)"
  },
  "0c9b3bda-41a6-4442-9345-356ae86343dc": {
   "status": "ok",
@@ -175,6 +175,10 @@
   "status": "ok",
   "output": "winlog.channel:System AND (event.code:104 AND winlog.provider_name:Microsoft\\-Windows\\-Eventlog AND (winlog.channel:(Microsoft\\-Windows\\-PowerShell\\/Operational OR Microsoft\\-Windows\\-Sysmon\\/Operational OR PowerShellCore\\/Operational OR Security OR System OR Windows\\ PowerShell)))"
  },
+ "101a1877-2cf4-474d-abfd-7f6ac4788d1a": {
+  "status": "ok",
+  "output": "(Signature:/APT\\d/ OR Signature:/ATK\\d/ OR Signature:/UNC\\d/ OR Signature:/UAC\\d/) OR (Signature:(*\\[APT\\]* OR *APT_* OR *APT\\-* OR *BackOrder* OR *BlindingCan* OR *Blizzard* OR *Chollima* OR *Cleaver* OR *Cobra* OR *DarkHotel* OR *Dragon* OR *DTrack* OR *Equation* OR *GiftedCrook* OR *GraphSteel* OR *GreyEnergy* OR *GEnergy* OR *GrimPlant* OR *Hydra* OR *Jackal* OR *Kitten* OR *Kimsuky* OR *Lazar* OR *LightRail* OR *Lotus* OR *Luminous* OR *LumiMoth* OR *Nimbus* OR *Manticore* OR *MiniBike* OR *MiniBrowse* OR *MiniBus* OR *MiniFast* OR *MiniJuke* OR *MiniUpdate* OR *MuddyWater* OR *NukeSped* OR *OilRig* OR *Panda* OR *Sandstorm* OR *SandWorm* OR *Seamonkey* OR *Sleet* OR *SlugResin* OR *SnailResin* OR *Snake* OR *Tempest* OR *Tsunami* OR *Turla* OR *Typhoon* OR *UAC_* OR *UAC\\-* OR *UNC_* OR *UNC\\-* OR *VinoSiren* OR *Winnti*))"
+ },
  "128faeef-79dd-44ca-b43c-a9e236a60f49": {
   "status": "ok",
   "output": "riskEventType:unfamiliarFeatures"
@@ -185,7 +189,7 @@
  },
  "139bdd4b-9cd7-49ba-a2f4-744d0a8f5d8c": {
   "status": "ok",
-  "output": "eventtype:iam.resourceset.bindings.add"
+  "output": "eventType:iam.resourceset.bindings.add"
  },
  "13f2d3f5-6497-44a7-bf5f-dc13ffafe5dc": {
   "status": "ok",
@@ -223,10 +227,6 @@
   "status": "ok",
   "output": "logtype:5000"
  },
- "238527ad-3c2c-4e4f-a1f6-92fd63adb864": {
-  "status": "ok",
-  "output": "Signature:(*Backdoor.Cobalt* OR *Brutel* OR *BruteR* OR *CobaltStr* OR *CobaltStrike* OR *COBEACON* OR *Cometer* OR *Exploit.Script.CVE* OR *IISExchgSpawnCMD* OR *Metasploit* OR *Meterpreter* OR *MeteTool* OR *Mpreter* OR *MsfShell* OR *PowerSploit* OR *Razy* OR *Rozena* OR *Sbelt* OR *Seatbelt* OR *Sliver* OR *Swrort*)"
- },
  "23b71bc5-953e-4971-be4c-c896cda73fc2": {
   "status": "ok",
   "output": "winlog.channel:Microsoft\\-Windows\\-Sysmon\\/Operational AND event.code:27"
@@ -246,6 +246,10 @@
  "2975af79-28c4-4d2f-a951-9095f229df29": {
   "status": "ok",
   "output": "(query:(aaa.stage.* OR post.1*)) OR query:*.stage.123456.*"
+ },
+ "2a0bb2dd-eb5f-4517-8cb9-404f8ba764a5": {
+  "status": "ok",
+  "output": "protoPayload.serviceName:login.googleapis.com AND protoPayload.metadata.event.eventName:email_forwarding_out_of_domain"
  },
  "2bfb6216-0c31-4d20-8501-2629b29a3fa2": {
   "status": "ok",
@@ -426,6 +430,10 @@
  "d29a20b2-be4b-4827-81f2-3d8a59eab5fc": {
   "status": "ok",
   "output": "winlog.channel:Microsoft\\-Windows\\-AppModel\\-Runtime\\/Admin AND (event.code:201 AND (winlog.event_data.ImageName:(procdump.exe OR psloglist.exe OR psexec.exe OR livekd.exe OR ADExplorer.exe)))"
+ },
+ "d4f1a2b3-7c8e-4d5f-b6a9-1e0c2d3f4e5b": {
+  "status": "ok",
+  "output": "winlog.channel:Microsoft\\-Windows\\-WMI\\-Activity\\/Operational AND (event.code:5858 AND (winlog.event_data.Operation:*Win32_NTEventlogFile* AND winlog.event_data.Operation:*cleareventlog*))"
  },
  "db809f10-56ce-4420-8c86-d6a7d793c79c": {
   "status": "ok",

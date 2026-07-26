@@ -220,6 +220,11 @@
   "logsource": "windows/-/system"
  },
  {
+  "id": "101a1877-2cf4-474d-abfd-7f6ac4788d1a",
+  "title": "Antivirus - APT Malware Signature",
+  "logsource": "-/antivirus/-"
+ },
+ {
   "id": "128faeef-79dd-44ca-b43c-a9e236a60f49",
   "title": "Unfamiliar Sign-In Properties",
   "logsource": "azure/-/riskdetection"
@@ -280,11 +285,6 @@
   "logsource": "opencanary/application/-"
  },
  {
-  "id": "238527ad-3c2c-4e4f-a1f6-92fd63adb864",
-  "title": "Antivirus Exploitation Framework Detection",
-  "logsource": "-/antivirus/-"
- },
- {
   "id": "23b71bc5-953e-4971-be4c-c896cda73fc2",
   "title": "Sysmon Blocked Executable",
   "logsource": "windows/-/sysmon"
@@ -308,6 +308,11 @@
   "id": "2975af79-28c4-4d2f-a951-9095f229df29",
   "title": "Cobalt Strike DNS Beaconing",
   "logsource": "-/dns/-"
+ },
+ {
+  "id": "2a0bb2dd-eb5f-4517-8cb9-404f8ba764a5",
+  "title": "Google Workspace Out Of Domain Email Forwarding",
+  "logsource": "gcp/-/google_workspace.login"
  },
  {
   "id": "2bfb6216-0c31-4d20-8501-2629b29a3fa2",
@@ -533,6 +538,11 @@
   "id": "d29a20b2-be4b-4827-81f2-3d8a59eab5fc",
   "title": "Sysinternals Tools AppX Versions Execution",
   "logsource": "windows/-/appmodel-runtime"
+ },
+ {
+  "id": "d4f1a2b3-7c8e-4d5f-b6a9-1e0c2d3f4e5b",
+  "title": "Failed Event Log Clear Via WMI NTEventLogFile ClearEventLog",
+  "logsource": "windows/-/wmi"
  },
  {
   "id": "db809f10-56ce-4420-8c86-d6a7d793c79c",

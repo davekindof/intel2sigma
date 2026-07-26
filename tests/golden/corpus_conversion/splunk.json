@@ -5,7 +5,7 @@
  },
  "002bdb95-0cf1-46a6-9e08-d38c128a6127": {
   "status": "ok",
-  "output": "source=\"WinEventLog:Microsoft-Windows-Sysmon/Operational\" EventCode=11 Image IN (\"*\\\\wscript.exe\", \"*\\\\cscript.exe\") TargetFilename IN (\"C:\\\\Users\\\\*\", \"C:\\\\ProgramData*\") TargetFilename IN (\"*.jse\", \"*.vbe\", \"*.js\", \"*.vba\", \"*.vbs\")"
+  "output": "source=\"WinEventLog:Microsoft-Windows-Sysmon/Operational\" EventCode=11 Image IN (\"*\\\\wscript.exe\", \"*\\\\cscript.exe\") TargetFilename IN (\"*:\\\\Perflogs\\\\*\", \"*:\\\\ProgramData\\\\*\", \"*:\\\\Temp\\\\*\", \"*:\\\\Tmp\\\\*\", \"*:\\\\Users\\\\*\", \"*:\\\\Windows\\\\Temp\\\\*\", \"*\\\\AppData\\\\Local\\\\Temp*\", \"*\\\\AppData\\\\Roaming\\\\Temp*\", \"*\\\\Start Menu\\\\Programs\\\\Startup\\\\*\", \"*\\\\Temporary Internet*\") TargetFilename IN (\"*.js\", \"*.jse\", \"*.vba\", \"*.vbe\", \"*.vbs\", \"*.wsf\", \"*.wsh\")"
  },
  "00321fee-ca72-4cce-b011-5415af3b9960": {
   "status": "ok",
@@ -21,7 +21,7 @@
  },
  "00a8e92a-776b-425f-80f2-82d8f8fab2e5": {
   "status": "ok",
-  "output": "eventtype IN (\"user.lifecycle.create\", \"user.lifecycle.activate\") target.user.display.name=\"*svc_network_backup*\""
+  "output": "eventType IN (\"user.lifecycle.create\", \"user.lifecycle.activate\") target.displayName=\"*svc_network_backup*\""
  },
  "00b90cc1-17ec-402c-96ad-3a8117d7a582": {
   "status": "ok",
@@ -121,7 +121,7 @@
  },
  "07e97cc6-aed1-43ae-9081-b3470d2367f1": {
   "status": "ok",
-  "output": "eventtype=\"user.account.report_suspicious_activity_by_enduser\""
+  "output": "eventType=\"user.account.report_suspicious_activity_by_enduser\""
  },
  "090ffaad-c01a-4879-850c-6d57da98452d": {
   "status": "ok",
@@ -153,7 +153,7 @@
  },
  "0c97c1d3-4057-45c9-b148-1de94b631931": {
   "status": "ok",
-  "output": "eventtype IN (\"policy.rule.update\", \"policy.rule.delete\")"
+  "output": "eventType IN (\"policy.rule.update\", \"policy.rule.delete\")"
  },
  "0c9b3bda-41a6-4442-9345-356ae86343dc": {
   "status": "ok",
@@ -175,6 +175,10 @@
   "status": "ok",
   "output": "EventID=104 Provider_Name=\"Microsoft-Windows-Eventlog\" Channel IN (\"Microsoft-Windows-PowerShell/Operational\", \"Microsoft-Windows-Sysmon/Operational\", \"PowerShellCore/Operational\", \"Security\", \"System\", \"Windows PowerShell\")"
  },
+ "101a1877-2cf4-474d-abfd-7f6ac4788d1a": {
+  "status": "ok",
+  "output": "\n| rex field=Signature \"(?<SignatureMatch>APT\\\\d)\"\n| eval SignatureCondition=if(isnotnull(SignatureMatch), \"true\", \"false\")\n| rex field=Signature \"(?<SignatureMatch2>ATK\\\\d)\"\n| eval SignatureCondition2=if(isnotnull(SignatureMatch2), \"true\", \"false\")\n| rex field=Signature \"(?<SignatureMatch3>UNC\\\\d)\"\n| eval SignatureCondition3=if(isnotnull(SignatureMatch3), \"true\", \"false\")\n| rex field=Signature \"(?<SignatureMatch4>UAC\\\\d)\"\n| eval SignatureCondition4=if(isnotnull(SignatureMatch4), \"true\", \"false\")\n| search SignatureCondition=\"true\" OR SignatureCondition2=\"true\" OR SignatureCondition3=\"true\" OR SignatureCondition4=\"true\" OR Signature IN (\"*[APT]*\", \"*APT_*\", \"*APT-*\", \"*BackOrder*\", \"*BlindingCan*\", \"*Blizzard*\", \"*Chollima*\", \"*Cleaver*\", \"*Cobra*\", \"*DarkHotel*\", \"*Dragon*\", \"*DTrack*\", \"*Equation*\", \"*GiftedCrook*\", \"*GraphSteel*\", \"*GreyEnergy*\", \"*GEnergy*\", \"*GrimPlant*\", \"*Hydra*\", \"*Jackal*\", \"*Kitten*\", \"*Kimsuky*\", \"*Lazar*\", \"*LightRail*\", \"*Lotus*\", \"*Luminous*\", \"*LumiMoth*\", \"*Nimbus*\", \"*Manticore*\", \"*MiniBike*\", \"*MiniBrowse*\", \"*MiniBus*\", \"*MiniFast*\", \"*MiniJuke*\", \"*MiniUpdate*\", \"*MuddyWater*\", \"*NukeSped*\", \"*OilRig*\", \"*Panda*\", \"*Sandstorm*\", \"*SandWorm*\", \"*Seamonkey*\", \"*Sleet*\", \"*SlugResin*\", \"*SnailResin*\", \"*Snake*\", \"*Tempest*\", \"*Tsunami*\", \"*Turla*\", \"*Typhoon*\", \"*UAC_*\", \"*UAC-*\", \"*UNC_*\", \"*UNC-*\", \"*VinoSiren*\", \"*Winnti*\")"
+ },
  "128faeef-79dd-44ca-b43c-a9e236a60f49": {
   "status": "ok",
   "output": "riskEventType=\"unfamiliarFeatures\""
@@ -185,7 +189,7 @@
  },
  "139bdd4b-9cd7-49ba-a2f4-744d0a8f5d8c": {
   "status": "ok",
-  "output": "eventtype=\"iam.resourceset.bindings.add\""
+  "output": "eventType=\"iam.resourceset.bindings.add\""
  },
  "13f2d3f5-6497-44a7-bf5f-dc13ffafe5dc": {
   "status": "ok",
@@ -223,10 +227,6 @@
   "status": "ok",
   "output": "logtype=5000"
  },
- "238527ad-3c2c-4e4f-a1f6-92fd63adb864": {
-  "status": "ok",
-  "output": "Signature IN (\"*Backdoor.Cobalt*\", \"*Brutel*\", \"*BruteR*\", \"*CobaltStr*\", \"*CobaltStrike*\", \"*COBEACON*\", \"*Cometer*\", \"*Exploit.Script.CVE*\", \"*IISExchgSpawnCMD*\", \"*Metasploit*\", \"*Meterpreter*\", \"*MeteTool*\", \"*Mpreter*\", \"*MsfShell*\", \"*PowerSploit*\", \"*Razy*\", \"*Rozena*\", \"*Sbelt*\", \"*Seatbelt*\", \"*Sliver*\", \"*Swrort*\")"
- },
  "23b71bc5-953e-4971-be4c-c896cda73fc2": {
   "status": "ok",
   "output": "EventID=27"
@@ -246,6 +246,10 @@
  "2975af79-28c4-4d2f-a951-9095f229df29": {
   "status": "ok",
   "output": "query IN (\"aaa.stage.*\", \"post.1*\") OR query=\"*.stage.123456.*\""
+ },
+ "2a0bb2dd-eb5f-4517-8cb9-404f8ba764a5": {
+  "status": "ok",
+  "output": "protoPayload.serviceName=\"login.googleapis.com\" protoPayload.metadata.event.eventName=\"email_forwarding_out_of_domain\""
  },
  "2bfb6216-0c31-4d20-8501-2629b29a3fa2": {
   "status": "ok",
@@ -426,6 +430,10 @@
  "d29a20b2-be4b-4827-81f2-3d8a59eab5fc": {
   "status": "ok",
   "output": "EventID=201 ImageName IN (\"procdump.exe\", \"psloglist.exe\", \"psexec.exe\", \"livekd.exe\", \"ADExplorer.exe\")"
+ },
+ "d4f1a2b3-7c8e-4d5f-b6a9-1e0c2d3f4e5b": {
+  "status": "ok",
+  "output": "EventID=5858 Operation=\"*Win32_NTEventlogFile*\" Operation=\"*cleareventlog*\""
  },
  "db809f10-56ce-4420-8c86-d6a7d793c79c": {
   "status": "ok",

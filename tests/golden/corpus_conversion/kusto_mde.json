@@ -5,7 +5,7 @@
  },
  "002bdb95-0cf1-46a6-9e08-d38c128a6127": {
   "status": "ok",
-  "output": "DeviceFileEvents\n| where (InitiatingProcessFolderPath endswith \"\\\\wscript.exe\" or InitiatingProcessFolderPath endswith \"\\\\cscript.exe\") and (FolderPath startswith \"C:\\\\Users\\\\\" or FolderPath startswith \"C:\\\\ProgramData\") and (FolderPath endswith \".jse\" or FolderPath endswith \".vbe\" or FolderPath endswith \".js\" or FolderPath endswith \".vba\" or FolderPath endswith \".vbs\")"
+  "output": "DeviceFileEvents\n| where (InitiatingProcessFolderPath endswith \"\\\\wscript.exe\" or InitiatingProcessFolderPath endswith \"\\\\cscript.exe\") and (FolderPath contains \":\\\\Perflogs\\\\\" or FolderPath contains \":\\\\ProgramData\\\\\" or FolderPath contains \":\\\\Temp\\\\\" or FolderPath contains \":\\\\Tmp\\\\\" or FolderPath contains \":\\\\Users\\\\\" or FolderPath contains \":\\\\Windows\\\\Temp\\\\\" or FolderPath contains \"\\\\AppData\\\\Local\\\\Temp\" or FolderPath contains \"\\\\AppData\\\\Roaming\\\\Temp\" or FolderPath contains \"\\\\Start Menu\\\\Programs\\\\Startup\\\\\" or FolderPath contains \"\\\\Temporary Internet\") and (FolderPath endswith \".js\" or FolderPath endswith \".jse\" or FolderPath endswith \".vba\" or FolderPath endswith \".vbe\" or FolderPath endswith \".vbs\" or FolderPath endswith \".wsf\" or FolderPath endswith \".wsh\")"
  },
  "00321fee-ca72-4cce-b011-5415af3b9960": {
   "status": "error",
@@ -175,6 +175,10 @@
   "status": "error",
   "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
+ "101a1877-2cf4-474d-abfd-7f6ac4788d1a": {
+  "status": "error",
+  "error": "ConversionFailedError: This rule's logsource category doesn't have a default Microsoft Defender XDR table mapping in pySigma's pipeline. Sysmon-only categories like ``create_remote_thread`` are a known coverage gap. Try Splunk / Elastic / CrowdStrike instead, or use a Windows Security-channel category if the detection allows it."
+ },
  "128faeef-79dd-44ca-b43c-a9e236a60f49": {
   "status": "error",
   "error": "ConversionFailedError: This rule's logsource category doesn't have a default Microsoft Defender XDR table mapping in pySigma's pipeline. Sysmon-only categories like ``create_remote_thread`` are a known coverage gap. Try Splunk / Elastic / CrowdStrike instead, or use a Windows Security-channel category if the detection allows it."
@@ -223,10 +227,6 @@
   "status": "error",
   "error": "ConversionFailedError: This rule's logsource category doesn't have a default Microsoft Defender XDR table mapping in pySigma's pipeline. Sysmon-only categories like ``create_remote_thread`` are a known coverage gap. Try Splunk / Elastic / CrowdStrike instead, or use a Windows Security-channel category if the detection allows it."
  },
- "238527ad-3c2c-4e4f-a1f6-92fd63adb864": {
-  "status": "error",
-  "error": "ConversionFailedError: This rule's logsource category doesn't have a default Microsoft Defender XDR table mapping in pySigma's pipeline. Sysmon-only categories like ``create_remote_thread`` are a known coverage gap. Try Splunk / Elastic / CrowdStrike instead, or use a Windows Security-channel category if the detection allows it."
- },
  "23b71bc5-953e-4971-be4c-c896cda73fc2": {
   "status": "error",
   "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
@@ -244,6 +244,10 @@
   "error": "ConversionFailedError: This rule's logsource category doesn't have a default Microsoft Defender XDR table mapping in pySigma's pipeline. Sysmon-only categories like ``create_remote_thread`` are a known coverage gap. Try Splunk / Elastic / CrowdStrike instead, or use a Windows Security-channel category if the detection allows it."
  },
  "2975af79-28c4-4d2f-a951-9095f229df29": {
+  "status": "error",
+  "error": "ConversionFailedError: This rule's logsource category doesn't have a default Microsoft Defender XDR table mapping in pySigma's pipeline. Sysmon-only categories like ``create_remote_thread`` are a known coverage gap. Try Splunk / Elastic / CrowdStrike instead, or use a Windows Security-channel category if the detection allows it."
+ },
+ "2a0bb2dd-eb5f-4517-8cb9-404f8ba764a5": {
   "status": "error",
   "error": "ConversionFailedError: This rule's logsource category doesn't have a default Microsoft Defender XDR table mapping in pySigma's pipeline. Sysmon-only categories like ``create_remote_thread`` are a known coverage gap. Try Splunk / Elastic / CrowdStrike instead, or use a Windows Security-channel category if the detection allows it."
  },
@@ -424,6 +428,10 @@
   "error": "ConversionFailedError: This rule's logsource category doesn't have a default Microsoft Defender XDR table mapping in pySigma's pipeline. Sysmon-only categories like ``create_remote_thread`` are a known coverage gap. Try Splunk / Elastic / CrowdStrike instead, or use a Windows Security-channel category if the detection allows it."
  },
  "d29a20b2-be4b-4827-81f2-3d8a59eab5fc": {
+  "status": "error",
+  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+ },
+ "d4f1a2b3-7c8e-4d5f-b6a9-1e0c2d3f4e5b": {
   "status": "error",
   "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },

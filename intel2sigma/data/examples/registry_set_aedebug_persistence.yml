@@ -1,7 +1,7 @@
-# Curated from SigmaHQ at commit 03412947a2d6
-# Source: https://github.com/SigmaHQ/sigma/blob/03412947a2d653ca1398db62a51d2de9da96b361/rules/windows/registry/registry_set/registry_set_aedebug_persistence.yml
+# Curated from SigmaHQ at commit 552f3fee420e
+# Source: https://github.com/SigmaHQ/sigma/blob/552f3fee420ef232a8e5790c4fae591847e32347/rules/windows/registry/registry_set/registry_set_aedebug_persistence.yml
 # License: MIT (per SigmaHQ root LICENSE).
-# This rule is intel2sigma example content — original Sigma authorship preserved below.
+# Original Sigma authorship preserved below; intel2sigma uses this as an example.
 #
 title: Add Debugger Entry To AeDebug For Persistence
 id: 092af964-4233-4373-b4ba-d86ea2890288

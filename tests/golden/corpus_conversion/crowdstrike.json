@@ -5,7 +5,7 @@
  },
  "002bdb95-0cf1-46a6-9e08-d38c128a6127": {
   "status": "ok",
-  "output": "Image=/\\\\wscript\\.exe$/i or Image=/\\\\cscript\\.exe$/i TargetFilename=/^C:\\\\Users\\\\/i or TargetFilename=/^C:\\\\ProgramData/i TargetFilename=/\\.jse$/i or TargetFilename=/\\.vbe$/i or TargetFilename=/\\.js$/i or TargetFilename=/\\.vba$/i or TargetFilename=/\\.vbs$/i"
+  "output": "Image=/\\\\wscript\\.exe$/i or Image=/\\\\cscript\\.exe$/i TargetFilename=/:\\\\Perflogs\\\\/i or TargetFilename=/:\\\\ProgramData\\\\/i or TargetFilename=/:\\\\Temp\\\\/i or TargetFilename=/:\\\\Tmp\\\\/i or TargetFilename=/:\\\\Users\\\\/i or TargetFilename=/:\\\\Windows\\\\Temp\\\\/i or TargetFilename=/\\\\AppData\\\\Local\\\\Temp/i or TargetFilename=/\\\\AppData\\\\Roaming\\\\Temp/i or TargetFilename=/\\\\Start Menu\\\\Programs\\\\Startup\\\\/i or TargetFilename=/\\\\Temporary Internet/i TargetFilename=/\\.js$/i or TargetFilename=/\\.jse$/i or TargetFilename=/\\.vba$/i or TargetFilename=/\\.vbe$/i or TargetFilename=/\\.vbs$/i or TargetFilename=/\\.wsf$/i or TargetFilename=/\\.wsh$/i"
  },
  "00321fee-ca72-4cce-b011-5415af3b9960": {
   "status": "ok",
@@ -21,7 +21,7 @@
  },
  "00a8e92a-776b-425f-80f2-82d8f8fab2e5": {
   "status": "ok",
-  "output": "eventtype=/^user\\.lifecycle\\.create$/i or eventtype=/^user\\.lifecycle\\.activate$/i target.user.display.name=/svc_network_backup/i"
+  "output": "eventType=/^user\\.lifecycle\\.create$/i or eventType=/^user\\.lifecycle\\.activate$/i target.displayName=/svc_network_backup/i"
  },
  "00b90cc1-17ec-402c-96ad-3a8117d7a582": {
   "status": "ok",
@@ -121,7 +121,7 @@
  },
  "07e97cc6-aed1-43ae-9081-b3470d2367f1": {
   "status": "ok",
-  "output": "eventtype=/^user\\.account\\.report_suspicious_activity_by_enduser$/i"
+  "output": "eventType=/^user\\.account\\.report_suspicious_activity_by_enduser$/i"
  },
  "090ffaad-c01a-4879-850c-6d57da98452d": {
   "status": "ok",
@@ -153,7 +153,7 @@
  },
  "0c97c1d3-4057-45c9-b148-1de94b631931": {
   "status": "ok",
-  "output": "eventtype=/^policy\\.rule\\.update$/i or eventtype=/^policy\\.rule\\.delete$/i"
+  "output": "eventType=/^policy\\.rule\\.update$/i or eventType=/^policy\\.rule\\.delete$/i"
  },
  "0c9b3bda-41a6-4442-9345-356ae86343dc": {
   "status": "ok",
@@ -175,6 +175,10 @@
   "status": "ok",
   "output": "EventID=104 Provider_Name=/^Microsoft-Windows-Eventlog$/i Channel=/^Microsoft-Windows-PowerShell\\/Operational$/i or Channel=/^Microsoft-Windows-Sysmon\\/Operational$/i or Channel=/^PowerShellCore\\/Operational$/i or Channel=/^Security$/i or Channel=/^System$/i or Channel=/^Windows PowerShell$/i"
  },
+ "101a1877-2cf4-474d-abfd-7f6ac4788d1a": {
+  "status": "ok",
+  "output": "Signature=/APT\\d/ or Signature=/ATK\\d/ or Signature=/UNC\\d/ or Signature=/UAC\\d/ or Signature=/\\[APT\\]/i or Signature=/APT_/i or Signature=/APT-/i or Signature=/BackOrder/i or Signature=/BlindingCan/i or Signature=/Blizzard/i or Signature=/Chollima/i or Signature=/Cleaver/i or Signature=/Cobra/i or Signature=/DarkHotel/i or Signature=/Dragon/i or Signature=/DTrack/i or Signature=/Equation/i or Signature=/GiftedCrook/i or Signature=/GraphSteel/i or Signature=/GreyEnergy/i or Signature=/GEnergy/i or Signature=/GrimPlant/i or Signature=/Hydra/i or Signature=/Jackal/i or Signature=/Kitten/i or Signature=/Kimsuky/i or Signature=/Lazar/i or Signature=/LightRail/i or Signature=/Lotus/i or Signature=/Luminous/i or Signature=/LumiMoth/i or Signature=/Nimbus/i or Signature=/Manticore/i or Signature=/MiniBike/i or Signature=/MiniBrowse/i or Signature=/MiniBus/i or Signature=/MiniFast/i or Signature=/MiniJuke/i or Signature=/MiniUpdate/i or Signature=/MuddyWater/i or Signature=/NukeSped/i or Signature=/OilRig/i or Signature=/Panda/i or Signature=/Sandstorm/i or Signature=/SandWorm/i or Signature=/Seamonkey/i or Signature=/Sleet/i or Signature=/SlugResin/i or Signature=/SnailResin/i or Signature=/Snake/i or Signature=/Tempest/i or Signature=/Tsunami/i or Signature=/Turla/i or Signature=/Typhoon/i or Signature=/UAC_/i or Signature=/UAC-/i or Signature=/UNC_/i or Signature=/UNC-/i or Signature=/VinoSiren/i or Signature=/Winnti/i"
+ },
  "128faeef-79dd-44ca-b43c-a9e236a60f49": {
   "status": "ok",
   "output": "riskEventType=/^unfamiliarFeatures$/i"
@@ -185,7 +189,7 @@
  },
  "139bdd4b-9cd7-49ba-a2f4-744d0a8f5d8c": {
   "status": "ok",
-  "output": "eventtype=/^iam\\.resourceset\\.bindings\\.add$/i"
+  "output": "eventType=/^iam\\.resourceset\\.bindings\\.add$/i"
  },
  "13f2d3f5-6497-44a7-bf5f-dc13ffafe5dc": {
   "status": "error",
@@ -223,10 +227,6 @@
   "status": "ok",
   "output": "logtype=5000"
  },
- "238527ad-3c2c-4e4f-a1f6-92fd63adb864": {
-  "status": "ok",
-  "output": "Signature=/Backdoor\\.Cobalt/i or Signature=/Brutel/i or Signature=/BruteR/i or Signature=/CobaltStr/i or Signature=/CobaltStrike/i or Signature=/COBEACON/i or Signature=/Cometer/i or Signature=/Exploit\\.Script\\.CVE/i or Signature=/IISExchgSpawnCMD/i or Signature=/Metasploit/i or Signature=/Meterpreter/i or Signature=/MeteTool/i or Signature=/Mpreter/i or Signature=/MsfShell/i or Signature=/PowerSploit/i or Signature=/Razy/i or Signature=/Rozena/i or Signature=/Sbelt/i or Signature=/Seatbelt/i or Signature=/Sliver/i or Signature=/Swrort/i"
- },
  "23b71bc5-953e-4971-be4c-c896cda73fc2": {
   "status": "ok",
   "output": "EventID=27"
@@ -246,6 +246,10 @@
  "2975af79-28c4-4d2f-a951-9095f229df29": {
   "status": "ok",
   "output": "query=/^aaa\\.stage\\./i or query=/^post\\.1/i or query=/\\.stage\\.123456\\./i"
+ },
+ "2a0bb2dd-eb5f-4517-8cb9-404f8ba764a5": {
+  "status": "ok",
+  "output": "protoPayload.serviceName=/^login\\.googleapis\\.com$/i protoPayload.metadata.event.eventName=/^email_forwarding_out_of_domain$/i"
  },
  "2bfb6216-0c31-4d20-8501-2629b29a3fa2": {
   "status": "ok",
@@ -426,6 +430,10 @@
  "d29a20b2-be4b-4827-81f2-3d8a59eab5fc": {
   "status": "ok",
   "output": "EventID=201 ImageName=/^procdump\\.exe$/i or ImageName=/^psloglist\\.exe$/i or ImageName=/^psexec\\.exe$/i or ImageName=/^livekd\\.exe$/i or ImageName=/^ADExplorer\\.exe$/i"
+ },
+ "d4f1a2b3-7c8e-4d5f-b6a9-1e0c2d3f4e5b": {
+  "status": "ok",
+  "output": "EventID=5858 Operation=/Win32_NTEventlogFile/i Operation=/cleareventlog/i"
  },
  "db809f10-56ce-4420-8c86-d6a7d793c79c": {
   "status": "ok",

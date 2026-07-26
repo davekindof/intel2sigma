@@ -1,7 +1,7 @@
-# Curated from SigmaHQ at commit 03412947a2d6
-# Source: https://github.com/SigmaHQ/sigma/blob/03412947a2d653ca1398db62a51d2de9da96b361/rules/windows/network_connection/net_connection_win_certutil_initiated_connection.yml
+# Curated from SigmaHQ at commit 552f3fee420e
+# Source: https://github.com/SigmaHQ/sigma/blob/552f3fee420ef232a8e5790c4fae591847e32347/rules/windows/network_connection/net_connection_win_certutil_initiated_connection.yml
 # License: MIT (per SigmaHQ root LICENSE).
-# This rule is intel2sigma example content — original Sigma authorship preserved below.
+# Original Sigma authorship preserved below; intel2sigma uses this as an example.
 #
 title: Uncommon Network Connection Initiated By Certutil.EXE
 id: 0dba975d-a193-4ed1-a067-424df57570d1

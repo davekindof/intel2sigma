@@ -1,7 +1,7 @@
-# Curated from SigmaHQ at commit 03412947a2d6
-# Source: https://github.com/SigmaHQ/sigma/blob/03412947a2d653ca1398db62a51d2de9da96b361/rules/windows/file/file_event/file_event_win_anydesk_artefact.yml
+# Curated from SigmaHQ at commit 552f3fee420e
+# Source: https://github.com/SigmaHQ/sigma/blob/552f3fee420ef232a8e5790c4fae591847e32347/rules/windows/file/file_event/file_event_win_anydesk_artefact.yml
 # License: MIT (per SigmaHQ root LICENSE).
-# This rule is intel2sigma example content — original Sigma authorship preserved below.
+# Original Sigma authorship preserved below; intel2sigma uses this as an example.
 #
 title: Anydesk Temporary Artefact
 id: 0b9ad457-2554-44c1-82c2-d56a99c42377

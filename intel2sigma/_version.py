@@ -22,7 +22,10 @@ from intel2sigma._data import data_path
 # scripts/fetch_sigmahq.py) so the /version endpoint can surface it
 # without the scripts/ tree having to ship in the wheel. Bumped
 # quarterly per the recalibration cadence in docs/taxonomy.md.
-SIGMAHQ_PINNED_COMMIT = "03412947a2d653ca1398db62a51d2de9da96b361"
+# r2026-07-01 (tagged 2026-07-09). Pinned to the release tag's commit
+# rather than upstream HEAD so "this catalog was calibrated against
+# SigmaHQ r2026-07-01" is exact rather than approximate.
+SIGMAHQ_PINNED_COMMIT = "552f3fee420ef232a8e5790c4fae591847e32347"
 
 # Bound to a name so ruff 0.15.x doesn't strip the parens off the
 # ``except (X, Y):`` form below — see web/mitre.py for the same workaround.
