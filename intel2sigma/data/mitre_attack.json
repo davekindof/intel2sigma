@@ -1,6 +1,6 @@
 {
-  "version": "v15.1",
-  "generated_at": "2026-04-25",
+  "version": "v19.1",
+  "generated_at": "2026-07-26",
   "tactics": [
     {
       "id": "TA0001",
@@ -124,6 +124,12 @@
           "name": "Content Injection",
           "tag": "attack.t1659",
           "subtechniques": []
+        },
+        {
+          "id": "T1669",
+          "name": "Wi-Fi Networks",
+          "tag": "attack.t1669",
+          "subtechniques": []
         }
       ]
     },
@@ -224,6 +230,21 @@
               "id": "T1059.010",
               "name": "AutoHotKey & AutoIT",
               "tag": "attack.t1059.010"
+            },
+            {
+              "id": "T1059.011",
+              "name": "Lua",
+              "tag": "attack.t1059.011"
+            },
+            {
+              "id": "T1059.012",
+              "name": "Hypervisor CLI",
+              "tag": "attack.t1059.012"
+            },
+            {
+              "id": "T1059.013",
+              "name": "Container CLI/API",
+              "tag": "attack.t1059.013"
             }
           ]
         },
@@ -240,9 +261,37 @@
           "subtechniques": []
         },
         {
+          "id": "T1127",
+          "name": "Trusted Developer Utilities Proxy Execution",
+          "tag": "attack.t1127",
+          "subtechniques": [
+            {
+              "id": "T1127.001",
+              "name": "MSBuild",
+              "tag": "attack.t1127.001"
+            },
+            {
+              "id": "T1127.002",
+              "name": "ClickOnce",
+              "tag": "attack.t1127.002"
+            },
+            {
+              "id": "T1127.003",
+              "name": "JamPlus",
+              "tag": "attack.t1127.003"
+            }
+          ]
+        },
+        {
           "id": "T1129",
           "name": "Shared Modules",
           "tag": "attack.t1129",
+          "subtechniques": []
+        },
+        {
+          "id": "T1197",
+          "name": "BITS Jobs",
+          "tag": "attack.t1197",
           "subtechniques": []
         },
         {
@@ -270,6 +319,16 @@
               "id": "T1204.003",
               "name": "Malicious Image",
               "tag": "attack.t1204.003"
+            },
+            {
+              "id": "T1204.004",
+              "name": "Malicious Copy and Paste",
+              "tag": "attack.t1204.004"
+            },
+            {
+              "id": "T1204.005",
+              "name": "Malicious Library",
+              "tag": "attack.t1204.005"
             }
           ]
         },
@@ -309,6 +368,78 @@
               "id": "T1569.002",
               "name": "Service Execution",
               "tag": "attack.t1569.002"
+            },
+            {
+              "id": "T1569.003",
+              "name": "Systemctl",
+              "tag": "attack.t1569.003"
+            }
+          ]
+        },
+        {
+          "id": "T1574",
+          "name": "Hijack Execution Flow",
+          "tag": "attack.t1574",
+          "subtechniques": [
+            {
+              "id": "T1574.001",
+              "name": "DLL",
+              "tag": "attack.t1574.001"
+            },
+            {
+              "id": "T1574.004",
+              "name": "Dylib Hijacking",
+              "tag": "attack.t1574.004"
+            },
+            {
+              "id": "T1574.005",
+              "name": "Executable Installer File Permissions Weakness",
+              "tag": "attack.t1574.005"
+            },
+            {
+              "id": "T1574.006",
+              "name": "Dynamic Linker Hijacking",
+              "tag": "attack.t1574.006"
+            },
+            {
+              "id": "T1574.007",
+              "name": "Path Interception by PATH Environment Variable",
+              "tag": "attack.t1574.007"
+            },
+            {
+              "id": "T1574.008",
+              "name": "Path Interception by Search Order Hijacking",
+              "tag": "attack.t1574.008"
+            },
+            {
+              "id": "T1574.009",
+              "name": "Path Interception by Unquoted Path",
+              "tag": "attack.t1574.009"
+            },
+            {
+              "id": "T1574.010",
+              "name": "Services File Permissions Weakness",
+              "tag": "attack.t1574.010"
+            },
+            {
+              "id": "T1574.011",
+              "name": "Services Registry Permissions Weakness",
+              "tag": "attack.t1574.011"
+            },
+            {
+              "id": "T1574.012",
+              "name": "COR_PROFILER",
+              "tag": "attack.t1574.012"
+            },
+            {
+              "id": "T1574.013",
+              "name": "KernelCallbackTable",
+              "tag": "attack.t1574.013"
+            },
+            {
+              "id": "T1574.014",
+              "name": "AppDomainManager",
+              "tag": "attack.t1574.014"
             }
           ]
         },
@@ -334,6 +465,24 @@
           "id": "T1651",
           "name": "Cloud Administration Command",
           "tag": "attack.t1651",
+          "subtechniques": []
+        },
+        {
+          "id": "T1674",
+          "name": "Input Injection",
+          "tag": "attack.t1674",
+          "subtechniques": []
+        },
+        {
+          "id": "T1675",
+          "name": "ESXi Administration Command",
+          "tag": "attack.t1675",
+          "subtechniques": []
+        },
+        {
+          "id": "T1677",
+          "name": "Poisoned Pipeline Execution",
+          "tag": "attack.t1677",
           "subtechniques": []
         }
       ]
@@ -468,8 +617,19 @@
               "id": "T1098.006",
               "name": "Additional Container Cluster Roles",
               "tag": "attack.t1098.006"
+            },
+            {
+              "id": "T1098.007",
+              "name": "Additional Local or Domain Groups",
+              "tag": "attack.t1098.007"
             }
           ]
+        },
+        {
+          "id": "T1112",
+          "name": "Modify Registry",
+          "tag": "attack.t1112",
+          "subtechniques": []
         },
         {
           "id": "T1133",
@@ -538,9 +698,20 @@
         },
         {
           "id": "T1176",
-          "name": "Browser Extensions",
+          "name": "Software Extensions",
           "tag": "attack.t1176",
-          "subtechniques": []
+          "subtechniques": [
+            {
+              "id": "T1176.001",
+              "name": "Browser Extensions",
+              "tag": "attack.t1176.001"
+            },
+            {
+              "id": "T1176.002",
+              "name": "IDE Extensions",
+              "tag": "attack.t1176.002"
+            }
+          ]
         },
         {
           "id": "T1197",
@@ -594,6 +765,11 @@
               "id": "T1505.005",
               "name": "Terminal Services DLL",
               "tag": "attack.t1505.005"
+            },
+            {
+              "id": "T1505.006",
+              "name": "vSphere Installation Bundles",
+              "tag": "attack.t1505.006"
             }
           ]
         },
@@ -751,6 +927,16 @@
               "id": "T1546.016",
               "name": "Installer Packages",
               "tag": "attack.t1546.016"
+            },
+            {
+              "id": "T1546.017",
+              "name": "Udev Rules",
+              "tag": "attack.t1546.017"
+            },
+            {
+              "id": "T1546.018",
+              "name": "Python Startup Hooks",
+              "tag": "attack.t1546.018"
             }
           ]
         },
@@ -890,81 +1076,21 @@
           ]
         },
         {
-          "id": "T1574",
-          "name": "Hijack Execution Flow",
-          "tag": "attack.t1574",
-          "subtechniques": [
-            {
-              "id": "T1574.001",
-              "name": "DLL Search Order Hijacking",
-              "tag": "attack.t1574.001"
-            },
-            {
-              "id": "T1574.002",
-              "name": "DLL Side-Loading",
-              "tag": "attack.t1574.002"
-            },
-            {
-              "id": "T1574.004",
-              "name": "Dylib Hijacking",
-              "tag": "attack.t1574.004"
-            },
-            {
-              "id": "T1574.005",
-              "name": "Executable Installer File Permissions Weakness",
-              "tag": "attack.t1574.005"
-            },
-            {
-              "id": "T1574.006",
-              "name": "Dynamic Linker Hijacking",
-              "tag": "attack.t1574.006"
-            },
-            {
-              "id": "T1574.007",
-              "name": "Path Interception by PATH Environment Variable",
-              "tag": "attack.t1574.007"
-            },
-            {
-              "id": "T1574.008",
-              "name": "Path Interception by Search Order Hijacking",
-              "tag": "attack.t1574.008"
-            },
-            {
-              "id": "T1574.009",
-              "name": "Path Interception by Unquoted Path",
-              "tag": "attack.t1574.009"
-            },
-            {
-              "id": "T1574.010",
-              "name": "Services File Permissions Weakness",
-              "tag": "attack.t1574.010"
-            },
-            {
-              "id": "T1574.011",
-              "name": "Services Registry Permissions Weakness",
-              "tag": "attack.t1574.011"
-            },
-            {
-              "id": "T1574.012",
-              "name": "COR_PROFILER",
-              "tag": "attack.t1574.012"
-            },
-            {
-              "id": "T1574.013",
-              "name": "KernelCallbackTable",
-              "tag": "attack.t1574.013"
-            },
-            {
-              "id": "T1574.014",
-              "name": "AppDomainManager",
-              "tag": "attack.t1574.014"
-            }
-          ]
-        },
-        {
           "id": "T1653",
           "name": "Power Settings",
           "tag": "attack.t1653",
+          "subtechniques": []
+        },
+        {
+          "id": "T1668",
+          "name": "Exclusive Control",
+          "tag": "attack.t1668",
+          "subtechniques": []
+        },
+        {
+          "id": "T1671",
+          "name": "Cloud Application Integration",
+          "tag": "attack.t1671",
           "subtechniques": []
         }
       ]
@@ -1172,6 +1298,11 @@
               "id": "T1098.006",
               "name": "Additional Container Cluster Roles",
               "tag": "attack.t1098.006"
+            },
+            {
+              "id": "T1098.007",
+              "name": "Additional Local or Domain Groups",
+              "tag": "attack.t1098.007"
             }
           ]
         },
@@ -1340,6 +1471,16 @@
               "id": "T1546.016",
               "name": "Installer Packages",
               "tag": "attack.t1546.016"
+            },
+            {
+              "id": "T1546.017",
+              "name": "Udev Rules",
+              "tag": "attack.t1546.017"
+            },
+            {
+              "id": "T1546.018",
+              "name": "Python Startup Hooks",
+              "tag": "attack.t1546.018"
             }
           ]
         },
@@ -1458,78 +1599,6 @@
           ]
         },
         {
-          "id": "T1574",
-          "name": "Hijack Execution Flow",
-          "tag": "attack.t1574",
-          "subtechniques": [
-            {
-              "id": "T1574.001",
-              "name": "DLL Search Order Hijacking",
-              "tag": "attack.t1574.001"
-            },
-            {
-              "id": "T1574.002",
-              "name": "DLL Side-Loading",
-              "tag": "attack.t1574.002"
-            },
-            {
-              "id": "T1574.004",
-              "name": "Dylib Hijacking",
-              "tag": "attack.t1574.004"
-            },
-            {
-              "id": "T1574.005",
-              "name": "Executable Installer File Permissions Weakness",
-              "tag": "attack.t1574.005"
-            },
-            {
-              "id": "T1574.006",
-              "name": "Dynamic Linker Hijacking",
-              "tag": "attack.t1574.006"
-            },
-            {
-              "id": "T1574.007",
-              "name": "Path Interception by PATH Environment Variable",
-              "tag": "attack.t1574.007"
-            },
-            {
-              "id": "T1574.008",
-              "name": "Path Interception by Search Order Hijacking",
-              "tag": "attack.t1574.008"
-            },
-            {
-              "id": "T1574.009",
-              "name": "Path Interception by Unquoted Path",
-              "tag": "attack.t1574.009"
-            },
-            {
-              "id": "T1574.010",
-              "name": "Services File Permissions Weakness",
-              "tag": "attack.t1574.010"
-            },
-            {
-              "id": "T1574.011",
-              "name": "Services Registry Permissions Weakness",
-              "tag": "attack.t1574.011"
-            },
-            {
-              "id": "T1574.012",
-              "name": "COR_PROFILER",
-              "tag": "attack.t1574.012"
-            },
-            {
-              "id": "T1574.013",
-              "name": "KernelCallbackTable",
-              "tag": "attack.t1574.013"
-            },
-            {
-              "id": "T1574.014",
-              "name": "AppDomainManager",
-              "tag": "attack.t1574.014"
-            }
-          ]
-        },
-        {
           "id": "T1611",
           "name": "Escape to Host",
           "tag": "attack.t1611",
@@ -1539,8 +1608,8 @@
     },
     {
       "id": "TA0005",
-      "name": "Defense Evasion",
-      "tag": "attack.defense-evasion",
+      "name": "Stealth",
+      "tag": "attack.stealth",
       "techniques": [
         {
           "id": "T1006",
@@ -1623,6 +1692,31 @@
               "id": "T1027.013",
               "name": "Encrypted/Encoded File",
               "tag": "attack.t1027.013"
+            },
+            {
+              "id": "T1027.014",
+              "name": "Polymorphic Code",
+              "tag": "attack.t1027.014"
+            },
+            {
+              "id": "T1027.015",
+              "name": "Compression",
+              "tag": "attack.t1027.015"
+            },
+            {
+              "id": "T1027.016",
+              "name": "Junk Code Insertion",
+              "tag": "attack.t1027.016"
+            },
+            {
+              "id": "T1027.017",
+              "name": "SVG Smuggling",
+              "tag": "attack.t1027.017"
+            },
+            {
+              "id": "T1027.018",
+              "name": "Invisible Unicode",
+              "tag": "attack.t1027.018"
             }
           ]
         },
@@ -1643,7 +1737,7 @@
             },
             {
               "id": "T1036.003",
-              "name": "Rename System Utilities",
+              "name": "Rename Legitimate Utilities",
               "tag": "attack.t1036.003"
             },
             {
@@ -1653,7 +1747,7 @@
             },
             {
               "id": "T1036.005",
-              "name": "Match Legitimate Name or Location",
+              "name": "Match Legitimate Resource Name or Location",
               "tag": "attack.t1036.005"
             },
             {
@@ -1675,6 +1769,21 @@
               "id": "T1036.009",
               "name": "Break Process Trees",
               "tag": "attack.t1036.009"
+            },
+            {
+              "id": "T1036.010",
+              "name": "Masquerade Account Name",
+              "tag": "attack.t1036.010"
+            },
+            {
+              "id": "T1036.011",
+              "name": "Overwrite Process Arguments",
+              "tag": "attack.t1036.011"
+            },
+            {
+              "id": "T1036.012",
+              "name": "Browser Fingerprint",
+              "tag": "attack.t1036.012"
             }
           ]
         },
@@ -1751,16 +1860,6 @@
           "tag": "attack.t1070",
           "subtechniques": [
             {
-              "id": "T1070.001",
-              "name": "Clear Windows Event Logs",
-              "tag": "attack.t1070.001"
-            },
-            {
-              "id": "T1070.002",
-              "name": "Clear Linux or Mac System Logs",
-              "tag": "attack.t1070.002"
-            },
-            {
               "id": "T1070.003",
               "name": "Clear Command History",
               "tag": "attack.t1070.003"
@@ -1794,6 +1893,11 @@
               "id": "T1070.009",
               "name": "Clear Persistence",
               "tag": "attack.t1070.009"
+            },
+            {
+              "id": "T1070.010",
+              "name": "Relocate Malware",
+              "tag": "attack.t1070.010"
             }
           ]
         },
@@ -1825,12 +1929,6 @@
           ]
         },
         {
-          "id": "T1112",
-          "name": "Modify Registry",
-          "tag": "attack.t1112",
-          "subtechniques": []
-        },
-        {
           "id": "T1127",
           "name": "Trusted Developer Utilities Proxy Execution",
           "tag": "attack.t1127",
@@ -1839,6 +1937,16 @@
               "id": "T1127.001",
               "name": "MSBuild",
               "tag": "attack.t1127.001"
+            },
+            {
+              "id": "T1127.002",
+              "name": "ClickOnce",
+              "tag": "attack.t1127.002"
+            },
+            {
+              "id": "T1127.003",
+              "name": "JamPlus",
+              "tag": "attack.t1127.003"
             }
           ]
         },
@@ -1910,14 +2018,8 @@
           ]
         },
         {
-          "id": "T1207",
-          "name": "Rogue Domain Controller",
-          "tag": "attack.t1207",
-          "subtechniques": []
-        },
-        {
           "id": "T1211",
-          "name": "Exploitation for Defense Evasion",
+          "name": "Exploitation for Stealth",
           "tag": "attack.t1211",
           "subtechniques": []
         },
@@ -2028,23 +2130,6 @@
           "subtechniques": []
         },
         {
-          "id": "T1222",
-          "name": "File and Directory Permissions Modification",
-          "tag": "attack.t1222",
-          "subtechniques": [
-            {
-              "id": "T1222.001",
-              "name": "Windows File and Directory Permissions Modification",
-              "tag": "attack.t1222.001"
-            },
-            {
-              "id": "T1222.002",
-              "name": "Linux and Mac File and Directory Permissions Modification",
-              "tag": "attack.t1222.002"
-            }
-          ]
-        },
-        {
           "id": "T1480",
           "name": "Execution Guardrails",
           "tag": "attack.t1480",
@@ -2053,23 +2138,11 @@
               "id": "T1480.001",
               "name": "Environmental Keying",
               "tag": "attack.t1480.001"
-            }
-          ]
-        },
-        {
-          "id": "T1484",
-          "name": "Domain or Tenant Policy Modification",
-          "tag": "attack.t1484",
-          "subtechniques": [
-            {
-              "id": "T1484.001",
-              "name": "Group Policy Modification",
-              "tag": "attack.t1484.001"
             },
             {
-              "id": "T1484.002",
-              "name": "Trust Modification",
-              "tag": "attack.t1484.002"
+              "id": "T1480.002",
+              "name": "Mutual Exclusion",
+              "tag": "attack.t1480.002"
             }
           ]
         },
@@ -2090,7 +2163,7 @@
             },
             {
               "id": "T1497.003",
-              "name": "Time Based Evasion",
+              "name": "Time Based Checks",
               "tag": "attack.t1497.003"
             }
           ]
@@ -2130,221 +2203,6 @@
               "id": "T1542.005",
               "name": "TFTP Boot",
               "tag": "attack.t1542.005"
-            }
-          ]
-        },
-        {
-          "id": "T1548",
-          "name": "Abuse Elevation Control Mechanism",
-          "tag": "attack.t1548",
-          "subtechniques": [
-            {
-              "id": "T1548.001",
-              "name": "Setuid and Setgid",
-              "tag": "attack.t1548.001"
-            },
-            {
-              "id": "T1548.002",
-              "name": "Bypass User Account Control",
-              "tag": "attack.t1548.002"
-            },
-            {
-              "id": "T1548.003",
-              "name": "Sudo and Sudo Caching",
-              "tag": "attack.t1548.003"
-            },
-            {
-              "id": "T1548.004",
-              "name": "Elevated Execution with Prompt",
-              "tag": "attack.t1548.004"
-            },
-            {
-              "id": "T1548.005",
-              "name": "Temporary Elevated Cloud Access",
-              "tag": "attack.t1548.005"
-            },
-            {
-              "id": "T1548.006",
-              "name": "TCC Manipulation",
-              "tag": "attack.t1548.006"
-            }
-          ]
-        },
-        {
-          "id": "T1550",
-          "name": "Use Alternate Authentication Material",
-          "tag": "attack.t1550",
-          "subtechniques": [
-            {
-              "id": "T1550.001",
-              "name": "Application Access Token",
-              "tag": "attack.t1550.001"
-            },
-            {
-              "id": "T1550.002",
-              "name": "Pass the Hash",
-              "tag": "attack.t1550.002"
-            },
-            {
-              "id": "T1550.003",
-              "name": "Pass the Ticket",
-              "tag": "attack.t1550.003"
-            },
-            {
-              "id": "T1550.004",
-              "name": "Web Session Cookie",
-              "tag": "attack.t1550.004"
-            }
-          ]
-        },
-        {
-          "id": "T1553",
-          "name": "Subvert Trust Controls",
-          "tag": "attack.t1553",
-          "subtechniques": [
-            {
-              "id": "T1553.001",
-              "name": "Gatekeeper Bypass",
-              "tag": "attack.t1553.001"
-            },
-            {
-              "id": "T1553.002",
-              "name": "Code Signing",
-              "tag": "attack.t1553.002"
-            },
-            {
-              "id": "T1553.003",
-              "name": "SIP and Trust Provider Hijacking",
-              "tag": "attack.t1553.003"
-            },
-            {
-              "id": "T1553.004",
-              "name": "Install Root Certificate",
-              "tag": "attack.t1553.004"
-            },
-            {
-              "id": "T1553.005",
-              "name": "Mark-of-the-Web Bypass",
-              "tag": "attack.t1553.005"
-            },
-            {
-              "id": "T1553.006",
-              "name": "Code Signing Policy Modification",
-              "tag": "attack.t1553.006"
-            }
-          ]
-        },
-        {
-          "id": "T1556",
-          "name": "Modify Authentication Process",
-          "tag": "attack.t1556",
-          "subtechniques": [
-            {
-              "id": "T1556.001",
-              "name": "Domain Controller Authentication",
-              "tag": "attack.t1556.001"
-            },
-            {
-              "id": "T1556.002",
-              "name": "Password Filter DLL",
-              "tag": "attack.t1556.002"
-            },
-            {
-              "id": "T1556.003",
-              "name": "Pluggable Authentication Modules",
-              "tag": "attack.t1556.003"
-            },
-            {
-              "id": "T1556.004",
-              "name": "Network Device Authentication",
-              "tag": "attack.t1556.004"
-            },
-            {
-              "id": "T1556.005",
-              "name": "Reversible Encryption",
-              "tag": "attack.t1556.005"
-            },
-            {
-              "id": "T1556.006",
-              "name": "Multi-Factor Authentication",
-              "tag": "attack.t1556.006"
-            },
-            {
-              "id": "T1556.007",
-              "name": "Hybrid Identity",
-              "tag": "attack.t1556.007"
-            },
-            {
-              "id": "T1556.008",
-              "name": "Network Provider DLL",
-              "tag": "attack.t1556.008"
-            },
-            {
-              "id": "T1556.009",
-              "name": "Conditional Access Policies",
-              "tag": "attack.t1556.009"
-            }
-          ]
-        },
-        {
-          "id": "T1562",
-          "name": "Impair Defenses",
-          "tag": "attack.t1562",
-          "subtechniques": [
-            {
-              "id": "T1562.001",
-              "name": "Disable or Modify Tools",
-              "tag": "attack.t1562.001"
-            },
-            {
-              "id": "T1562.002",
-              "name": "Disable Windows Event Logging",
-              "tag": "attack.t1562.002"
-            },
-            {
-              "id": "T1562.003",
-              "name": "Impair Command History Logging",
-              "tag": "attack.t1562.003"
-            },
-            {
-              "id": "T1562.004",
-              "name": "Disable or Modify System Firewall",
-              "tag": "attack.t1562.004"
-            },
-            {
-              "id": "T1562.006",
-              "name": "Indicator Blocking",
-              "tag": "attack.t1562.006"
-            },
-            {
-              "id": "T1562.007",
-              "name": "Disable or Modify Cloud Firewall",
-              "tag": "attack.t1562.007"
-            },
-            {
-              "id": "T1562.008",
-              "name": "Disable or Modify Cloud Logs",
-              "tag": "attack.t1562.008"
-            },
-            {
-              "id": "T1562.009",
-              "name": "Safe Mode Boot",
-              "tag": "attack.t1562.009"
-            },
-            {
-              "id": "T1562.010",
-              "name": "Downgrade Attack",
-              "tag": "attack.t1562.010"
-            },
-            {
-              "id": "T1562.011",
-              "name": "Spoof Security Alerting",
-              "tag": "attack.t1562.011"
-            },
-            {
-              "id": "T1562.012",
-              "name": "Disable or Modify Linux Audit System",
-              "tag": "attack.t1562.012"
             }
           ]
         },
@@ -2412,6 +2270,16 @@
               "id": "T1564.012",
               "name": "File/Path Exclusions",
               "tag": "attack.t1564.012"
+            },
+            {
+              "id": "T1564.013",
+              "name": "Bind Mounts",
+              "tag": "attack.t1564.013"
+            },
+            {
+              "id": "T1564.014",
+              "name": "Extended Attributes",
+              "tag": "attack.t1564.014"
             }
           ]
         },
@@ -2422,13 +2290,8 @@
           "subtechniques": [
             {
               "id": "T1574.001",
-              "name": "DLL Search Order Hijacking",
+              "name": "DLL",
               "tag": "attack.t1574.001"
-            },
-            {
-              "id": "T1574.002",
-              "name": "DLL Side-Loading",
-              "tag": "attack.t1574.002"
             },
             {
               "id": "T1574.004",
@@ -2488,90 +2351,6 @@
           ]
         },
         {
-          "id": "T1578",
-          "name": "Modify Cloud Compute Infrastructure",
-          "tag": "attack.t1578",
-          "subtechniques": [
-            {
-              "id": "T1578.001",
-              "name": "Create Snapshot",
-              "tag": "attack.t1578.001"
-            },
-            {
-              "id": "T1578.002",
-              "name": "Create Cloud Instance",
-              "tag": "attack.t1578.002"
-            },
-            {
-              "id": "T1578.003",
-              "name": "Delete Cloud Instance",
-              "tag": "attack.t1578.003"
-            },
-            {
-              "id": "T1578.004",
-              "name": "Revert Cloud Instance",
-              "tag": "attack.t1578.004"
-            },
-            {
-              "id": "T1578.005",
-              "name": "Modify Cloud Compute Configurations",
-              "tag": "attack.t1578.005"
-            }
-          ]
-        },
-        {
-          "id": "T1599",
-          "name": "Network Boundary Bridging",
-          "tag": "attack.t1599",
-          "subtechniques": [
-            {
-              "id": "T1599.001",
-              "name": "Network Address Translation Traversal",
-              "tag": "attack.t1599.001"
-            }
-          ]
-        },
-        {
-          "id": "T1600",
-          "name": "Weaken Encryption",
-          "tag": "attack.t1600",
-          "subtechniques": [
-            {
-              "id": "T1600.001",
-              "name": "Reduce Key Space",
-              "tag": "attack.t1600.001"
-            },
-            {
-              "id": "T1600.002",
-              "name": "Disable Crypto Hardware",
-              "tag": "attack.t1600.002"
-            }
-          ]
-        },
-        {
-          "id": "T1601",
-          "name": "Modify System Image",
-          "tag": "attack.t1601",
-          "subtechniques": [
-            {
-              "id": "T1601.001",
-              "name": "Patch System Image",
-              "tag": "attack.t1601.001"
-            },
-            {
-              "id": "T1601.002",
-              "name": "Downgrade System Image",
-              "tag": "attack.t1601.002"
-            }
-          ]
-        },
-        {
-          "id": "T1610",
-          "name": "Deploy Container",
-          "tag": "attack.t1610",
-          "subtechniques": []
-        },
-        {
           "id": "T1612",
           "name": "Build Image on Host",
           "tag": "attack.t1612",
@@ -2590,16 +2369,33 @@
           "subtechniques": []
         },
         {
-          "id": "T1647",
-          "name": "Plist File Modification",
-          "tag": "attack.t1647",
+          "id": "T1678",
+          "name": "Delay Execution",
+          "tag": "attack.t1678",
           "subtechniques": []
         },
         {
-          "id": "T1656",
-          "name": "Impersonation",
-          "tag": "attack.t1656",
+          "id": "T1679",
+          "name": "Selective Exclusion",
+          "tag": "attack.t1679",
           "subtechniques": []
+        },
+        {
+          "id": "T1684",
+          "name": "Social Engineering",
+          "tag": "attack.t1684",
+          "subtechniques": [
+            {
+              "id": "T1684.001",
+              "name": "Impersonation",
+              "tag": "attack.t1684.001"
+            },
+            {
+              "id": "T1684.002",
+              "name": "Email Spoofing",
+              "tag": "attack.t1684.002"
+            }
+          ]
         }
       ]
     },
@@ -2762,7 +2558,7 @@
             },
             {
               "id": "T1552.003",
-              "name": "Bash History",
+              "name": "Shell History",
               "tag": "attack.t1552.003"
             },
             {
@@ -2888,7 +2684,7 @@
           "subtechniques": [
             {
               "id": "T1557.001",
-              "name": "LLMNR/NBT-NS Poisoning and SMB Relay",
+              "name": "Name Resolution Poisoning and SMB Relay",
               "tag": "attack.t1557.001"
             },
             {
@@ -2900,6 +2696,11 @@
               "id": "T1557.003",
               "name": "DHCP Spoofing",
               "tag": "attack.t1557.003"
+            },
+            {
+              "id": "T1557.004",
+              "name": "Evil Twin",
+              "tag": "attack.t1557.004"
             }
           ]
         },
@@ -2927,6 +2728,11 @@
               "id": "T1558.004",
               "name": "AS-REP Roasting",
               "tag": "attack.t1558.004"
+            },
+            {
+              "id": "T1558.005",
+              "name": "Ccache Files",
+              "tag": "attack.t1558.005"
             }
           ]
         },
@@ -3151,7 +2957,7 @@
             },
             {
               "id": "T1497.003",
-              "name": "Time Based Evasion",
+              "name": "Time Based Checks",
               "tag": "attack.t1497.003"
             }
           ]
@@ -3165,6 +2971,11 @@
               "id": "T1518.001",
               "name": "Security Software Discovery",
               "tag": "attack.t1518.001"
+            },
+            {
+              "id": "T1518.002",
+              "name": "Backup Software Discovery",
+              "tag": "attack.t1518.002"
             }
           ]
         },
@@ -3232,6 +3043,18 @@
           "id": "T1654",
           "name": "Log Enumeration",
           "tag": "attack.t1654",
+          "subtechniques": []
+        },
+        {
+          "id": "T1673",
+          "name": "Virtual Machine Discovery",
+          "tag": "attack.t1673",
+          "subtechniques": []
+        },
+        {
+          "id": "T1680",
+          "name": "Local Storage Discovery",
+          "tag": "attack.t1680",
           "subtechniques": []
         }
       ]
@@ -3514,6 +3337,21 @@
               "id": "T1213.003",
               "name": "Code Repositories",
               "tag": "attack.t1213.003"
+            },
+            {
+              "id": "T1213.004",
+              "name": "Customer Relationship Management Software",
+              "tag": "attack.t1213.004"
+            },
+            {
+              "id": "T1213.005",
+              "name": "Messaging Applications",
+              "tag": "attack.t1213.005"
+            },
+            {
+              "id": "T1213.006",
+              "name": "Databases",
+              "tag": "attack.t1213.006"
             }
           ]
         },
@@ -3530,7 +3368,7 @@
           "subtechniques": [
             {
               "id": "T1557.001",
-              "name": "LLMNR/NBT-NS Poisoning and SMB Relay",
+              "name": "Name Resolution Poisoning and SMB Relay",
               "tag": "attack.t1557.001"
             },
             {
@@ -3542,6 +3380,11 @@
               "id": "T1557.003",
               "name": "DHCP Spoofing",
               "tag": "attack.t1557.003"
+            },
+            {
+              "id": "T1557.004",
+              "name": "Evil Twin",
+              "tag": "attack.t1557.004"
             }
           ]
         },
@@ -3724,7 +3567,7 @@
             },
             {
               "id": "T1001.003",
-              "name": "Protocol Impersonation",
+              "name": "Protocol or Service Impersonation",
               "tag": "attack.t1001.003"
             }
           ]
@@ -3759,6 +3602,11 @@
               "id": "T1071.004",
               "name": "DNS",
               "tag": "attack.t1071.004"
+            },
+            {
+              "id": "T1071.005",
+              "name": "Publish/Subscribe Protocols",
+              "tag": "attack.t1071.005"
             }
           ]
         },
@@ -3871,9 +3719,25 @@
         },
         {
           "id": "T1219",
-          "name": "Remote Access Software",
+          "name": "Remote Access Tools",
           "tag": "attack.t1219",
-          "subtechniques": []
+          "subtechniques": [
+            {
+              "id": "T1219.001",
+              "name": "IDE Tunneling",
+              "tag": "attack.t1219.001"
+            },
+            {
+              "id": "T1219.002",
+              "name": "Remote Desktop Software",
+              "tag": "attack.t1219.002"
+            },
+            {
+              "id": "T1219.003",
+              "name": "Remote Access Hardware",
+              "tag": "attack.t1219.003"
+            }
+          ]
         },
         {
           "id": "T1568",
@@ -3949,7 +3813,13 @@
           "id": "T1485",
           "name": "Data Destruction",
           "tag": "attack.t1485",
-          "subtechniques": []
+          "subtechniques": [
+            {
+              "id": "T1485.001",
+              "name": "Lifecycle-Triggered Deletion",
+              "tag": "attack.t1485.001"
+            }
+          ]
         },
         {
           "id": "T1486",
@@ -3996,7 +3866,28 @@
           "id": "T1496",
           "name": "Resource Hijacking",
           "tag": "attack.t1496",
-          "subtechniques": []
+          "subtechniques": [
+            {
+              "id": "T1496.001",
+              "name": "Compute Hijacking",
+              "tag": "attack.t1496.001"
+            },
+            {
+              "id": "T1496.002",
+              "name": "Bandwidth Hijacking",
+              "tag": "attack.t1496.002"
+            },
+            {
+              "id": "T1496.003",
+              "name": "SMS Pumping",
+              "tag": "attack.t1496.003"
+            },
+            {
+              "id": "T1496.004",
+              "name": "Cloud Service Hijacking",
+              "tag": "attack.t1496.004"
+            }
+          ]
         },
         {
           "id": "T1498",
@@ -4097,6 +3988,12 @@
           "id": "T1657",
           "name": "Financial Theft",
           "tag": "attack.t1657",
+          "subtechniques": []
+        },
+        {
+          "id": "T1667",
+          "name": "Email Bombing",
+          "tag": "attack.t1667",
           "subtechniques": []
         }
       ]
@@ -4355,6 +4252,23 @@
           "name": "Acquire Access",
           "tag": "attack.t1650",
           "subtechniques": []
+        },
+        {
+          "id": "T1683",
+          "name": "Generate Content",
+          "tag": "attack.t1683",
+          "subtechniques": [
+            {
+              "id": "T1683.001",
+              "name": "Written Content",
+              "tag": "attack.t1683.001"
+            },
+            {
+              "id": "T1683.002",
+              "name": "Audio-Visual Content",
+              "tag": "attack.t1683.002"
+            }
+          ]
         }
       ]
     },
@@ -4601,6 +4515,333 @@
               "tag": "attack.t1598.004"
             }
           ]
+        },
+        {
+          "id": "T1681",
+          "name": "Search Threat Vendor Data",
+          "tag": "attack.t1681",
+          "subtechniques": []
+        },
+        {
+          "id": "T1682",
+          "name": "Query Public AI Services",
+          "tag": "attack.t1682",
+          "subtechniques": []
+        }
+      ]
+    },
+    {
+      "id": "TA0112",
+      "name": "Defense Impairment",
+      "tag": "attack.defense-impairment",
+      "techniques": [
+        {
+          "id": "T1112",
+          "name": "Modify Registry",
+          "tag": "attack.t1112",
+          "subtechniques": []
+        },
+        {
+          "id": "T1207",
+          "name": "Rogue Domain Controller",
+          "tag": "attack.t1207",
+          "subtechniques": []
+        },
+        {
+          "id": "T1222",
+          "name": "File and Directory Permissions Modification",
+          "tag": "attack.t1222",
+          "subtechniques": [
+            {
+              "id": "T1222.001",
+              "name": "Windows Permissions",
+              "tag": "attack.t1222.001"
+            },
+            {
+              "id": "T1222.002",
+              "name": "Linux and Mac Permissions",
+              "tag": "attack.t1222.002"
+            }
+          ]
+        },
+        {
+          "id": "T1484",
+          "name": "Domain or Tenant Policy Modification",
+          "tag": "attack.t1484",
+          "subtechniques": [
+            {
+              "id": "T1484.001",
+              "name": "Group Policy Modification",
+              "tag": "attack.t1484.001"
+            },
+            {
+              "id": "T1484.002",
+              "name": "Trust Modification",
+              "tag": "attack.t1484.002"
+            }
+          ]
+        },
+        {
+          "id": "T1553",
+          "name": "Subvert Trust Controls",
+          "tag": "attack.t1553",
+          "subtechniques": [
+            {
+              "id": "T1553.001",
+              "name": "Gatekeeper Bypass",
+              "tag": "attack.t1553.001"
+            },
+            {
+              "id": "T1553.002",
+              "name": "Code Signing",
+              "tag": "attack.t1553.002"
+            },
+            {
+              "id": "T1553.003",
+              "name": "SIP and Trust Provider Hijacking",
+              "tag": "attack.t1553.003"
+            },
+            {
+              "id": "T1553.004",
+              "name": "Install Root Certificate",
+              "tag": "attack.t1553.004"
+            },
+            {
+              "id": "T1553.005",
+              "name": "Mark-of-the-Web Bypass",
+              "tag": "attack.t1553.005"
+            },
+            {
+              "id": "T1553.006",
+              "name": "Code Signing Policy Modification",
+              "tag": "attack.t1553.006"
+            }
+          ]
+        },
+        {
+          "id": "T1556",
+          "name": "Modify Authentication Process",
+          "tag": "attack.t1556",
+          "subtechniques": [
+            {
+              "id": "T1556.001",
+              "name": "Domain Controller Authentication",
+              "tag": "attack.t1556.001"
+            },
+            {
+              "id": "T1556.002",
+              "name": "Password Filter DLL",
+              "tag": "attack.t1556.002"
+            },
+            {
+              "id": "T1556.003",
+              "name": "Pluggable Authentication Modules",
+              "tag": "attack.t1556.003"
+            },
+            {
+              "id": "T1556.004",
+              "name": "Network Device Authentication",
+              "tag": "attack.t1556.004"
+            },
+            {
+              "id": "T1556.005",
+              "name": "Reversible Encryption",
+              "tag": "attack.t1556.005"
+            },
+            {
+              "id": "T1556.006",
+              "name": "Multi-Factor Authentication",
+              "tag": "attack.t1556.006"
+            },
+            {
+              "id": "T1556.007",
+              "name": "Hybrid Identity",
+              "tag": "attack.t1556.007"
+            },
+            {
+              "id": "T1556.008",
+              "name": "Network Provider DLL",
+              "tag": "attack.t1556.008"
+            },
+            {
+              "id": "T1556.009",
+              "name": "Conditional Access Policies",
+              "tag": "attack.t1556.009"
+            }
+          ]
+        },
+        {
+          "id": "T1578",
+          "name": "Modify Cloud Compute Infrastructure",
+          "tag": "attack.t1578",
+          "subtechniques": [
+            {
+              "id": "T1578.001",
+              "name": "Create Snapshot",
+              "tag": "attack.t1578.001"
+            },
+            {
+              "id": "T1578.002",
+              "name": "Create Cloud Instance",
+              "tag": "attack.t1578.002"
+            },
+            {
+              "id": "T1578.003",
+              "name": "Delete Cloud Instance",
+              "tag": "attack.t1578.003"
+            },
+            {
+              "id": "T1578.004",
+              "name": "Revert Cloud Instance",
+              "tag": "attack.t1578.004"
+            },
+            {
+              "id": "T1578.005",
+              "name": "Modify Cloud Compute Configurations",
+              "tag": "attack.t1578.005"
+            }
+          ]
+        },
+        {
+          "id": "T1599",
+          "name": "Network Boundary Bridging",
+          "tag": "attack.t1599",
+          "subtechniques": [
+            {
+              "id": "T1599.001",
+              "name": "Network Address Translation Traversal",
+              "tag": "attack.t1599.001"
+            }
+          ]
+        },
+        {
+          "id": "T1600",
+          "name": "Weaken Encryption",
+          "tag": "attack.t1600",
+          "subtechniques": [
+            {
+              "id": "T1600.001",
+              "name": "Reduce Key Space",
+              "tag": "attack.t1600.001"
+            },
+            {
+              "id": "T1600.002",
+              "name": "Disable Crypto Hardware",
+              "tag": "attack.t1600.002"
+            }
+          ]
+        },
+        {
+          "id": "T1601",
+          "name": "Modify System Image",
+          "tag": "attack.t1601",
+          "subtechniques": [
+            {
+              "id": "T1601.001",
+              "name": "Patch System Image",
+              "tag": "attack.t1601.001"
+            },
+            {
+              "id": "T1601.002",
+              "name": "Downgrade System Image",
+              "tag": "attack.t1601.002"
+            }
+          ]
+        },
+        {
+          "id": "T1647",
+          "name": "Plist File Modification",
+          "tag": "attack.t1647",
+          "subtechniques": []
+        },
+        {
+          "id": "T1666",
+          "name": "Modify Cloud Resource Hierarchy",
+          "tag": "attack.t1666",
+          "subtechniques": []
+        },
+        {
+          "id": "T1685",
+          "name": "Disable or Modify Tools",
+          "tag": "attack.t1685",
+          "subtechniques": [
+            {
+              "id": "T1685.001",
+              "name": "Disable or Modify Windows Event Log",
+              "tag": "attack.t1685.001"
+            },
+            {
+              "id": "T1685.002",
+              "name": "Disable or Modify Cloud Log",
+              "tag": "attack.t1685.002"
+            },
+            {
+              "id": "T1685.003",
+              "name": "Modify or Spoof Tool UI",
+              "tag": "attack.t1685.003"
+            },
+            {
+              "id": "T1685.004",
+              "name": "Disable or Modify Linux Audit System Log",
+              "tag": "attack.t1685.004"
+            },
+            {
+              "id": "T1685.005",
+              "name": "Clear Windows Event Logs",
+              "tag": "attack.t1685.005"
+            },
+            {
+              "id": "T1685.006",
+              "name": "Clear Linux or Mac System Logs",
+              "tag": "attack.t1685.006"
+            }
+          ]
+        },
+        {
+          "id": "T1686",
+          "name": "Disable or Modify System Firewall",
+          "tag": "attack.t1686",
+          "subtechniques": [
+            {
+              "id": "T1686.001",
+              "name": "Cloud Firewall",
+              "tag": "attack.t1686.001"
+            },
+            {
+              "id": "T1686.002",
+              "name": "Network Device Firewall",
+              "tag": "attack.t1686.002"
+            },
+            {
+              "id": "T1686.003",
+              "name": "Windows Host Firewall",
+              "tag": "attack.t1686.003"
+            }
+          ]
+        },
+        {
+          "id": "T1687",
+          "name": "Exploitation for Defense Impairment",
+          "tag": "attack.t1687",
+          "subtechniques": []
+        },
+        {
+          "id": "T1688",
+          "name": "Safe Mode Boot",
+          "tag": "attack.t1688",
+          "subtechniques": []
+        },
+        {
+          "id": "T1689",
+          "name": "Downgrade Attack",
+          "tag": "attack.t1689",
+          "subtechniques": []
+        },
+        {
+          "id": "T1690",
+          "name": "Prevent Command History Logging",
+          "tag": "attack.t1690",
+          "subtechniques": []
         }
       ]
     }

@@ -49,7 +49,16 @@ from typing import Any
 
 # Pinned ATT&CK version. Bumping this is a documented PR — update the
 # string here, re-run the script, commit the new data file.
-ATTACK_VERSION = "v15.1"
+#
+# v19.1 is required by the r2026-07-01 SigmaHQ corpus, which adopted the
+# ATT&CK v18 tactic split: attack.defense-evasion became attack.stealth
+# plus attack.defense-impairment, and the T1562 (Impair Defenses) family
+# was renumbered into T1685/T1686. Against v15.1 those tags resolved for
+# 81.8% of corpus tag occurrences; v19.1 takes that to 98.7%. The
+# residual are attack.s0NNN software references, which are STIX software
+# objects rather than attack-patterns and so are never in a technique
+# tree.
+ATTACK_VERSION = "v19.1"
 
 # Upstream STIX URLs per domain. We only enable Enterprise for v1.6;
 # Mobile + ICS are commented out and easy to enable later.
