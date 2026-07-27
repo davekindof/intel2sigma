@@ -67,7 +67,17 @@ from intel2sigma._data import data_path
 #                                              exception cleared]
 #   2026-05-01 (65cb708, L5-D regex/.original) — 3565 (96.14%)
 #   2026-05-01 (14b29cd, L5-E keyword|all)     — 3578 (96.49%)
-MIN_EMIT_CLEAN_COUNT = 3578
+#   2026-07-27 (corpus r2026-07-01 + L8-B-2 routing fix) — 3419
+#     Moves DOWN in lockstep with MIN_CLEAN_COUNT in the load-audit
+#     ratchet (3582 -> 3423). The emit audit inherits routing from
+#     the same loader, so it tracks the identical split: +211
+#     genuine regressions recovered by the category-anchored service
+#     exemption, ~159 rules newly *reported* (uncatalogued
+#     service-only logsources that previously counted clean with an
+#     empty observation_id). See that constant's history entry for
+#     the full reasoning — a measurement correction, not lost
+#     functionality.
+MIN_EMIT_CLEAN_COUNT = 3419
 
 # Categories that MUST stay at zero. ``emit_exception`` means the
 # composer produced YAML pySigma rejects on re-parse — a hard

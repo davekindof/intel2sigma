@@ -76,7 +76,33 @@ from intel2sigma._data import data_path
 #                                         logsources where the
 #                                         freeform-observation path is
 #                                         the right answer.
-MIN_CLEAN_COUNT = 3582
+#
+#   2026-07-27 (corpus r2026-07-01 + L8-B-2 routing fix) — 3423
+#
+#     This floor MOVES DOWN, which the ratchet otherwise forbids.
+#     The reason it is legitimate:
+#
+#     L8-B-2 (dc47960) rewrote observation routing and regressed the
+#     clean count 3582 -> 3180 on an unchanged corpus. Bisected to
+#     that single commit. It had two distinct effects:
+#
+#       * 211 genuine regressions (177 ps_script, 34 ps_module) —
+#         specs that set all three logsource axes became unreachable
+#         for rules that omit `service`. FIXED, not ratcheted around:
+#         see _logsource_compatible's category-anchored service
+#         exemption. These 211 are back.
+#       * ~159 rules newly REPORTED, not newly broken. Service-only
+#         logsources with no catalog entry (bitbucket/audit,
+#         m365/threat_management, cisco/aaa, azure/pim, ...) used to
+#         land with observation_id="" and count as clean — the
+#         silent screenshot bug L8-A found. B-2 correctly routes them
+#         to _freeform and flags LOAD_OBSERVATION_UNKNOWN.
+#
+#     So 3423 is an honest floor against a corpus of 3749, and the
+#     gap to the old 3582 is a measurement correction, not lost
+#     functionality. Closing it is catalog expansion (the >=5-rule
+#     rule in docs/taxonomy.md), not loader work.
+MIN_CLEAN_COUNT = 3423
 
 # Categories that MUST stay at zero. Any non-zero count is either a
 # regression (loader started raising or losing data) or evidence that

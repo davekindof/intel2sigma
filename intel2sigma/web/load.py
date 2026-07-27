@@ -312,11 +312,31 @@ def _logsource_compatible(source_ls: LogSourceDraft, spec_ls: LogSource) -> bool
 
     * **No contradiction**: when both source and spec set a given
       field (category / product / service), they must agree.
-    * **No over-claim**: when the spec sets a field the source
-      omits, the spec is more specific than the source — they
-      describe different shapes, no match. This guards against the
+    * **No over-claim on category or product**: when the spec sets
+      one of those and the source omits it, the spec describes a
+      different shape — no match. This guards against the
       "system_log spec false-matching a process_creation rule"
       class that ``at-least-one-match`` permits.
+    * **Service over-claim is allowed, but only when the spec's
+      category is set and agrees.** A spec naming a service the rule
+      omits is *documenting* the channel, not constraining it:
+      ``ps_script.yml`` records ``service: powershell``, while all
+      177 corpus ps_script rules give only ``category: ps_script,
+      product: windows``. Treating service as mandatory made those
+      specs unreachable — see the regression note below.
+
+      The category anchor is what keeps this narrow. Without it,
+      ``system_log`` (product windows, service system, no category)
+      would claim any windows rule whose category we don't
+      catalogue. Over-claimed service also contributes 0 to
+      :func:`_spec_match_score`, so a spec matching service exactly
+      still outranks one that merely names it.
+
+    Regression history: the original L8-B-2 implementation applied
+    over-claim to all three axes, which silently unrouted 211 rules
+    (177 ps_script, 34 ps_module) whose catalog entries set all
+    three fields. Only three specs in the catalog set all three;
+    those three were the entire blast radius.
 
     Wildcard handling: the catalog uses ``"unspecified"`` as a
     placeholder for product/category in generic-shape logsources
@@ -338,7 +358,6 @@ def _logsource_compatible(source_ls: LogSourceDraft, spec_ls: LogSource) -> bool
     for src, spec in (
         (source_ls.category, spec_cat),
         (source_ls.product, spec_prod),
-        (source_ls.service, spec_svc),
     ):
         if spec is not None and src is not None:
             if src != spec:
@@ -348,6 +367,20 @@ def _logsource_compatible(source_ls: LogSourceDraft, spec_ls: LogSource) -> bool
             return False  # over-claim: spec requires field source omits
         # src set, spec unset → spec is unconstrained, source is
         # more specific. OK.
+
+    # Service, with the category-anchored exemption.
+    if spec_svc is not None:
+        if source_ls.service is not None:
+            if source_ls.service != spec_svc:
+                return False  # contradiction
+            matched += 1
+        elif not (spec_cat is not None and source_ls.category == spec_cat):
+            # Unanchored over-claim. Without this guard a spec like
+            # system_log (product windows, service system, no
+            # category) would claim any windows rule whose category
+            # we don't catalogue.
+            return False
+
     return matched > 0
 
 

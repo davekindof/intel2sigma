@@ -528,6 +528,67 @@ def test_load_unknown_category_routes_to_freeform_observation() -> None:
     assert "LOAD_OBSERVATION_UNKNOWN" in codes
 
 
+PS_SCRIPT_YAML = """\
+title: Suspicious PowerShell ScriptBlock
+id: 6f8b2c14-9a3d-4e57-b0c1-2d3e4f5a6b7c
+status: test
+description: Rule whose logsource omits the service its catalog entry names.
+author: regression-test
+date: 2026-07-27
+logsource:
+  product: windows
+  category: ps_script
+detection:
+  selection:
+    ScriptBlockText|contains: 'Invoke-Mimikatz'
+  condition: selection
+falsepositives:
+  - Unlikely
+level: high
+"""
+
+
+def test_load_routes_when_catalog_names_a_service_the_rule_omits() -> None:
+    """A spec may name a ``service`` the rule leaves unset and still match.
+
+    Regression for L8-B-2 (``dc47960``), whose over-claim rule
+    applied to all three logsource axes. ``ps_script.yml`` declares
+    ``product: windows, category: ps_script, service: powershell``,
+    but every corpus ps_script rule gives only product + category —
+    so the spec became unreachable and 211 rules (177 ps_script,
+    34 ps_module) silently fell through to ``_freeform``, losing the
+    guided field catalogue.
+
+    Service names the channel; it does not describe a different
+    event shape. Category and product remain mandatory.
+    """
+    draft, issues = draft_from_yaml(PS_SCRIPT_YAML)
+    assert draft is not None
+
+    assert draft.observation_id == "ps_script", (
+        f"expected the ps_script catalog entry, got {draft.observation_id!r}"
+    )
+    codes = {i.code for i in issues}
+    assert "LOAD_OBSERVATION_UNKNOWN" not in codes
+
+
+def test_load_over_claimed_category_still_blocks_a_false_match() -> None:
+    """The over-claim guard must survive on the category/product axes.
+
+    The counter-case to the test above: exempting *service* from the
+    over-claim rule must not weaken it elsewhere, or a spec naming a
+    category the rule omits could false-match. This rule gives only
+    a product, so no category-bearing spec may claim it.
+    """
+    yaml_text = PS_SCRIPT_YAML.replace("  category: ps_script\n", "")
+    draft, _issues = draft_from_yaml(yaml_text)
+    assert draft is not None
+
+    assert draft.observation_id != "ps_script", (
+        "a product-only rule must not match a spec that requires a category"
+    )
+
+
 def test_load_unknown_category_breadcrumb_stays_consistent(client: TestClient) -> None:
     """Loading an unknown-category rule must not desync breadcrumb from content.
 

@@ -368,10 +368,18 @@ def _check_observation_id_matches_catalog(py: PySigmaRule, d: RuleDraft) -> Dime
             f"spec.category={spec_cat!r} but source.category={src_cat!r}",
         )
     if spec_svc is not None and spec_svc != src_svc:
-        return DimensionResult(
-            Status.FAIL,
-            f"spec.service={spec_svc!r} but source.service={src_svc!r}",
-        )
+        # Mirror the loader's category-anchored service exemption: a
+        # spec may name a service the rule omits when the spec's
+        # category is set and agrees. Keeping this in step with
+        # ``_logsource_compatible`` is the same audit/loader-parity
+        # concern L8-B-3 addressed for wildcards — an audit stricter
+        # than the loader reports correctly-routed rules as drift.
+        anchored = spec_cat is not None and spec_cat == src_cat
+        if not (src_svc is None and anchored):
+            return DimensionResult(
+                Status.FAIL,
+                f"spec.service={spec_svc!r} but source.service={src_svc!r}",
+            )
     return DimensionResult(Status.PASS)
 
 
