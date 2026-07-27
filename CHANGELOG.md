@@ -24,6 +24,91 @@ The cache-bust mechanism uses the build SHA, not the package version
 version bumps are decoupled from deploy correctness — they exist for
 human communication, not for forcing browsers to reload assets.
 
+## 0.3.5 — 2026-07-27
+
+Patch bump — **2026-Q3 quarterly recalibration**: SigmaHQ corpus and
+MITRE ATT&CK tree refreshed, plus the loader regression that the
+refresh's new regression harness exposed.
+
+### Data refreshes
+
+* **SigmaHQ corpus** `03412947` → `552f3fee` (r2026-07-01).
+  3,708 → 3,749 rules: 46 added, 5 deleted, 19 renamed, 1,674
+  modified. Pinned to the release tag rather than upstream HEAD —
+  the old pin sat 30 commits past r2026-04-01, so "calibrated
+  against release X" was only ever approximate.
+* **MITRE ATT&CK** v15.1 → v19.1. Not optional this cycle:
+  r2026-07-01 adopted the ATT&CK v18 tactic split, retiring
+  `attack.defense-evasion` in favour of `attack.stealth` (1,088
+  corpus occurrences) and `attack.defense-impairment` (410), and
+  renumbering the T1562 family into T1685/T1686. Against v15.1,
+  18.2% of corpus tag occurrences resolved nowhere; at v19.1 that
+  is 1.3%, all of it `attack.s0NNN` software references that no
+  technique tree contains. Version picked by scoring v17.1 / v18.1 /
+  v19.1 against the real corpus tag set, not by taking the newest.
+
+### What this fixes
+
+* **Okta field names recased to CamelCase.** Upstream normalised
+  them (`eventtype` → `eventType`, `actor.alternateid` →
+  `actor.alternateId`, and `target.user.display.name` →
+  `target.displayName`, a replacement rather than a recasing). Okta
+  field names are never mapped — no pipeline entry, no hardcoded
+  reference anywhere — so they pass verbatim from the catalog into
+  the emitted query. A composer user picking `eventtype` would have
+  built a syntactically valid rule matching nothing in a real
+  tenant, with nothing to warn them.
+* **211 rules regained their catalog entry.** L8-B-2 (`dc47960`,
+  never released) rejected any spec setting a logsource field the
+  rule omits. Correct for category and product, which describe the
+  event shape; wrong for service, which names the channel. All 177
+  `ps_script` and 34 `ps_module` rules stopped matching their own
+  catalog entry and fell through to `_freeform`. Service
+  over-claim is now allowed, but only when the spec's category is
+  set and agrees — an unconditional exemption lets `system_log`
+  claim any uncatalogued windows rule. The fidelity audit carries
+  the same exemption, or correctly-routed rules report as drift.
+* **`attack.defense-evasion` dropped from the tag autocomplete**,
+  since v19.1 no longer contains it.
+
+### What's new
+
+* **Corpus conversion snapshot** (`tests/test_corpus_conversion_snapshot.py`)
+  — 114 rules covering all 110 loadable logsource keys against all
+  five backends. Built *before* the corpus swap precisely so the
+  refresh produced a reviewable diff rather than a surprise; it is
+  what caught the Okta output change and confirmed nothing else
+  moved. The sample is pinned by rule UUID rather than position, so
+  both sides of a swap compare the same rules, and failures are
+  snapshotted alongside successes so a conversion that starts *or*
+  stops working is equally a diff.
+
+### Known issues
+
+* Both clean-count ratchet floors move **down** (3582 → 3423, 3578
+  → 3419). The 211 genuine regressions above are fixed, not
+  ratcheted around; the residual is a measurement correction. 224
+  rules route to `_freeform` with no matching catalog entry, and
+  before L8-B-2 they counted as clean with an empty
+  `observation_id`. 140 sit in 17 buckets of ≥5 rules, now queued
+  in ROADMAP.md as data-only catalog work.
+* pySigma accumulates field-name validation errors in state shared
+  across conversions, so one rule's error can name another rule's
+  fields. With single-process uvicorn per replica this crosses HTTP
+  requests. Neither introduced nor fixed here; the snapshot harness
+  normalises around it so the goldens stay deterministic.
+* The Kusto backends still cover only 18 of 135 logsource keys —
+  every cloud, identity, network and antivirus logsource fails to
+  produce KQL. Pre-existing, now locked into the snapshot so it
+  cannot quietly worsen.
+
+### Infrastructure
+
+* Dockerfile builder and runtime both move to Debian 13 (trixie),
+  clearing the open zlib1g CVE (1.2.13 → 1.3.1). Both stages move
+  together — the runtime copies the builder's venv wholesale, so a
+  mixed pair risks a glibc/OpenSSL skew.
+
 ## 0.3.4 — 2026-05-02
 
 Patch bump — **L8 state-fidelity audit shipped** + the screenshot-

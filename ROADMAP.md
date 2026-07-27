@@ -163,6 +163,52 @@ Implement as a periodic "junior analyst hits a wall" report alongside the freque
 
 Tracked here so the work doesn't get lost. No specific exit gate — it's recurring maintenance.
 
+#### Queued buckets as of the 2026-07-27 recalibration
+
+Measured against the r2026-07-01 corpus (3,749 rules) after the
+L8-B-2 routing fix: **224 rules (6.0%) route to `_freeform`** because
+no catalog entry matches their logsource. 140 of them sit in **17
+buckets of ≥5 rules**; the remaining 84 are a long tail across 60
+keys where freeform genuinely is the right answer.
+
+These 17 are the concrete backlog. Each is a data-only PR per
+CLAUDE.md I-5 — a new `intel2sigma/data/taxonomy/*.yml` plus the
+`docs/taxonomy.md` update CLAUDE.md requires in the same commit.
+
+| rules | logsource (product/category/service) |
+|---|---|
+| 14 | `bitbucket` / — / `audit` |
+| 13 | `m365` / — / `threat_management` |
+| 13 | `cisco` / — / `aaa` |
+| 10 | `windows` / — / `appxdeployment-server` |
+| 10 | `windows` / — / `codeintegrity-operational` |
+| 9 | `windows` / — / `firewall-as` |
+| 8 | `windows` / — / `msexchange-management` |
+| 7 | `zeek` / — / `smb_files` |
+| 7 | `gcp` / — / `google_workspace.admin` |
+| 7 | `windows` / — / `bits-client` |
+| 7 | `fortigate` / — / `event` |
+| 7 | `azure` / — / `pim` |
+| 6 | `windows` / — / `dns-client` |
+| 6 | `kubernetes` / — / `audit` |
+| 6 | `m365` / — / `audit` |
+| 5 | `zeek` / — / `dns` |
+| 5 | `zeek` / — / `http` |
+
+Every one is service-keyed with no category, which is why they were
+invisible before L8-B-2: the pre-B-2 matcher keyed on category only,
+so these landed with `observation_id=""` and still counted as clean.
+B-2 made them visible; it did not break them. That distinction is
+why `MIN_CLEAN_COUNT` moved down to 3423 rather than being treated
+as a regression — see the history comment on that constant.
+
+**Threshold note:** the paragraph above says "≥50 vetted rules",
+while `docs/taxonomy.md` says a bucket becomes a candidate at **≥5**
+rules. The L2-P2 sweep followed the ≥5 rule in practice (it added
+`file_change`, `file_access` and others well under 50), so ≥5 is
+the operative threshold and the table uses it. The two documents
+should be reconciled — flagged, not silently resolved.
+
 ## 🪦 v1.x — Load-path corpus-wide hardening sweep *(SHIPPED in 0.3.0, 2026-04-29)*
 
 The "load any SigmaHQ rule" feature was producing bugs at a steady drip — one
