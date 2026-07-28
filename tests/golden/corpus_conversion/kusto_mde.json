@@ -9,7 +9,7 @@
  },
  "00321fee-ca72-4cce-b011-5415af3b9960": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "0055ad1f-be85-4798-83cf-a6da17c993b3": {
   "status": "error",
@@ -29,11 +29,11 @@
  },
  "00ba9da1-b510-4f6b-b258-8d338836180f": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "00bb5bd5-1379-4fcf-a965-a5b6f7478064": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "00eee2a5-fdb0-4746-a21d-e43fbdea5681": {
   "status": "ok",
@@ -125,7 +125,7 @@
  },
  "090ffaad-c01a-4879-850c-6d57da98452d": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "09570ae5-889e-43ea-aac0-0e1221fb3d95": {
   "status": "error",
@@ -137,7 +137,7 @@
  },
  "09d3b48b-be17-47f5-bf4e-94e7e75d09ce": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "0a3ff354-93fc-4273-8a03-1078782de5b7": {
   "status": "error",
@@ -149,7 +149,7 @@
  },
  "0b0ea3cc-99c8-4730-9c53-45deee2a4c86": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "0c97c1d3-4057-45c9-b148-1de94b631931": {
   "status": "error",
@@ -165,7 +165,7 @@
  },
  "0f06a3a5-6a09-413f-8743-e6cf35561297": {
   "status": "error",
-  "error": "TypeError: Unexpected data type in condition parse tree: NoneType (while converting rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: Unexpected data type in condition parse tree: NoneType (while converting rule None)"
  },
  "0f2468a2-5055-4212-a368-7321198ee706": {
   "status": "error",
@@ -173,7 +173,7 @@
  },
  "100ef69e-3327-481c-8e5c-6d80d9507556": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "101a1877-2cf4-474d-abfd-7f6ac4788d1a": {
   "status": "error",
@@ -185,7 +185,7 @@
  },
  "1321dc4e-a1fe-481d-a016-52c45f0c8b4f": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "139bdd4b-9cd7-49ba-a2f4-744d0a8f5d8c": {
   "status": "error",
@@ -209,7 +209,7 @@
  },
  "1a4bd6e3-4c6e-405d-a9a3-53a116e341d4": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "1d218616-71b0-4c40-855b-9dbe75510f7f": {
   "status": "ok",
@@ -221,7 +221,7 @@
  },
  "1ff315dc-2a3a-4b71-8dde-873818d25d39": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "22777c9e-873a-4b49-855f-6072ab861a52": {
   "status": "error",
@@ -229,7 +229,7 @@
  },
  "23b71bc5-953e-4971-be4c-c896cda73fc2": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "23c43900-e732-45a4-8354-63e4a6c187ce": {
   "status": "ok",
@@ -257,11 +257,11 @@
  },
  "2bfc1373-0220-4fbd-8b10-33ddafd2a142": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "2f8cd7a0-9d5a-4f62-9f8b-2c951aa0dd1f": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "30a8cb77-8eb3-4cfb-8e79-ad457c5a4592": {
   "status": "error",
@@ -281,15 +281,15 @@
  },
  "3ce8e9a4-bc61-4c9b-8e69-d7e2492a8781": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "3db10f25-2527-4b79-8d4b-471eb900ee29": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "401e5d00-b944-11ea-8f9a-00163ecd60ae": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "4096842a-8f9f-4d36-92b4-d0b2a62f9b2a": {
   "status": "error",
@@ -305,7 +305,7 @@
  },
  "50cb47b8-2c33-4b23-a2e9-4600657d9746": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "5588576c-5898-4fac-bcdd-7475a60e8f43": {
   "status": "error",
@@ -325,7 +325,7 @@
  },
  "58c0bff0-40a0-46e8-b5e8-b734b84d2017": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "62fff148-278d-497e-8ecd-ad6083231a35": {
   "status": "error",
@@ -333,7 +333,7 @@
  },
  "64d51a51-32a6-49f0-9f3d-17e34d640272": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "68c2c604-92ad-468b-bf4a-aac49adad08c": {
   "status": "error",
@@ -341,7 +341,7 @@
  },
  "6d444368-6da1-43fe-b2fc-44202430480e": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "6f7e1c10-2dc9-4312-adb6-9574ff09a5c8": {
   "status": "error",
@@ -353,7 +353,7 @@
  },
  "71886b70-d7b4-4dbf-acce-87d2ca135262": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "71ff406e-b633-4989-96ec-bc49d825a412": {
   "status": "error",
@@ -361,7 +361,7 @@
  },
  "7ac407cc-0f48-4328-aede-de1d2e6fef41": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "7ba05b43-adad-4c02-b5e9-c8c35cdf9fa8": {
   "status": "error",
@@ -377,7 +377,7 @@
  },
  "83c161b6-ca67-4f33-8ad0-644a0737cf07": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "881834a4-6659-4773-821e-1c151789d873": {
   "status": "error",
@@ -385,15 +385,15 @@
  },
  "8d91f6e4-9f3b-4c21-ae41-2c5b7d9f7a12": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "98c3bcf1-56f2-49dc-9d8d-c66cf190238b": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "9e1a1fdf-ee58-40ce-8e15-b66ca5a80e1f": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "a3501e8e-af9e-43c6-8cd6-9360bdaae498": {
   "status": "error",
@@ -413,7 +413,7 @@
  },
  "b5aa7d60-c17e-4538-97de-09029d6cd76b": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "bbfd974c-248e-4435-8de6-1e938c79c5c1": {
   "status": "error",
@@ -429,11 +429,11 @@
  },
  "d29a20b2-be4b-4827-81f2-3d8a59eab5fc": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "d4f1a2b3-7c8e-4d5f-b6a9-1e0c2d3f4e5b": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "db809f10-56ce-4420-8c86-d6a7d793c79c": {
   "status": "error",
@@ -441,7 +441,7 @@
  },
  "de96b824-02b0-4241-9356-7e9b47f04bac": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "e032f5bc-4563-4096-ae3b-064bab588685": {
   "status": "error",
@@ -449,7 +449,7 @@
  },
  "e2b5163d-7deb-4566-9af3-40afea6858c3": {
   "status": "error",
-  "error": "AttributeError: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_mde' with pipelines [microsoft_365_defender]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "ec19ebab-72dc-40e1-9728-4c0b805d722c": {
   "status": "error",

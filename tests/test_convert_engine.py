@@ -210,6 +210,71 @@ def test_conversion_failure_wraps_pysigma_error() -> None:
         assert exc.pipelines
 
 
+def test_conversion_errors_do_not_leak_between_rules() -> None:
+    """One rule's conversion error must not name another rule's fields.
+
+    pySigma-backend-kusto's ``InvalidFieldTransformation`` mutates its own
+    ``self.message`` when it rejects a field::
+
+        self.message = f"...{field_name}. " + self.message
+
+    and the transformation objects inside a pipeline are module-level
+    singletons — the factory returns a fresh ProcessingPipeline each call
+    but the transformations within it are shared. So every conversion
+    that hit an invalid field permanently grew a message every later
+    conversion could see.
+
+    That crossed HTTP request boundaries: the server runs one uvicorn
+    process per replica (I-3, and per-request scaling means users share
+    replicas), so one user's rule field names surfaced in another user's
+    error message. Field names in a proprietary detection disclose what
+    an organisation monitors, which makes this a confidentiality bug
+    rather than a cosmetic one.
+
+    ``_compose_pipeline`` deep-copies each factory-produced pipeline so
+    the mutation lands on a private clone and the shared singleton is
+    never written to.
+    """
+    field_a = "TotallyMadeUpFieldAlpha"
+    field_b = "TotallyMadeUpFieldBeta"
+
+    def convert_with_bad_field(field: str, rule_id: str) -> str:
+        rule = SigmaRule(
+            title=f"Rule using {field}",
+            id=UUID(rule_id),
+            date=date(2026, 7, 28),
+            logsource=LogSource(product="windows", category="process_creation"),
+            detections=[
+                DetectionBlock(
+                    name="match_1",
+                    items=[DetectionItem(field=field, modifiers=["contains"], values=["x"])],
+                ),
+            ],
+            condition=ConditionExpression(selection="match_1"),
+        )
+        try:
+            convert(rule, "kusto_sentinel")
+        except ConversionFailedError as exc:
+            return str(exc)
+        return ""
+
+    convert_with_bad_field(field_a, "55555555-6666-7777-8888-999999999999")
+    second = convert_with_bad_field(field_b, "66666666-7777-8888-9999-aaaaaaaaaaaa")
+
+    # The second rule never referenced field_a. If it appears, pipeline
+    # state is being shared across conversions again.
+    assert field_a not in second, (
+        f"conversion error for the second rule leaked the first rule's field "
+        f"{field_a!r}; pipeline transformation state is shared across "
+        f"conversions.\nSecond rule's error: {second}"
+    )
+    assert field_b in second, (
+        f"expected the second rule's own field {field_b!r} in its error, "
+        f"so this test fails loudly if the error shape changes rather than "
+        f"passing vacuously.\nSecond rule's error: {second}"
+    )
+
+
 def test_non_sigma_exception_is_wrapped_not_propagated() -> None:
     """pySigma failures that are NOT SigmaError must still surface as
     ConversionFailedError.

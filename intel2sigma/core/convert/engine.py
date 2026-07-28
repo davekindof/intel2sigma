@@ -18,6 +18,7 @@ Errors:
 from __future__ import annotations
 
 import hashlib
+from copy import deepcopy
 from functools import lru_cache
 from typing import Any
 
@@ -261,7 +262,29 @@ def _compose_pipeline(
                     f"Known pipelines: {sorted(plugins.pipelines)}."
                 ),
             )
-        pipelines.append(factory())
+        # deepcopy is load-bearing, not defensive habit.
+        #
+        # The factory returns a fresh ProcessingPipeline each call, but the
+        # transformation objects *inside* it are module-level singletons —
+        # two factory() calls yield different pipelines holding the same
+        # transformation instances. pySigma-backend-kusto's
+        # InvalidFieldTransformation.apply_detection_item then does:
+        #
+        #     self.message = f"...{field_name}. " + self.message
+        #
+        # which mutates that shared instance. Every conversion hitting an
+        # invalid field permanently grows the message, and the growth is
+        # visible to every later conversion in the process. Converting
+        # rule B after rule A produced an error for B naming A's fields;
+        # with one uvicorn process per replica and users sharing replicas,
+        # that crossed HTTP request boundaries.
+        #
+        # Copying before use means the mutation lands on a private clone,
+        # so the shared singleton is never written to at all and stays
+        # pristine for the process lifetime. ~1.1ms per pipeline against a
+        # ~100ms cold conversion, and conversions are cached by content
+        # hash, so this is not on the warm path.
+        pipelines.append(deepcopy(factory()))
 
     if not pipelines:
         return None
