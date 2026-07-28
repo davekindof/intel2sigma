@@ -1,0 +1,27 @@
+# Regression fixture: a rule shape that makes pySigma raise a bare
+# AttributeError rather than a SigmaError.
+#
+# Trigger is the UNQUOTED numeric EventID. Quote it ('33205') and
+# pySigma takes a different path entirely, raising SigmaTransformationError
+# instead — so the value must stay numeric for this fixture to do its job.
+#
+# Reduced from SigmaHQ rule 00321fee-ca72-4cce-b011-5415af3b9960
+# ("MSSQL Destructive Query", MIT, per the SigmaHQ root LICENSE). 359
+# corpus rules hit this same path on the kusto backends.
+title: Numeric EventID Probe
+id: 44444444-5555-6666-7777-888888888888
+status: test
+description: Fixture for the non-SigmaError conversion-failure path. Not a real detection.
+author: intel2sigma tests
+date: 2026-07-27
+logsource:
+    product: windows
+    service: application
+detection:
+    selection:
+        Provider_Name: 'MSSQLSERVER$AUDIT'
+        EventID: 33205
+    condition: selection
+falsepositives:
+    - Not a detection rule.
+level: medium

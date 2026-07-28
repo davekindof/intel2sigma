@@ -30,6 +30,7 @@ from intel2sigma.core.model import (
     LogSource,
     SigmaRule,
 )
+from intel2sigma.core.serialize import from_yaml
 
 GOLDEN_DIR = Path(__file__).parent / "golden" / "convert"
 
@@ -207,3 +208,51 @@ def test_conversion_failure_wraps_pysigma_error() -> None:
     except ConversionFailedError as exc:
         assert exc.backend_id == "kusto_sentinel"
         assert exc.pipelines
+
+
+def test_non_sigma_exception_is_wrapped_not_propagated() -> None:
+    """pySigma failures that are NOT SigmaError must still surface as
+    ConversionFailedError.
+
+    pySigma does not confine its failures to its own exception base. A
+    numeric detection value on the kusto backends raises a bare
+    ``AttributeError`` ("'SigmaNumber' object has no attribute
+    '__annotations__'") from inside the processing pipeline. Measured
+    against the r2026-07-01 corpus, 391 of 3,651 loadable rules (10.7%)
+    raise a non-SigmaError this way.
+
+    That mattered because the conversion route converts all five
+    backends inside one handler, catches only ConversionFailedError /
+    UnknownBackendError, and the app installs no global exception
+    handler — so one unwrapped AttributeError returned a 500 for the
+    entire conversion stage rather than an error message on one tab.
+
+    The assertion is deliberately about the exception *type*, not the
+    message: if pySigma later fixes the underlying bug this test still
+    passes, because a successful conversion is also an acceptable
+    outcome. What must never happen is a raw non-typed exception
+    escaping ``convert()``.
+
+    The rule is loaded from YAML rather than constructed in-process on
+    purpose. Building the equivalent ``SigmaRule`` by hand does *not*
+    reproduce: the round-trip through :func:`to_yaml` inside
+    ``convert()`` renders the numeric ``EventID`` differently, and the
+    conversion then fails at table determination (a SigmaError) without
+    ever reaching the code path this test exists to cover.
+    """
+    fixture = Path(__file__).parent / "fixtures" / "kusto_numeric_eventid.yml"
+    rule = from_yaml(fixture.read_text(encoding="utf-8"))
+
+    try:
+        convert(rule, "kusto_sentinel")
+    except ConversionFailedError as exc:
+        # Wrapped correctly; the original is retained for callers.
+        assert exc.cause is not None
+        assert exc.backend_id == "kusto_sentinel"
+    except Exception as exc:  # pragma: no cover - the regression itself
+        pytest.fail(
+            f"convert() leaked a raw {type(exc).__name__}; it must wrap "
+            f"non-SigmaError failures in ConversionFailedError so the "
+            f"conversion route can render them instead of returning 500. "
+            f"Original: {exc}"
+        )

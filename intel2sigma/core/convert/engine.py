@@ -175,6 +175,31 @@ def _convert_cached(
         queries = backend.convert_rule(py_rule, output_format=resolved.format)
     except SigmaError as exc:
         raise ConversionFailedError(resolved.backend_id, resolved.pipelines, exc) from exc
+    except Exception as exc:
+        # pySigma does not confine its failures to SigmaError. Measured
+        # against the r2026-07-01 corpus, 391 of 3,651 loadable rules
+        # (10.7%) raise something else on the kusto backends — 359
+        # AttributeError ("'SigmaNumber' object has no attribute
+        # '__annotations__'"), 31 InvalidHashAlgorithmError, 1 TypeError.
+        #
+        # Before this branch those escaped convert() entirely. The
+        # conversion route converts every backend inside one handler and
+        # catches only ConversionFailedError / UnknownBackendError, and
+        # the app installs no global exception handler — so a single
+        # unwrapped AttributeError returned a 500 for the whole
+        # conversion stage, not just the one backend's tab.
+        #
+        # Broad by intent, and narrow in scope: the try block is exactly
+        # two third-party calls, so this cannot mask a defect in our own
+        # code.
+        #
+        # Deliberately not logged here — I-8 keeps core/convert/ free of
+        # I/O. Nothing is swallowed: ``cause`` retains the original
+        # exception and its text reaches the user through the rendered
+        # error, exactly as the SigmaError branch above already does.
+        # A web-layer caller that wants these in the access log can read
+        # ``ConversionFailedError.cause``.
+        raise ConversionFailedError(resolved.backend_id, resolved.pipelines, exc) from exc
 
     # pySigma returns a list[str] — usually one element per rule but some
     # backends emit multiple for multi-condition rules. Join with newlines
