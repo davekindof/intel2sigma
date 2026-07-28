@@ -35,6 +35,15 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege for GITHUB_TOKEN. Nothing here writes to the repo —
+# no comments, no commits, no releases — so read-only is sufficient.
+# Set explicitly rather than inherited: repo-level defaults can be
+# changed in Settings, and a workflow that quietly gains write scope is
+# how a fork PR turns from "runs untrusted code in a sandbox" into
+# "runs untrusted code holding a write token".
+permissions:
+  contents: read
+
 env:
   UV_FROZEN: "1"
 
@@ -43,10 +52,13 @@ jobs:
     name: lint + types
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # Pinned to commit SHA, not a mutable tag — same supply-chain
+      # posture CLAUDE.md I-6 applies to vendored JS. Tags can be
+      # repointed by the action's owner; a SHA cannot.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
         with:
           enable-cache: true
 
@@ -66,10 +78,10 @@ jobs:
     name: tests + coverage
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
         with:
           enable-cache: true
 
@@ -85,7 +97,7 @@ jobs:
     name: docker build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
       # Build only — no push. Catches Dockerfile/base-image breakage
       # (e.g. the Debian 13 move) without needing registry credentials.
@@ -112,10 +124,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262  # v4
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v5
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
         with:
           enable-cache: true
 
