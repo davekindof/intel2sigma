@@ -1,0 +1,140 @@
+# CI for intel2sigma.
+#
+# CLAUDE.md's "Verification before declaring done" section has always
+# listed these gates, and several places in it say "CI enforces" — but
+# no workflow existed. The cost of that showed up concretely: the L8
+# sweep (2026-05-03/04) regressed the corpus load-audit clean count by
+# 402 rules and sat undetected on main for nearly three months, because
+# the only thing that would have caught it is a 65-minute test nobody
+# runs by hand.
+#
+# Two triggers, deliberately split by cost:
+#
+#   * fast  — every push and PR. Mirrors the inner dev loop (~30s).
+#   * slow  — nightly. The corpus ratchets and conversion snapshots take
+#             over an hour, which is far too slow to gate a push but
+#             cheap to run once a day. This is the job that would have
+#             caught L8-B-2.
+#
+# Python comes from uv, not setup-python: CLAUDE.md mandates that uv
+# manages the interpreter, and `uv sync --frozen` is what keeps CI
+# honest against the committed uv.lock.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # 03:17 UTC daily. Off the hour to avoid GitHub's scheduling spikes.
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  UV_FROZEN: "1"
+
+jobs:
+  lint:
+    name: lint + types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      - name: ruff check
+        run: uv run ruff check
+
+      - name: ruff format --check
+        run: uv run ruff format --check
+
+      - name: mypy --strict
+        run: uv run mypy intel2sigma --strict
+
+  test:
+    name: tests + coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      # pyproject's addopts already excludes -m slow; fail_under = 80 on
+      # core/ is enforced by coverage config, not by a flag here.
+      - name: pytest (fast suite) with coverage
+        run: uv run pytest --cov=intel2sigma/core --cov-report=term
+
+  docker:
+    name: docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Build only — no push. Catches Dockerfile/base-image breakage
+      # (e.g. the Debian 13 move) without needing registry credentials.
+      - name: Build image
+        run: docker build --build-arg BUILD_SHA="${GITHUB_SHA::7}" -t intel2sigma:ci .
+
+      - name: Smoke test /healthz
+        run: |
+          docker run -d --name i2s-ci -p 8000:8000 intel2sigma:ci
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8000/healthz; then echo; exit 0; fi
+            sleep 2
+          done
+          echo "healthz never came up; container logs:" >&2
+          docker logs i2s-ci >&2
+          exit 1
+
+  slow:
+    name: slow suite (corpus ratchets + snapshots)
+    # Nightly and manual only. ~65 minutes; gating pushes on it would
+    # make the project unworkable, but never running it is how the L8
+    # regression survived three months.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync --frozen
+
+      # The ratchets and conversion snapshots read the bundled index at
+      # intel2sigma/data/sigmahq_corpus.json and need no network. But
+      # tests/test_sigmahq_corpus.py reads the git-ignored sigmahq-rules/
+      # checkout and pytest.skip()s when it is absent — so without this
+      # step the "every corpus rule parses" gate would silently no-op in
+      # CI while still reporting green.
+      #
+      # continue-on-error: a failed clone is an upstream/network problem,
+      # not a defect in this repo. The build stays green and that one test
+      # degrades to its existing skip; everything else still runs.
+      - name: Fetch SigmaHQ corpus at the pinned commit
+        continue-on-error: true
+        run: uv run python scripts/fetch_sigmahq.py
+
+      - name: pytest -m slow
+        run: uv run pytest -m slow
