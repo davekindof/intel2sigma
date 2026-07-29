@@ -60,9 +60,10 @@ class ConversionFailedError(PipelineMatrixError):
         backend_id: str,
         pipelines: tuple[str, ...],
         cause: Exception,
+        resolved: ResolvedConversion | None = None,
     ) -> None:
         pipeline_str = ", ".join(pipelines) if pipelines else "(baseline only)"
-        message = _friendlier(backend_id, pipelines, cause) or (
+        message = _friendlier(backend_id, pipelines, cause, resolved) or (
             f"pySigma failed to convert rule for backend {backend_id!r} "
             f"with pipelines [{pipeline_str}]: {cause}"
         )
@@ -76,36 +77,48 @@ def _friendlier(
     backend_id: str,
     pipelines: tuple[str, ...],
     cause: Exception,
+    resolved: ResolvedConversion | None = None,
 ) -> str | None:
     """Map known pySigma error shapes onto operator-friendly guidance.
 
     Returns ``None`` if the error doesn't match a known shape, so the
     caller falls back to the raw pySigma message.
 
-    Today's recognised shapes:
+    Today's recognised shape is "Unable to determine table name from
+    rule" — the Kusto pipelines could not map the rule's logsource to a
+    table. That single error covers two situations users need told
+    apart:
 
-    * "Unable to determine table name from rule" — pySigma-backend-kusto's
-      Microsoft Defender / Sentinel pipelines couldn't map the rule's
-      logsource ``category`` to a Defender XDR / Sentinel table. This is a
-      coverage gap in the upstream pipeline (some Sysmon-only categories
-      like ``create_remote_thread`` aren't in their category-to-table
-      maps). Tell the user what to do instead.
+    * **The platform has no such telemetry.** Okta, Zeek, AWS and the
+      like are simply not in the Defender XDR schema. No mapping will
+      ever exist, and saying "coverage gap" implies someone is coming
+      to fix it. Recognised via ``resolved.unsupported_reason``, which
+      is data-driven from ``pipelines.yml``.
+    * **The telemetry exists but is unmapped.** A genuine gap, closable
+      with a ``category_overrides`` entry.
+
+    Before this split, every one of these rendered as the second — so a
+    user converting an Okta rule was told about Sysmon categories and
+    invited to wait for a fix that is not coming.
+
+    Returns ``None`` when the error isn't a recognised shape, so the
+    caller falls back to the raw pySigma message.
     """
     msg = str(cause)
-    if "Unable to determine table name from rule" in msg:
-        # Strip the verbose "see README" trailer pySigma appends.
-        backend_label = {
-            "kusto_mde": "Microsoft Defender XDR",
-            "kusto_sentinel": "Microsoft Sentinel",
-        }.get(backend_id, backend_id)
-        return (
-            f"This rule's logsource category doesn't have a default {backend_label} "
-            f"table mapping in pySigma's pipeline. Sysmon-only categories like "
-            f"``create_remote_thread`` are a known coverage gap. Try "
-            f"Splunk / Elastic / CrowdStrike instead, or use a Windows "
-            f"Security-channel category if the detection allows it."
-        )
-    return None
+    if "Unable to determine table name from rule" not in msg:
+        return None
+
+    if resolved is not None and resolved.unsupported_reason:
+        return resolved.unsupported_reason
+
+    label = resolved.label if resolved is not None else backend_id
+    return (
+        f"{label} has no table mapping for this rule's logsource. The "
+        f"telemetry may well exist in this platform, in which case this "
+        f"is a gap that can be closed with a pipeline mapping rather "
+        f"than a limitation of the rule. The Splunk, Elastic and "
+        f"CrowdStrike tabs will usually convert it in the meantime."
+    )
 
 
 def convert(
@@ -175,7 +188,7 @@ def _convert_cached(
         py_rule = PySigmaRule.from_yaml(yaml_text)
         queries = backend.convert_rule(py_rule, output_format=resolved.format)
     except SigmaError as exc:
-        raise ConversionFailedError(resolved.backend_id, resolved.pipelines, exc) from exc
+        raise ConversionFailedError(resolved.backend_id, resolved.pipelines, exc, resolved) from exc
     except Exception as exc:
         # pySigma does not confine its failures to SigmaError. Measured
         # against the r2026-07-01 corpus, 391 of 3,651 loadable rules
@@ -200,7 +213,7 @@ def _convert_cached(
         # error, exactly as the SigmaError branch above already does.
         # A web-layer caller that wants these in the access log can read
         # ``ConversionFailedError.cause``.
-        raise ConversionFailedError(resolved.backend_id, resolved.pipelines, exc) from exc
+        raise ConversionFailedError(resolved.backend_id, resolved.pipelines, exc, resolved) from exc
 
     # pySigma returns a list[str] — usually one element per rule but some
     # backends emit multiple for multi-condition rules. Join with newlines
@@ -214,6 +227,7 @@ def _convert_cached(
                 f"pySigma backend {resolved.sigma_backend!r} returned "
                 f"{type(queries).__name__}, expected list[str]."
             ),
+            resolved,
         )
     return "\n".join(str(q) for q in queries)
 

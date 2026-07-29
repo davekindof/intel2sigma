@@ -9,12 +9,52 @@
 # Our intel2sigma backend ids (kusto_sentinel, kusto_mde, splunk,
 # elasticsearch, crowdstrike) are the user-facing wrappers.
 
+# Telemetry a backend's target schema does not contain at all.
+#
+# When conversion fails for a logsource listed here, the user is told the
+# detection cannot be expressed for that backend — a property of the
+# platform, not a gap anyone will close. Everything NOT listed falls back
+# to the "mapping gap we can close" message.
+#
+# That default is deliberate. The two ways of being wrong are not equally
+# costly: telling someone a rule is impossible when it is merely unmapped
+# makes them abandon a detection we could support, whereas telling them
+# something is a gap when it is really impossible only leaves a stale
+# to-do. So add a product here only when you are confident the platform
+# has no equivalent telemetry, and leave it out when unsure.
+#
+# The list is anchored on kusto_sentinel and aliased into kusto_mde —
+# both target the Defender XDR schema and share it exactly.
+
 backends:
     kusto_sentinel:
         sigma_backend: kusto
         format: default
         baseline_pipelines: [microsoft_xdr]
         label: "Microsoft Sentinel (KQL)"
+        unsupported_products: &defender_xdr_unsupported
+            aws: "AWS CloudTrail records"
+            gcp: "Google Cloud and Workspace audit logs"
+            okta: "Okta system-log events"
+            onelogin: "OneLogin events"
+            github: "GitHub audit records"
+            bitbucket: "Bitbucket audit records"
+            zeek: "Zeek network-sensor telemetry"
+            cisco: "Cisco appliance logs"
+            fortigate: "FortiGate event logs"
+            juniper: "Juniper device logs"
+            huawei: "Huawei device logs"
+            kubernetes: "Kubernetes audit records"
+            jvm: "JVM application logs"
+            opencanary: "OpenCanary honeypot events"
+            rpc_firewall: "RPC Firewall events"
+        # {label} and {telemetry} are substituted at render time.
+        unsupported_template: &defender_xdr_unsupported_template >-
+            {label} queries the Microsoft Defender XDR schema, which does
+            not contain {telemetry}. This detection cannot be expressed
+            for this backend — that is a property of the platform, not a
+            gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs
+            pass these field names through and will usually convert it.
         # Sysmon-only Sigma categories that pySigma's microsoft_xdr
         # pipeline doesn't have a default table mapping for. Each entry
         # injects ``query_table`` into the pipeline state at priority 5
@@ -39,6 +79,8 @@ backends:
         format: default
         baseline_pipelines: [microsoft_365_defender]
         label: "Microsoft Defender for Endpoint (KQL)"
+        unsupported_products: *defender_xdr_unsupported
+        unsupported_template: *defender_xdr_unsupported_template
         # Mirrors kusto_sentinel — both backends use the same
         # microsoft_xdr / microsoft_365_defender pipelines under the
         # hood and share the same coverage gaps. Reviewed quarterly per

@@ -48,6 +48,12 @@ class _Model(BaseModel):
     model_config = ConfigDict(extra="forbid", frozen=True, str_strip_whitespace=True)
 
 
+# Bound to a name so ruff doesn't rewrite ``except (X, Y):`` into the
+# bare-comma form PEP 758 permits on 3.14 — valid, but it reads like a
+# Python 2 bug. Same workaround as _version.py and web/mitre.py.
+_TEMPLATE_RENDER_FAILURES = (KeyError, IndexError)
+
+
 class CategoryOverride(_Model):
     """One ``category_overrides`` entry under a backend.
 
@@ -82,6 +88,14 @@ class BackendSpec(_Model):
     runs at higher priority than the upstream — so the upstream sees a
     state that's already been set, no "Unable to determine table name"
     error fires.
+
+    ``unsupported_products`` maps a logsource ``product`` to a short
+    human name for its telemetry, for products this backend's target
+    schema does not contain at all. It exists to tell the difference
+    between "we could map this and haven't" and "this platform has no
+    such data" — the second is final, and saying so is more useful than
+    implying someone will get to it. Absence is the safe default and
+    yields the mapping-gap message; see the comment in ``pipelines.yml``.
     """
 
     sigma_backend: str = Field(min_length=1)
@@ -89,6 +103,27 @@ class BackendSpec(_Model):
     baseline_pipelines: list[str] = Field(default_factory=list)
     label: str = Field(min_length=1)
     category_overrides: dict[str, CategoryOverride] = Field(default_factory=dict)
+    unsupported_products: dict[str, str] = Field(default_factory=dict)
+    unsupported_template: str = ""
+
+    def unsupported_reason(self, product: str | None) -> str | None:
+        """Rendered explanation when ``product`` is outside this schema.
+
+        ``None`` when the product is supported, unlisted, or the backend
+        declares no template — all of which fall back to the caller's
+        mapping-gap message.
+        """
+        if not product or not self.unsupported_template:
+            return None
+        telemetry = self.unsupported_products.get(product)
+        if telemetry is None:
+            return None
+        # Data-file authored template; a missing placeholder is a data
+        # bug, not a user error, and must not break conversion.
+        try:
+            return self.unsupported_template.format(label=self.label, telemetry=telemetry)
+        except _TEMPLATE_RENDER_FAILURES:
+            return None
 
 
 class LogsourceMatch(_Model):
@@ -279,6 +314,11 @@ class ResolvedConversion:
     # Tuple of (category, table_name, frozen filter-items) so this stays
     # hashable for the lru_cache. Empty if no overrides.
     category_overrides: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...] = ()
+    # Rendered explanation when this rule's logsource product is outside
+    # the backend's target schema. ``None`` means "not known to be
+    # unsupported" — a conversion failure is then reported as a gap.
+    # Plain str keeps the dataclass hashable for the conversion cache.
+    unsupported_reason: str | None = None
 
 
 def resolve(
@@ -326,6 +366,7 @@ def resolve(
         pipelines=tuple(pipelines),
         label=spec.label,
         category_overrides=overrides_frozen,
+        unsupported_reason=spec.unsupported_reason(logsource.product),
     )
 
 

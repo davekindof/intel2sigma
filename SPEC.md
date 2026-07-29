@@ -170,6 +170,14 @@ Example entry:
 
 Changes to the matrix require updates to the golden tests in `tests/golden/pipelines/`.
 
+### Backend coverage boundaries
+
+Not every rule can convert to every backend, and that is a property of the target platform rather than a gap in this tool. The `kusto_sentinel` and `kusto_mde` backends target the **Microsoft Defender XDR schema** — endpoint telemetry from Microsoft's own agents on Windows, Linux and macOS. Okta, AWS, GCP, Zeek, GitHub and similar sources have no tables in that schema, so rules against them cannot be expressed as Defender KQL. Sentinel-native tables reached via connectors (`SigninLogs`, `OktaSSO`, custom `*_CL` logs) are a different schema and explicitly **out of scope** — supporting them would mean a second pipeline, not a mapping addition.
+
+`data/pipelines.yml` encodes this per backend as `unsupported_products` (a product → telemetry-name map) plus an `unsupported_template`. Conversion failures for a listed product are reported as final; everything else is reported as a mapping gap that a `category_overrides` entry can close.
+
+Absence from the list is the deliberate default. The two errors are not symmetric: telling a user a detection is impossible when it is merely unmapped makes them abandon something we could support, whereas calling an impossible case a gap only leaves a stale to-do. Add a product only when confident the platform has no equivalent telemetry.
+
 ## Output formats
 
 **Primary**: canonical Sigma YAML (download as `.yml`, copy to clipboard).

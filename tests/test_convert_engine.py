@@ -210,6 +210,78 @@ def test_conversion_failure_wraps_pysigma_error() -> None:
         assert exc.pipelines
 
 
+def test_unsupported_telemetry_says_so_instead_of_promising_a_fix() -> None:
+    """A logsource the backend's schema cannot contain is reported as final.
+
+    "Unable to determine table name" covers two situations users need
+    told apart: telemetry the platform simply does not have (Okta on
+    Defender XDR), and telemetry it has but pySigma has not mapped.
+    Both used to render as the second, so an Okta user was told about
+    Sysmon categories and invited to wait for a fix that is not coming.
+
+    The unsupported set is data — ``unsupported_products`` in
+    ``pipelines.yml`` (I-5) — so adding a platform needs no Python.
+    """
+    rule = SigmaRule(
+        title="Okta admin role assigned",
+        id=UUID("77777777-8888-9999-aaaa-bbbbbbbbbbbb"),
+        date=date(2026, 7, 28),
+        logsource=LogSource(product="okta", service="okta"),
+        detections=[
+            DetectionBlock(
+                name="match_1",
+                items=[DetectionItem(field="eventType", modifiers=[], values=["x"])],
+            ),
+        ],
+        condition=ConditionExpression(selection="match_1"),
+    )
+
+    with pytest.raises(ConversionFailedError) as exc_info:
+        convert(rule, "kusto_sentinel")
+
+    msg = str(exc_info.value)
+    assert "Okta system-log events" in msg, "should name the telemetry that is absent"
+    assert "property of the platform" in msg, "should be framed as final, not as a to-do"
+    # Must NOT imply someone is coming to fix it.
+    assert "coverage gap" not in msg
+    # The old message name-dropped an unrelated Sysmon category.
+    assert "create_remote_thread" not in msg
+
+
+def test_unmapped_but_supported_logsource_is_reported_as_a_closable_gap() -> None:
+    """The counter-case: a platform the backend does cover, just unmapped.
+
+    Windows endpoint telemetry *is* in Defender XDR, so a missing table
+    mapping there is a gap that a ``category_overrides`` entry closes.
+    Reporting it as impossible would talk a user out of a detection we
+    could support — which is why absence from ``unsupported_products``
+    is the safe default.
+    """
+    rule = SigmaRule(
+        title="Windows stream hash rule",
+        id=UUID("88888888-9999-aaaa-bbbb-cccccccccccc"),
+        date=date(2026, 7, 28),
+        logsource=LogSource(product="windows", category="create_stream_hash"),
+        detections=[
+            DetectionBlock(
+                name="match_1",
+                items=[DetectionItem(field="TargetFilename", modifiers=[], values=["x"])],
+            ),
+        ],
+        condition=ConditionExpression(selection="match_1"),
+    )
+
+    with pytest.raises(ConversionFailedError) as exc_info:
+        convert(rule, "kusto_sentinel")
+
+    msg = str(exc_info.value)
+    assert "gap that can be closed" in msg
+    assert "property of the platform" not in msg, (
+        "windows telemetry exists in Defender XDR; calling this impossible "
+        "would talk the user out of a supportable detection"
+    )
+
+
 def test_conversion_errors_do_not_leak_between_rules() -> None:
     """One rule's conversion error must not name another rule's fields.
 
