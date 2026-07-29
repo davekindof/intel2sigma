@@ -71,6 +71,17 @@ class ConversionFailedError(PipelineMatrixError):
         self.backend_id = backend_id
         self.pipelines = pipelines
         self.cause = cause
+        # "gap" | "unsupported" | "underspecified". The web layer styles
+        # the latter two as information rather than error: nothing is
+        # wrong, the platform simply does not model this telemetry, or
+        # the rule does not name a product. Only reflects the coverage
+        # classification when the failure was a table-mapping one — any
+        # other pySigma failure stays a "gap"-styled error.
+        self.kind = (
+            resolved.coverage_kind
+            if resolved is not None and _is_table_mapping_failure(cause)
+            else "gap"
+        )
 
 
 def _friendlier(
@@ -104,12 +115,11 @@ def _friendlier(
     Returns ``None`` when the error isn't a recognised shape, so the
     caller falls back to the raw pySigma message.
     """
-    msg = str(cause)
-    if "Unable to determine table name from rule" not in msg:
+    if not _is_table_mapping_failure(cause):
         return None
 
-    if resolved is not None and resolved.unsupported_reason:
-        return resolved.unsupported_reason
+    if resolved is not None and resolved.coverage_note:
+        return resolved.coverage_note
 
     label = resolved.label if resolved is not None else backend_id
     return (
@@ -119,6 +129,17 @@ def _friendlier(
         f"than a limitation of the rule. The Splunk, Elastic and "
         f"CrowdStrike tabs will usually convert it in the meantime."
     )
+
+
+def _is_table_mapping_failure(cause: Exception) -> bool:
+    """Whether pySigma failed because it couldn't pick a target table.
+
+    The single string the Kusto pipelines raise for every logsource they
+    can't route, whatever the underlying reason. Matched in one place so
+    the message translator and the ``kind`` classification can't drift
+    apart on what counts.
+    """
+    return "Unable to determine table name from rule" in str(cause)
 
 
 def convert(

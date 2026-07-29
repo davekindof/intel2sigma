@@ -23,6 +23,7 @@ from intel2sigma.core.convert import (
     UnknownBackendError,
     convert,
 )
+from intel2sigma.core.convert.pipelines import resolve
 from intel2sigma.core.model import (
     ConditionExpression,
     DetectionBlock,
@@ -251,6 +252,86 @@ def test_unsupported_telemetry_says_so_instead_of_promising_a_fix() -> None:
     assert "coverage gap" not in msg
     # The old message name-dropped an unrelated Sysmon category.
     assert "create_remote_thread" not in msg
+
+
+def test_vendor_agnostic_category_is_its_own_case() -> None:
+    """A category with no product is neither impossible nor one mapping away.
+
+    Sigma's vendor-agnostic shapes — ``proxy``, ``dns``, ``antivirus``,
+    ``firewall``, ``webserver`` — deliberately do not name a product. So
+    there is no single table a Kusto backend could target, and nothing is
+    missing from the rule or from us. Calling that a "gap we can close"
+    implies work that has no well-defined finish; calling it impossible
+    overstates it, since adding a product to the logsource converts it.
+
+    Five of the sampled corpus logsource keys are this shape.
+    """
+    rule = SigmaRule(
+        title="Proxy rule with no product",
+        id=UUID("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+        date=date(2026, 7, 29),
+        logsource=LogSource(category="proxy"),
+        detections=[
+            DetectionBlock(
+                name="match_1",
+                items=[DetectionItem(field="c-uri", modifiers=["contains"], values=["x"])],
+            ),
+        ],
+        condition=ConditionExpression(selection="match_1"),
+    )
+
+    with pytest.raises(ConversionFailedError) as exc_info:
+        convert(rule, "kusto_sentinel")
+
+    exc = exc_info.value
+    assert exc.kind == "underspecified"
+    msg = str(exc)
+    assert "vendor-agnostic" in msg
+    assert '"proxy"' in msg, "should name the category so the message is actionable"
+    assert "Adding a product" in msg, "should say what would make it convert"
+
+
+def test_coverage_kind_only_applies_to_table_mapping_failures() -> None:
+    """A different pySigma failure on an unsupported product is still an error.
+
+    ``kind`` classifies *why a logsource has no table*. It must not leak
+    onto unrelated failures: a Zeek rule that fails for some other reason
+    is a real error and should be styled as one, even though Zeek is on
+    the unsupported list. Otherwise a genuine bug would be presented to
+    the user as a calm platform boundary.
+    """
+    rule = SigmaRule(
+        title="Zeek rule reaching a different failure",
+        id=UUID("bbbbbbbb-cccc-dddd-eeee-ffffffffffff"),
+        date=date(2026, 7, 29),
+        logsource=LogSource(product="zeek", service="dns"),
+        detections=[
+            DetectionBlock(
+                name="match_1",
+                items=[DetectionItem(field="query", modifiers=[], values=["x"])],
+            ),
+        ],
+        condition=ConditionExpression(selection="match_1"),
+    )
+
+    # Splunk converts zeek fine, so this asserts the classification is
+    # scoped to the backend that actually declares zeek unsupported.
+    convert(rule, "splunk")
+
+    with pytest.raises(ConversionFailedError) as exc_info:
+        convert(rule, "kusto_sentinel")
+    assert exc_info.value.kind == "unsupported"
+
+    # A non-table-mapping failure keeps the error styling.
+    fabricated = ConversionFailedError(
+        "kusto_sentinel",
+        ("microsoft_xdr",),
+        RuntimeError("something else went wrong"),
+        resolve(rule.logsource, "kusto_sentinel"),
+    )
+    assert fabricated.kind == "gap", (
+        "only table-mapping failures may be presented as a platform boundary"
+    )
 
 
 def test_saas_platforms_are_reported_as_unmapped_not_impossible() -> None:

@@ -546,6 +546,19 @@ input[type="text"]:focus, textarea:focus, select:focus {
     margin-top: var(--space-1);
 }
 
+/* Conversion-tab note for a platform boundary rather than a fault: the
+   backend's schema has no table for this telemetry, or the rule uses a
+   vendor-agnostic category that names no product. Deliberately calm —
+   dim text, no colour alarm — because nothing went wrong. Closable
+   mapping gaps still use .field-error-message. */
+.conversion-note {
+    color: var(--color-text-dim);
+    font-size: 13px;
+    line-height: 1.5;
+    padding: var(--space-4);
+    max-width: 60ch;
+}
+
 .field-error[title], .field-warn[title] {
     cursor: help;
 }

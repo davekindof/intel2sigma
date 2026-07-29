@@ -549,17 +549,22 @@ def _convert_all_backends(rule: SigmaRule) -> dict[str, dict[str, str]]:
             resolved = resolve(rule.logsource, bid)
             pipelines_str = ", ".join(resolved.pipelines) if resolved.pipelines else "baseline only"
             query = convert(rule, bid)
-            outputs[bid] = {"query": query, "pipelines": pipelines_str, "error": ""}
+            outputs[bid] = {"query": query, "pipelines": pipelines_str, "error": "", "kind": ""}
         except ConversionFailedError as exc:
+            # ``kind`` drives presentation, not content: "unsupported" and
+            # "underspecified" describe a platform boundary rather than a
+            # fault, so the template renders them as information instead
+            # of styling them like a failure.
             outputs[bid] = {
                 "query": "",
                 "pipelines": "",
                 "error": str(exc),
+                "kind": exc.kind,
             }
         except UnknownBackendError as exc:
             # Dependency-pinning issue — shouldn't happen in a tested
             # release but surface cleanly if it does.
-            outputs[bid] = {"query": "", "pipelines": "", "error": str(exc)}
+            outputs[bid] = {"query": "", "pipelines": "", "error": str(exc), "kind": "gap"}
     return outputs
 
 

@@ -17,7 +17,7 @@
  },
  "0066d244-c277-4c3e-88ec-9e7b777cc8bc": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+  "error": "ConversionFailedError: This rule uses the vendor-agnostic \"proxy\" category — it does not name a product, so Microsoft Defender for Endpoint (KQL) has no single table to target. Adding a product to the logsource (or using the Splunk, Elastic and CrowdStrike tabs, which match on field names rather than tables) will convert it."
  },
  "00a8e92a-776b-425f-80f2-82d8f8fab2e5": {
   "status": "error",
@@ -77,7 +77,7 @@
  },
  "04017cd5-621e-4ec4-a762-1f042fe3d3e5": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+  "error": "ConversionFailedError: This rule uses the vendor-agnostic \"webserver\" category — it does not name a product, so Microsoft Defender for Endpoint (KQL) has no single table to target. Adding a product to the logsource (or using the Splunk, Elastic and CrowdStrike tabs, which match on field names rather than tables) will convert it."
  },
  "04e2a23a-9b29-4a5c-be3a-3542e3f982ba": {
   "status": "error",
@@ -177,7 +177,7 @@
  },
  "101a1877-2cf4-474d-abfd-7f6ac4788d1a": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+  "error": "ConversionFailedError: This rule uses the vendor-agnostic \"antivirus\" category — it does not name a product, so Microsoft Defender for Endpoint (KQL) has no single table to target. Adding a product to the logsource (or using the Splunk, Elastic and CrowdStrike tabs, which match on field names rather than tables) will convert it."
  },
  "128faeef-79dd-44ca-b43c-a9e236a60f49": {
   "status": "error",
@@ -245,7 +245,7 @@
  },
  "2975af79-28c4-4d2f-a951-9095f229df29": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+  "error": "ConversionFailedError: This rule uses the vendor-agnostic \"dns\" category — it does not name a product, so Microsoft Defender for Endpoint (KQL) has no single table to target. Adding a product to the logsource (or using the Splunk, Elastic and CrowdStrike tabs, which match on field names rather than tables) will convert it."
  },
  "2a0bb2dd-eb5f-4517-8cb9-404f8ba764a5": {
   "status": "error",
@@ -381,7 +381,7 @@
  },
  "881834a4-6659-4773-821e-1c151789d873": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+  "error": "ConversionFailedError: This rule uses the vendor-agnostic \"firewall\" category — it does not name a product, so Microsoft Defender for Endpoint (KQL) has no single table to target. Adding a product to the logsource (or using the Splunk, Elastic and CrowdStrike tabs, which match on field names rather than tables) will convert it."
  },
  "8d91f6e4-9f3b-4c21-ae41-2c5b7d9f7a12": {
   "status": "error",

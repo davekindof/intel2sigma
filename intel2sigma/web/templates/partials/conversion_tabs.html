@@ -40,7 +40,17 @@ maps backend_id → {query | error}.
         <div class="conversion-output" data-backend="{{ tab.backend_id }}"
              {% if not loop.first %}hidden{% endif %}>
             {% if output.error %}
-            <p class="field-error-message">{{ output.error }}</p>
+                {# "unsupported" and "underspecified" are platform
+                   boundaries, not faults — a Zeek rule will never have a
+                   Defender XDR table, and a vendor-agnostic category
+                   names no product to target. Styling those red implies
+                   the user did something wrong. Only a closable mapping
+                   gap reads as an error. #}
+                {% if output.kind in ('unsupported', 'underspecified') %}
+                <p class="conversion-note">{{ output.error }}</p>
+                {% else %}
+                <p class="field-error-message">{{ output.error }}</p>
+                {% endif %}
             {% else %}
             <pre class="conversion-query"><code>{{ output.query }}</code></pre>
             {% endif %}

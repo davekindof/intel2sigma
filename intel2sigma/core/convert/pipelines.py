@@ -105,23 +105,60 @@ class BackendSpec(_Model):
     category_overrides: dict[str, CategoryOverride] = Field(default_factory=dict)
     unsupported_products: dict[str, str] = Field(default_factory=dict)
     unsupported_template: str = ""
+    underspecified_template: str = ""
 
-    def unsupported_reason(self, product: str | None) -> str | None:
-        """Rendered explanation when ``product`` is outside this schema.
+    def classify(self, logsource: LogSource) -> tuple[str, str | None]:
+        """Classify why this logsource might not convert on this backend.
 
-        ``None`` when the product is supported, unlisted, or the backend
-        declares no template — all of which fall back to the caller's
-        mapping-gap message.
+        Returns ``(kind, note)`` where kind is one of:
+
+        * ``"unsupported"`` — the product's telemetry has no path into
+          this backend's schema. Final; nothing will change it.
+        * ``"underspecified"`` — the rule names a category but no
+          product or service, so there is no single table it could
+          target. Nothing is missing from the rule or from us.
+        * ``"gap"`` — the default. Either it converts fine, or the
+          failure is a mapping we could add.
+
+        ``note`` is the rendered user-facing explanation, or ``None``
+        for ``"gap"`` (the caller supplies that copy). Precomputed here
+        because :func:`resolve` runs before conversion is attempted; the
+        note is only ever shown on failure.
         """
-        if not product or not self.unsupported_template:
-            return None
-        telemetry = self.unsupported_products.get(product)
-        if telemetry is None:
-            return None
-        # Data-file authored template; a missing placeholder is a data
-        # bug, not a user error, and must not break conversion.
+        product = logsource.product
+        if product and self.unsupported_template:
+            telemetry = self.unsupported_products.get(product)
+            if telemetry is not None:
+                note = self._render(
+                    self.unsupported_template, label=self.label, telemetry=telemetry
+                )
+                if note is not None:
+                    return ("unsupported", note)
+
+        # Vendor-agnostic shape: a category on its own. Requiring both
+        # product and service to be absent keeps this narrow — a rule
+        # with a service still names a concrete source.
+        category_only = bool(logsource.category) and not product and not logsource.service
+        if category_only and self.underspecified_template:
+            note = self._render(
+                self.underspecified_template,
+                label=self.label,
+                category=logsource.category or "",
+            )
+            if note is not None:
+                return ("underspecified", note)
+
+        return ("gap", None)
+
+    def _render(self, template: str, **fields: str) -> str | None:
+        """Format a data-file template, tolerating an authoring mistake.
+
+        A missing or misspelled placeholder is a data bug, not a user
+        error, and must not break conversion — the caller falls back to
+        the generic mapping-gap copy.
+        """
         try:
-            return self.unsupported_template.format(label=self.label, telemetry=telemetry)
+            return template.format(**fields)
         except _TEMPLATE_RENDER_FAILURES:
             return None
 
@@ -314,11 +351,14 @@ class ResolvedConversion:
     # Tuple of (category, table_name, frozen filter-items) so this stays
     # hashable for the lru_cache. Empty if no overrides.
     category_overrides: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...] = ()
-    # Rendered explanation when this rule's logsource product is outside
-    # the backend's target schema. ``None`` means "not known to be
-    # unsupported" — a conversion failure is then reported as a gap.
+    # Why this logsource might not convert here: "gap" (default),
+    # "unsupported", or "underspecified". See BackendSpec.classify.
+    # The web layer styles the first as an error and the other two as
+    # information, because only the first describes something wrong.
+    coverage_kind: str = "gap"
+    # Rendered user-facing explanation for the two non-gap kinds.
     # Plain str keeps the dataclass hashable for the conversion cache.
-    unsupported_reason: str | None = None
+    coverage_note: str | None = None
 
 
 def resolve(
@@ -355,6 +395,8 @@ def resolve(
                 pipelines.extend(extras)
             break  # first match wins
 
+    coverage_kind, coverage_note = spec.classify(logsource)
+
     overrides_frozen: tuple[tuple[str, str, tuple[tuple[str, str], ...]], ...] = tuple(
         (cat, ov.table, tuple(sorted(ov.filter.items())))
         for cat, ov in spec.category_overrides.items()
@@ -366,7 +408,8 @@ def resolve(
         pipelines=tuple(pipelines),
         label=spec.label,
         category_overrides=overrides_frozen,
-        unsupported_reason=spec.unsupported_reason(logsource.product),
+        coverage_kind=coverage_kind,
+        coverage_note=coverage_note,
     )
 
 

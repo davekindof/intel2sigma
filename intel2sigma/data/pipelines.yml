@@ -63,6 +63,18 @@ backends:
             cannot be expressed against that schema. The Splunk, Elastic
             and CrowdStrike tabs pass these field names through and will
             usually convert it.
+        # Third case: the rule names a category but no product or service
+        # (Sigma's vendor-agnostic shapes — proxy, dns, antivirus,
+        # firewall, webserver). Nothing is missing from the rule or from
+        # us; it simply does not say whose proxy, so there is no single
+        # table it could target. Distinct from both other cases: not
+        # impossible, not one mapping away.
+        underspecified_template: &defender_xdr_underspecified_template >-
+            This rule uses the vendor-agnostic "{category}" category — it
+            does not name a product, so {label} has no single table to
+            target. Adding a product to the logsource (or using the
+            Splunk, Elastic and CrowdStrike tabs, which match on field
+            names rather than tables) will convert it.
         # Sysmon-only Sigma categories that pySigma's microsoft_xdr
         # pipeline doesn't have a default table mapping for. Each entry
         # injects ``query_table`` into the pipeline state at priority 5
@@ -89,6 +101,7 @@ backends:
         label: "Microsoft Defender for Endpoint (KQL)"
         unsupported_products: *defender_xdr_unsupported
         unsupported_template: *defender_xdr_unsupported_template
+        underspecified_template: *defender_xdr_underspecified_template
         # Mirrors kusto_sentinel — both backends use the same
         # microsoft_xdr / microsoft_365_defender pipelines under the
         # hood and share the same coverage gaps. Reviewed quarterly per
