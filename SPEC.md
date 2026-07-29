@@ -176,7 +176,11 @@ Not every rule can convert to every backend, and that is a property of the targe
 
 `data/pipelines.yml` encodes this per backend as `unsupported_products` (a product → telemetry-name map) plus an `unsupported_template`. Conversion failures for a listed product are reported as final; everything else is reported as a mapping gap that a `category_overrides` entry can close.
 
-Absence from the list is the deliberate default. The two errors are not symmetric: telling a user a detection is impossible when it is merely unmapped makes them abandon something we could support, whereas calling an impossible case a gap only leaves a stale to-do. Add a product only when confident the platform has no equivalent telemetry.
+Absence from the list is the deliberate default. The two errors are not symmetric: telling a user a detection is impossible when it is merely unmapped makes them abandon something we could support, whereas calling an impossible case a gap only leaves a stale to-do.
+
+**SaaS and cloud platforms belong off the list, even though none of them convert today.** Microsoft ships first-party connectors that land their telemetry in Defender XDR advanced-hunting tables — Okta through [Defender for Identity](https://learn.microsoft.com/en-us/defender-for-identity/okta-integration) (preview as of 2026-06) and through Defender for Cloud Apps, and AWS, GCP, GitHub, Bitbucket and OneLogin through Cloud Apps into `CloudAppEvents`. The data can reach the schema, so the honest answer is "unmapped", not "impossible". Okta was briefly listed as unsupported on a wrong assumption; the connector documentation corrected it.
+
+The list therefore holds only sources with no ingestion path into that schema at all: third-party network sensors, appliance syslog, and self-hosted application logs. Those can reach Sentinel-native tables via CEF/syslog connectors, but not the Defender XDR tables this backend queries. Re-check the list each recalibration — it goes stale as vendors ship connectors, and the direction of drift is always toward *fewer* entries.
 
 ## Output formats
 

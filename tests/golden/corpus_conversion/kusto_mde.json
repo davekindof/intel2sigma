@@ -21,7 +21,7 @@
  },
  "00a8e92a-776b-425f-80f2-82d8f8fab2e5": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Okta system-log events. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "00b90cc1-17ec-402c-96ad-3a8117d7a582": {
   "status": "ok",
@@ -57,7 +57,7 @@
  },
  "02cf536a-cf21-4876-8842-4159c8aee3cc": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain GitHub audit records. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "02d1d718-dd13-41af-989d-ea85c7fab93f": {
   "status": "error",
@@ -73,7 +73,7 @@
  },
  "0322d9f2-289a-47c2-b5e1-b63c90901a3e": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Google Cloud and Workspace audit logs. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "04017cd5-621e-4ec4-a762-1f042fe3d3e5": {
   "status": "error",
@@ -81,7 +81,7 @@
  },
  "04e2a23a-9b29-4a5c-be3a-3542e3f982ba": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Google Cloud and Workspace audit logs. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "0506a799-698b-43b4-85a1-ac4c84c720e9": {
   "status": "error",
@@ -109,7 +109,7 @@
  },
  "07330162-dba1-4746-8121-a9647d49d297": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain AWS CloudTrail records. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "07ad2ea8-6a55-4ac6-bf3e-91b8e59676eb": {
   "status": "error",
@@ -121,7 +121,7 @@
  },
  "07e97cc6-aed1-43ae-9081-b3470d2367f1": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Okta system-log events. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "090ffaad-c01a-4879-850c-6d57da98452d": {
   "status": "error",
@@ -141,7 +141,7 @@
  },
  "0a3ff354-93fc-4273-8a03-1078782de5b7": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain RPC Firewall events. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for RPC Firewall events. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "0adc67e0-a68f-4ffd-9c43-28905aad5d6a": {
   "status": "error",
@@ -153,15 +153,15 @@
  },
  "0c97c1d3-4057-45c9-b148-1de94b631931": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Okta system-log events. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "0c9b3bda-41a6-4442-9345-356ae86343dc": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Kubernetes audit records. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "0d58814b-1660-4d31-8c93-d1086ed24cba": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Okta system-log events. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "0f06a3a5-6a09-413f-8743-e6cf35561297": {
   "status": "error",
@@ -189,7 +189,7 @@
  },
  "139bdd4b-9cd7-49ba-a2f4-744d0a8f5d8c": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Okta system-log events. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "13f2d3f5-6497-44a7-bf5f-dc13ffafe5dc": {
   "status": "error",
@@ -201,7 +201,7 @@
  },
  "16ab6143-510a-44e2-a615-bdb80b8317fc": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Bitbucket audit records. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "19bf6fdb-7721-4f3d-867f-53467f6a5db6": {
   "status": "ok",
@@ -217,7 +217,7 @@
  },
  "1fc0809e-06bf-4de3-ad52-25e5263b7623": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Zeek network-sensor telemetry. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Zeek network-sensor telemetry. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "1ff315dc-2a3a-4b71-8dde-873818d25d39": {
   "status": "error",
@@ -225,7 +225,7 @@
  },
  "22777c9e-873a-4b49-855f-6072ab861a52": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain OpenCanary honeypot events. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for OpenCanary honeypot events. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "23b71bc5-953e-4971-be4c-c896cda73fc2": {
   "status": "error",
@@ -241,7 +241,7 @@
  },
  "286b47ed-f6fe-40b3-b3a8-35129acd43bc": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Zeek network-sensor telemetry. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Zeek network-sensor telemetry. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "2975af79-28c4-4d2f-a951-9095f229df29": {
   "status": "error",
@@ -249,11 +249,11 @@
  },
  "2a0bb2dd-eb5f-4517-8cb9-404f8ba764a5": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Google Cloud and Workspace audit logs. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "2bfb6216-0c31-4d20-8501-2629b29a3fa2": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain FortiGate event logs. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for FortiGate event logs. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "2bfc1373-0220-4fbd-8b10-33ddafd2a142": {
   "status": "error",
@@ -269,7 +269,7 @@
  },
  "3132570d-cab2-4561-9ea6-1743644b2290": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Kubernetes audit records. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "31d68132-4038-47c7-8f8e-635a39a7c174": {
   "status": "error",
@@ -293,7 +293,7 @@
  },
  "4096842a-8f9f-4d36-92b4-d0b2a62f9b2a": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Zeek network-sensor telemetry. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Zeek network-sensor telemetry. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "42127bdd-9133-474f-a6f1-97b6c08a4339": {
   "status": "error",
@@ -301,7 +301,7 @@
  },
  "503fe26e-b5f2-4944-a126-eab405cc06e5": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Zeek network-sensor telemetry. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Zeek network-sensor telemetry. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "50cb47b8-2c33-4b23-a2e9-4600657d9746": {
   "status": "error",
@@ -309,7 +309,7 @@
  },
  "5588576c-5898-4fac-bcdd-7475a60e8f43": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Zeek network-sensor telemetry. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Zeek network-sensor telemetry. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "558eebe5-f2ba-4104-b339-36f7902bcc1a": {
   "status": "error",
@@ -317,7 +317,7 @@
  },
  "56fa3cd6-f8d6-4520-a8c7-607292971886": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Cisco appliance logs. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Cisco appliance syslog. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "58af08eb-f9e1-43c8-9805-3ad9b0482bd8": {
   "status": "error",
@@ -329,7 +329,7 @@
  },
  "62fff148-278d-497e-8ecd-ad6083231a35": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain OneLogin events. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "64d51a51-32a6-49f0-9f3d-17e34d640272": {
   "status": "error",
@@ -337,7 +337,7 @@
  },
  "68c2c604-92ad-468b-bf4a-aac49adad08c": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Zeek network-sensor telemetry. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Zeek network-sensor telemetry. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "6d444368-6da1-43fe-b2fc-44202430480e": {
   "status": "error",
@@ -345,11 +345,11 @@
  },
  "6f7e1c10-2dc9-4312-adb6-9574ff09a5c8": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Cisco appliance logs. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Cisco appliance syslog. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "7100f7e3-92ce-4584-b7b7-01b40d3d4118": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Zeek network-sensor telemetry. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Zeek network-sensor telemetry. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "71886b70-d7b4-4dbf-acce-87d2ca135262": {
   "status": "error",
@@ -401,11 +401,11 @@
  },
  "a557ffe6-ac54-43d2-ae69-158027082350": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Huawei device logs. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Huawei device logs. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "a7c0ae48-8df8-42bf-91bd-2ea57e2f9d43": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain Juniper device logs. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Juniper device logs. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "ab90dab8-c7da-4010-9193-563528cfa347": {
   "status": "error",
@@ -445,7 +445,7 @@
  },
  "e032f5bc-4563-4096-ae3b-064bab588685": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR schema, which does not contain JVM application logs. This detection cannot be expressed for this backend — that is a property of the platform, not a gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Defender for Endpoint (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for JVM application logs. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "e2b5163d-7deb-4566-9af3-40afea6858c3": {
   "status": "error",

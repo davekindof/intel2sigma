@@ -32,29 +32,37 @@ backends:
         format: default
         baseline_pipelines: [microsoft_xdr]
         label: "Microsoft Sentinel (KQL)"
+        # SaaS and cloud platforms are deliberately ABSENT from this list,
+        # even though none of them convert today. Microsoft ships
+        # first-party connectors that land their telemetry in Defender XDR
+        # advanced-hunting tables: Okta via Defender for Identity
+        # (learn.microsoft.com/defender-for-identity/okta-integration,
+        # preview as of 2026-06) and via Defender for Cloud Apps, and
+        # AWS / GCP / GitHub / Bitbucket / OneLogin via Defender for Cloud
+        # Apps into CloudAppEvents. The data can reach the schema, so the
+        # honest answer is "unmapped", not "impossible" — and that answer
+        # keeps changing as Microsoft ships connectors, which is precisely
+        # why this list holds only sources with no ingestion path at all.
         unsupported_products: &defender_xdr_unsupported
-            aws: "AWS CloudTrail records"
-            gcp: "Google Cloud and Workspace audit logs"
-            okta: "Okta system-log events"
-            onelogin: "OneLogin events"
-            github: "GitHub audit records"
-            bitbucket: "Bitbucket audit records"
             zeek: "Zeek network-sensor telemetry"
-            cisco: "Cisco appliance logs"
+            cisco: "Cisco appliance syslog"
             fortigate: "FortiGate event logs"
             juniper: "Juniper device logs"
             huawei: "Huawei device logs"
-            kubernetes: "Kubernetes audit records"
             jvm: "JVM application logs"
             opencanary: "OpenCanary honeypot events"
             rpc_firewall: "RPC Firewall events"
-        # {label} and {telemetry} are substituted at render time.
+        # {label} and {telemetry} are substituted at render time. The copy
+        # is scoped to *this backend's* schema rather than to Microsoft's
+        # products as a whole: appliance syslog and self-hosted sensor
+        # telemetry can reach Sentinel-native tables via CEF/syslog
+        # connectors, but not the Defender XDR tables this backend queries.
         unsupported_template: &defender_xdr_unsupported_template >-
-            {label} queries the Microsoft Defender XDR schema, which does
-            not contain {telemetry}. This detection cannot be expressed
-            for this backend — that is a property of the platform, not a
-            gap in intel2sigma. The Splunk, Elastic and CrowdStrike tabs
-            pass these field names through and will usually convert it.
+            {label} queries the Microsoft Defender XDR advanced-hunting
+            schema, which has no tables for {telemetry}. This detection
+            cannot be expressed against that schema. The Splunk, Elastic
+            and CrowdStrike tabs pass these field names through and will
+            usually convert it.
         # Sysmon-only Sigma categories that pySigma's microsoft_xdr
         # pipeline doesn't have a default table mapping for. Each entry
         # injects ``query_table`` into the pipeline state at priority 5

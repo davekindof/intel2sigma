@@ -221,11 +221,57 @@ def test_unsupported_telemetry_says_so_instead_of_promising_a_fix() -> None:
 
     The unsupported set is data — ``unsupported_products`` in
     ``pipelines.yml`` (I-5) — so adding a platform needs no Python.
+
+    Zeek is the example because it has no ingestion path into Defender
+    XDR at all. Third-party network-sensor telemetry can reach
+    Sentinel-native tables through a CEF/syslog connector, but not the
+    advanced-hunting tables this backend queries.
+    """
+    rule = SigmaRule(
+        title="Zeek DNS query",
+        id=UUID("77777777-8888-9999-aaaa-bbbbbbbbbbbb"),
+        date=date(2026, 7, 28),
+        logsource=LogSource(product="zeek", service="dns"),
+        detections=[
+            DetectionBlock(
+                name="match_1",
+                items=[DetectionItem(field="query", modifiers=[], values=["x"])],
+            ),
+        ],
+        condition=ConditionExpression(selection="match_1"),
+    )
+
+    with pytest.raises(ConversionFailedError) as exc_info:
+        convert(rule, "kusto_sentinel")
+
+    msg = str(exc_info.value)
+    assert "Zeek network-sensor telemetry" in msg, "should name the telemetry that is absent"
+    assert "cannot be expressed" in msg, "should be framed as final, not as a to-do"
+    # Must NOT imply someone is coming to fix it.
+    assert "coverage gap" not in msg
+    # The old message name-dropped an unrelated Sysmon category.
+    assert "create_remote_thread" not in msg
+
+
+def test_saas_platforms_are_reported_as_unmapped_not_impossible() -> None:
+    """Okta must NOT be called impossible — Defender can ingest it.
+
+    This is the regression guard for a real mistake. Okta was originally
+    added to ``unsupported_products`` on the assumption that Defender XDR
+    has no Okta tables. It does: Microsoft ships an Okta connector for
+    Defender for Identity (preview, 2026-06) and another for Defender for
+    Cloud Apps, both of which surface in advanced hunting. The same holds
+    for AWS, GCP, GitHub, Bitbucket and OneLogin via Cloud Apps.
+
+    None of them convert today, but "unmapped" and "impossible" are
+    different claims, and only the first is true. Asserting the second
+    would talk a user out of a detection that a pipeline mapping — or
+    simply a newer Microsoft connector — can deliver.
     """
     rule = SigmaRule(
         title="Okta admin role assigned",
-        id=UUID("77777777-8888-9999-aaaa-bbbbbbbbbbbb"),
-        date=date(2026, 7, 28),
+        id=UUID("99999999-aaaa-bbbb-cccc-dddddddddddd"),
+        date=date(2026, 7, 29),
         logsource=LogSource(product="okta", service="okta"),
         detections=[
             DetectionBlock(
@@ -240,12 +286,12 @@ def test_unsupported_telemetry_says_so_instead_of_promising_a_fix() -> None:
         convert(rule, "kusto_sentinel")
 
     msg = str(exc_info.value)
-    assert "Okta system-log events" in msg, "should name the telemetry that is absent"
-    assert "property of the platform" in msg, "should be framed as final, not as a to-do"
-    # Must NOT imply someone is coming to fix it.
-    assert "coverage gap" not in msg
-    # The old message name-dropped an unrelated Sysmon category.
-    assert "create_remote_thread" not in msg
+    assert "cannot be expressed" not in msg, (
+        "Defender for Identity and Defender for Cloud Apps both ingest Okta; "
+        "calling this impossible is factually wrong and discourages a "
+        "detection the platform can support"
+    )
+    assert "gap that can be closed" in msg
 
 
 def test_unmapped_but_supported_logsource_is_reported_as_a_closable_gap() -> None:
