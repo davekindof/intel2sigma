@@ -400,7 +400,14 @@ def _logsource_summary(draft: RuleDraft) -> str:
 
 
 def _download_filename(rule: SigmaRule) -> str:
-    """Derive a SigmaHQ-style filename from the rule's title + uuid."""
+    """Derive a SigmaHQ-style filename from the rule's title.
+
+    May contain non-ASCII: ``str.isalnum()`` is unicode-aware, so a
+    Cyrillic or CJK title keeps its letters. That is correct for the
+    HTML ``download`` attribute, which is UTF-8. Anything putting this
+    in an HTTP header must go through :func:`_content_disposition` —
+    headers are latin-1 and a raw non-latin-1 filename raises.
+    """
     slug = (
         "".join(c if c.isalnum() or c in "-_" else "_" for c in rule.title.lower().strip())[
             :60
@@ -408,6 +415,28 @@ def _download_filename(rule: SigmaRule) -> str:
         or "rule"
     )
     return f"{slug}.yml"
+
+
+def _content_disposition(filename: str) -> str:
+    """Build an RFC 6266 ``Content-Disposition`` for an arbitrary filename.
+
+    HTTP header values are latin-1. A rule titled in Cyrillic or CJK
+    produced a filename outside that range, so interpolating it raised
+    ``UnicodeEncodeError`` inside Starlette — with no global exception
+    handler, a 500 on the download, which is the product's final step.
+    Emoji and accented Latin were unaffected and hid the bug: emoji fail
+    ``isalnum()`` and are replaced, and ``é`` is inside latin-1.
+
+    RFC 6266 solves this with two parameters: a plain ``filename`` that
+    every client understands, and ``filename*`` carrying the real UTF-8
+    name percent-encoded. Clients that grok the extended form prefer it;
+    the rest fall back. So a Russian title downloads with its own name in
+    a modern browser and a transliterated-to-underscores one elsewhere,
+    instead of failing.
+    """
+    ascii_name = filename.encode("ascii", "replace").decode("ascii").replace("?", "_")
+    quoted = quote(filename, safe="")
+    return f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{quoted}"
 
 
 def _describe_condition(draft: RuleDraft) -> str:
@@ -1460,11 +1489,10 @@ def build_download_response(rule_state: str) -> PlainTextResponse:
             media_type="text/plain",
         )
     yaml_text = to_yaml(result)
-    filename = _download_filename(result)
     return PlainTextResponse(
         content=yaml_text,
         media_type="application/yaml",
-        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+        headers={"Content-Disposition": _content_disposition(_download_filename(result))},
     )
 
 

@@ -14,6 +14,7 @@ Wires together:
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -28,6 +29,8 @@ from intel2sigma.web.logging import configure_logging, request_logging_middlewar
 from intel2sigma.web.routes import composer as composer_routes
 
 configure_logging()
+
+log = logging.getLogger("intel2sigma.web")
 
 _WEB_DIR = Path(__file__).resolve().parent
 _STATIC_DIR = _WEB_DIR / "static"
@@ -75,6 +78,12 @@ def create_app() -> FastAPI:
         version=__version__,
         docs_url=None,  # no Swagger UI; this isn't an API surface
         redoc_url=None,
+        # …and no machine-readable schema either. Disabling only the two
+        # UIs still left /openapi.json served, which published the full
+        # route table of a stateless HTML app that has no API consumers.
+        # Not a secret — the repo is public — but it contradicted the
+        # decision the line above records.
+        openapi_url=None,
     )
     app.middleware("http")(request_logging_middleware)
     app.mount(
@@ -88,6 +97,38 @@ def create_app() -> FastAPI:
     app.state.taxonomy = composer_routes.prime_taxonomy()
 
     app.include_router(composer_routes.router)
+
+    @app.exception_handler(Exception)
+    async def unhandled_exception(request: Request, exc: Exception) -> PlainTextResponse:
+        """Last-resort handler so an unexpected failure is a message, not a trace.
+
+        Defence in depth, added after two separate classes of unhandled
+        exception reached users: pySigma raising non-``SigmaError`` types
+        out of ``convert()`` (10.7% of corpus rules), and a Cyrillic or
+        CJK rule title producing a ``Content-Disposition`` value outside
+        latin-1. Both are fixed at source; this catches the third one
+        nobody has found yet.
+
+        Deliberately says nothing about the failure. Stack traces and
+        exception text can carry rule contents, and rule contents are
+        exactly what ``web/logging.py`` already goes out of its way to
+        keep out of logs — leaking them through an error page instead
+        would defeat that. The request id is the correlation handle; the
+        logging middleware records the detail server-side.
+        """
+        request_id = getattr(request.state, "request_id", None) or "unknown"
+        log.exception(
+            "unhandled exception on %s %s",
+            request.method,
+            request.url.path,
+            extra={"request_id": request_id},
+        )
+        return PlainTextResponse(
+            "Something went wrong handling that request. Nothing was saved — "
+            "the server keeps no state, so retrying or reloading is safe.\n"
+            f"Quote this id if you report it: {request_id}\n",
+            status_code=500,
+        )
 
     @app.get("/healthz")
     async def healthz() -> JSONResponse:

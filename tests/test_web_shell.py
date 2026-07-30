@@ -11,8 +11,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from intel2sigma import __version__
-from intel2sigma.web.app import app
+from intel2sigma.web.app import app, create_app
 from intel2sigma.web.highlight import yaml_to_html
+from intel2sigma.web.routes.composer import _content_disposition
 
 
 @pytest.fixture
@@ -102,3 +103,75 @@ def test_yaml_to_html_wraps_tokens() -> None:
     assert '<span class="' in html
     # YAML key (nt = Name.Tag) and string (s2) classes should appear.
     assert "nt" in html or "k" in html
+
+
+# ---------------------------------------------------------------------------
+# Error-surface hardening
+# ---------------------------------------------------------------------------
+
+
+def test_openapi_schema_is_not_served(client: TestClient) -> None:
+    """No machine-readable schema, matching the no-API-surface decision.
+
+    ``create_app`` disables Swagger and ReDoc with the comment "this
+    isn't an API surface", but ``openapi_url`` defaulted on, so
+    /openapi.json served the full route table of a stateless HTML app in
+    production. Not a secret with a public repo, but it contradicted the
+    decision beside it.
+    """
+    assert client.get("/openapi.json").status_code == 404
+    assert client.get("/docs").status_code == 404
+    assert client.get("/redoc").status_code == 404
+
+
+def test_download_survives_a_non_latin1_title() -> None:
+    """A Cyrillic or CJK rule title must not 500 the download.
+
+    HTTP header values are latin-1. ``_download_filename`` sanitises with
+    the unicode-aware ``str.isalnum()``, so those letters survived into
+    ``Content-Disposition`` and Starlette raised ``UnicodeEncodeError``
+    — a 500 on the product's final step for anyone naming rules in a
+    non-Latin script. Emoji and accented Latin hid it: emoji fail
+    isalnum() and are replaced, and "é" is inside latin-1.
+
+    RFC 6266 carries the real name in ``filename*`` and an ASCII
+    fallback in ``filename``.
+    """
+    for title in ("Обнаружение.yml", "恶意软件检测.yml", "café.yml", "plain.yml"):
+        header = _content_disposition(title)
+        # The header must be transmittable at all — this is what raised.
+        header.encode("latin-1")
+        assert "filename*=UTF-8''" in header, "extended form carries the real name"
+        assert header.startswith('attachment; filename="'), "ASCII fallback comes first"
+
+
+def test_unhandled_exception_becomes_a_message_not_a_traceback() -> None:
+    """The last-resort handler returns 500 without leaking rule content.
+
+    Two classes of unhandled exception have already reached users — pySigma
+    raising non-SigmaError types out of convert(), and a non-latin-1 rule
+    title breaking Content-Disposition. Both are fixed at source; this is
+    the net for the next one.
+
+    The assertion that matters is what is NOT in the body. Tracebacks and
+    exception text can carry rule contents, which web/logging.py already
+    works to keep out of logs; an error page that printed them would
+    defeat that.
+    """
+    app = create_app()
+
+    @app.get("/_boom")
+    async def boom() -> None:
+        raise RuntimeError("secret detection content: CommandLine=hunter2")
+
+    # raise_server_exceptions=False so the handler's response is observable
+    # rather than the exception propagating into the test.
+    c = TestClient(app, raise_server_exceptions=False)
+    r = c.get("/_boom")
+
+    assert r.status_code == 500
+    assert "hunter2" not in r.text, "exception text must not reach the user"
+    assert "Traceback" not in r.text
+    assert "RuntimeError" not in r.text
+    assert "Nothing was saved" in r.text, "should say the app is stateless"
+    assert "Quote this id" in r.text, "should give a correlation handle"
