@@ -492,6 +492,57 @@ reading bug reports.
 
 Doesn't fit a milestone:
 
+### Open after the 2026-Q3 recalibration
+
+Carried forward from that cycle. Ordered by value, not effort.
+
+- **Keyword-list detection blocks don't load** (HIGH, 94 rules). 94 of
+  the 98 corpus rules that fail `from_yaml` use Sigma's keyword form —
+  a detection block that is a list of scalars rather than mappings
+  (`filter_keywords: [samr, lsarpc]`). `_parse_detection_block` raises
+  `TypeError` on the first scalar entry. The model and serializer
+  already handle these: `DetectionItem` with an empty `field` *is* the
+  keyword shape, documented as such, and `_emit_keyword_block` renders
+  it in three forms. Only the parse side is missing, so this is one
+  branch rather than a feature. Plan the `MIN_CLEAN_COUNT` bump in the
+  same commit — 94 newly-loadable rules sit close to the ratchet's
+  100-lag tolerance, and new logsource keys will trip
+  `test_sample_covers_every_logsource_key`.
+- **Four rules silently lose detection items on re-emit** (MEDIUM).
+  `fieldref` on three, a regex modifier pair on the fourth. This is the
+  `silent_data_loss` class: the user's rule changes with no warning.
+  Rules `055fb148`, `bafd07c6`, `f01d1f70`, `fff9d2b7`.
+- **The "closable gap" bucket conflates three kinds of work** (MEDIUM,
+  UX). Of 41 sampled gap rules: 13 are endpoint logsources a
+  `category_overrides` entry closes in one line; 23 are SaaS/cloud
+  sources that need a Microsoft connector *plus* a Sigma → CloudAppEvents
+  mapping that does not exist upstream; 5 are vendor-agnostic categories
+  now split out as `underspecified`. Telling all of them "a gap that can
+  be closed" is honest but implies a queue that the middle group is not
+  in. Worth a fourth state, or copy that names what is actually needed.
+- **13 endpoint `category_overrides` entries** (MEDIUM, data-only but
+  NOT safely delegable). `windows/ldap`, `windows/msexchange-management`,
+  `create_stream_hash`, `linux/auditd`, `linux/auth`, `linux/sudo` and
+  friends. Each needs the correct Defender XDR table: a wrong one
+  produces a syntactically valid query against the wrong data, which is
+  worse than the error it replaces. Check each against the Defender
+  schema and review the resulting snapshot diff.
+- **Invalid-field errors dump ~80 field names into the UI** (LOW, UX).
+  When a rule's category maps but a field does not, pySigma appends the
+  full list of valid columns for the table and the conversion tab
+  renders all of it. Distinct from the table-mapping messages fixed in
+  4105fc2 / d6266ba, and untouched by them.
+- **pysigma 1.x upgrade is blocked upstream** (BLOCKED). Branch
+  `chore/pysigma-1x-upgrade` holds the analysis. `ConvertTypeTransformation`
+  in pysigma core stringifies any `SigmaType` it does not special-case,
+  corrupting `SigmaRegularExpression` into its own repr for 94
+  Elasticsearch conversions. Reproducible with zero intel2sigma code via
+  `ProcessingPipelineResolver`. Also observed: building `ecs_windows`
+  then `splunk_windows` in one process leaks ECS field names into the
+  Splunk query — cross-pipeline shared state, the same class as the
+  `InvalidFieldTransformation` mutation fixed in `cc388e9`. File both
+  upstream; retest by re-running the conversion snapshot on that branch.
+
 ### Bugs from 0.3.0 testing (target 0.3.1 patch)
 
 Filed during dogfood testing of the 0.3.0 deploy with a second Claude
