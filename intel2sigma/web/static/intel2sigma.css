@@ -7,7 +7,7 @@
  * Structure:
  *   :root        — custom properties (palette, typography, spacing, radii)
  *   reset        — minimal opinionated normalize
- *   app chrome   — header, three-region layout, health drawer
+ *   app chrome   — header, two-pane layout
  *   components   — buttons, inputs, cards, chips
  *   preview pane — YAML + conversion tabs
  *   error states — IDE-esque inline decoration (tier-1 + tier-2 + heuristics)
@@ -68,8 +68,6 @@
 
     /* ---- chrome heights ---- */
     --height-header: 48px;
-    --height-drawer-collapsed: 32px;
-    --height-drawer-expanded: 240px;
 }
 
 /* ---- reset ------------------------------------------------------------ */
@@ -117,7 +115,10 @@ button {
 
 .app {
     display: grid;
-    grid-template-rows: var(--height-header) 1fr auto;
+    /* Two rows since the health drawer was removed. The third `auto`
+       row it occupied resolved to 0 once empty, so this is a tidy-up
+       rather than a behaviour change. */
+    grid-template-rows: var(--height-header) 1fr;
     grid-template-columns: 1fr;
     height: 100vh;
 }
@@ -196,12 +197,13 @@ button {
        loaded rule from overflowing the viewport because grid+flex
        intrinsic-size resolution is brittle when nested 3 levels deep
        with mixed display modes. The calc is just ``viewport minus the
-       two known fixed-height regions`` — bulletproof against grid
-       quirks and independent of content size. When the health drawer
-       expands (M2.1), update this calc to subtract the expanded
-       height too, or move the calc into a JS hook that observes the
-       drawer's class. */
-    height: calc(100vh - var(--height-header) - var(--height-drawer-collapsed));
+       header`` — bulletproof against grid quirks and independent of
+       content size.
+
+       Previously also subtracted --height-drawer-collapsed for a health
+       drawer that never shipped; removing the drawer reclaims those
+       32px, which were dead space at the bottom of every page. */
+    height: calc(100vh - var(--height-header));
 }
 
 .composer-panel {
@@ -365,35 +367,7 @@ button {
     border-radius: var(--radius-sm);
 }
 
-/* ---- health drawer --------------------------------------------------- */
-
-.health-drawer {
-    background: var(--color-surface);
-    border-top: 1px solid var(--color-border);
-    grid-row: 3;
-}
-.health-drawer.collapsed {
-    height: var(--height-drawer-collapsed);
-    display: flex;
-    align-items: center;
-    padding: 0 var(--space-4);
-    justify-content: space-between;
-}
-.health-drawer.expanded {
-    height: var(--height-drawer-expanded);
-    overflow-y: auto;
-}
-
-.health-counts {
-    display: flex;
-    gap: var(--space-4);
-    font-size: 12px;
-    color: var(--color-text-muted);
-}
-.health-count-critical { color: var(--color-critical); }
-.health-count-warn { color: var(--color-warn); }
-.health-count-info { color: var(--color-info); }
-.health-count-clean { color: var(--color-success); }
+/* ---- rule-health issue rows (stage 3 review + load modal) ---------- */
 
 .health-issue {
     display: grid;

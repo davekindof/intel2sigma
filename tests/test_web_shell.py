@@ -47,7 +47,12 @@ def test_guided_renders_shell(client: TestClient) -> None:
     assert "app-header" in body
     assert "composer-panel" in body
     assert "preview-panel" in body
-    assert "health-drawer" in body
+    # The health drawer was removed in 2026-07: it never rendered
+    # anything but a placeholder promising "Rule health checks land in
+    # M2.1", a milestone that no longer exists in ROADMAP.md, while rule
+    # health actually shipped as the Stage 3 advisories. Asserting its
+    # absence keeps the dead scaffolding from reappearing.
+    assert "health-drawer" not in body
 
 
 def test_expert_url_redirects_to_guided(client: TestClient) -> None:
