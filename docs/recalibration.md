@@ -125,11 +125,16 @@ two-test-cases-each, ship.
 uv run python scripts/curate_examples.py --check-only
 ```
 
-> **Caveat (2026-07-26):** the script does not implement `--check-only`;
-> the flag is accepted and ignored, and the examples are always
-> rewritten. Treat this step as "re-curate and review the diff" until
-> the script grows the flag. Expect the header comments to churn too if
-> the committed examples predate the current template.
+`--check-only` writes nothing. It prints `ok` / `drift` / `MISSING` per
+example and exits non-zero if any differ, so it is safe to run in CI or
+before deciding whether the step needs doing at all. Drop the flag to
+actually refresh them.
+
+*(Implemented 2026-07-30. It had been documented here since the runbook
+was written but never existed — the flag parsed as an unknown argument,
+was ignored, and the script rewrote every example. That silently
+produced seven modified files during the 2026-Q3 cycle from what this
+step presents as a read-only check.)*
 
 This re-validates each `intel2sigma/data/examples/*.yml` rule against:
 
@@ -142,8 +147,17 @@ it with a current equivalent from the corpus.
 
 ### 6. Doc + version bump
 
-- Bump `__version__` in `intel2sigma/__init__.py` (semver minor for catalog
-  changes; major when interfaces change).
+- Bump `__version__` in `intel2sigma/__init__.py` **and** `pyproject.toml`,
+  then `uv lock` so the lockfile's own version entry follows. Per
+  CHANGELOG.md's versioning policy this is a **patch** bump: a
+  recalibration refreshes pinned data, which is not the "milestone
+  landing in full" that policy reserves minor for. Minor when the cycle
+  also lands a milestone; major when interfaces change.
+
+  *(This step previously read "semver minor for catalog changes", which
+  contradicted CHANGELOG.md. Resolved in favour of CHANGELOG.md during
+  the 2026-Q3 cycle — it is the document that defines the policy, and
+  this one should only point at it.)*
 - Add a one-line entry in SPEC.md decision log: which upstreams moved,
   what changed in the catalog.
 - Tag the recalibration in git: `git tag recal-YYYY-Qn && git push --tags`.

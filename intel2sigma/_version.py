@@ -21,7 +21,9 @@ from intel2sigma._data import data_path
 # Pinned SigmaHQ corpus commit. Source of truth lives here (not in
 # scripts/fetch_sigmahq.py) so the /version endpoint can surface it
 # without the scripts/ tree having to ship in the wheel. Bumped
-# quarterly per the recalibration cadence in docs/taxonomy.md.
+# quarterly per the runbook in docs/recalibration.md — docs/taxonomy.md
+# describes the frequency analysis that consumes this pin, not the
+# cadence for moving it.
 # r2026-07-01 (tagged 2026-07-09). Pinned to the release tag's commit
 # rather than upstream HEAD so "this catalog was calibrated against
 # SigmaHQ r2026-07-01" is exact rather than approximate.

@@ -1,0 +1,19 @@
+# Normalise line endings so a Windows checkout can't produce phantom
+# whole-file diffs.
+#
+# core.autocrlf=true converts to CRLF on checkout. ruff's format config
+# pins line-ending=lf, so any file git had rewritten to CRLF showed up as
+# "would reformat" with a diff containing no visible changes — and a
+# stash round-trip on _version.py produced exactly that during the
+# 2026-Q3 recalibration. Declaring the intent here makes the repo's
+# behaviour independent of each clone's local git config.
+
+# Text files: LF in the repository and in the working tree.
+* text=auto eol=lf
+
+# Binary — never touch these.
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

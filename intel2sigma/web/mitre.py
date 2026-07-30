@@ -15,6 +15,9 @@ import json
 from functools import cache
 from typing import Any
 
+from ruamel.yaml import YAML
+from ruamel.yaml.error import YAMLError
+
 from intel2sigma._data import data_path
 
 _TREE_PATH = data_path("mitre_attack.json")
@@ -23,6 +26,7 @@ _TREE_PATH = data_path("mitre_attack.json")
 # in ``except (X, Y):``. The bare comma form Python 3.14 accepts looks
 # like a Python 2 bug to readers; the alias keeps intent explicit.
 _LOAD_FAILURES = (OSError, json.JSONDecodeError)
+_SUGGESTION_LOAD_FAILURES = (OSError, YAMLError)
 
 
 @cache
@@ -43,4 +47,43 @@ def load_mitre_tree() -> dict[str, Any]:
         return {}
 
 
-__all__ = ["load_mitre_tree"]
+@cache
+def attack_tag_suggestions() -> tuple[str, ...]:
+    """Datalist entries for the Stage 2 ATT&CK tag input.
+
+    Tactics are derived from the pinned tree rather than listed, so they
+    cannot drift from it. They did drift: the suggestion list carried
+    ``attack.defense-evasion`` for months after ATT&CK v18 retired it,
+    because it was a hand-maintained tuple in ``web/routes/composer.py``.
+    Deriving removes the failure mode instead of correcting one instance
+    of it.
+
+    Techniques come from ``data/attack_tag_suggestions.yml`` — editorial,
+    not derivable, since a datalist of all 858 helps nobody. Both halves
+    are now data (CLAUDE.md I-5).
+
+    Degrades to the techniques alone if the tree is unreadable, matching
+    how :func:`load_mitre_tree` degrades rather than raising.
+    """
+    tactics = tuple(
+        str(t["tag"])
+        for t in load_mitre_tree().get("tactics", [])
+        if isinstance(t, dict) and t.get("tag")
+    )
+
+    path = data_path("attack_tag_suggestions.yml")
+    techniques: tuple[str, ...] = ()
+    if path.is_file():
+        try:
+            loaded = YAML(typ="safe").load(path.read_text(encoding="utf-8"))
+        except _SUGGESTION_LOAD_FAILURES:
+            loaded = None
+        if isinstance(loaded, dict):
+            raw = loaded.get("techniques") or []
+            if isinstance(raw, list):
+                techniques = tuple(str(t) for t in raw if t)
+
+    return tactics + techniques
+
+
+__all__ = ["attack_tag_suggestions", "load_mitre_tree"]

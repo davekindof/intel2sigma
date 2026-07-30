@@ -151,9 +151,9 @@ backlog at that point.
 
 ### Observation catalog expansion
 
-The v0/v1.0 catalog ships **15** observation types covering the most common Windows + Linux detection surfaces. Real Sigma rule corpora cover many more — `file_change`, `file_delete`, `file_access`, `process_access` (Sysmon EventID 10), `create_stream_hash` (EventID 15), `registry_event` / `registry_add` / `registry_delete`, Windows Security channel events (4624/4625/4672/4688/4698 etc.), Defender events, DNS-server-side logs, macOS unified-log categories, AWS / Azure / GCP cloudtrail-style sources, web-app categories (apache, nginx, kubernetes), and more.
+v0/v1.0 shipped **15** observation types covering the most common Windows + Linux detection surfaces; the catalog stands at **48** as of the 2026-Q3 cycle, having absorbed most of the list this paragraph originally named as missing — `file_change`, `file_delete`, `file_access`, `process_access`, `create_stream_hash`, the `registry_*` family, Windows Security channel events, Defender events, macOS categories, and the AWS / Azure / GCP audit sources. Real Sigma corpora still cover more: the current shortfall is measured in the queued-buckets table below, not guessed at here.
 
-Approach: every quarterly recalibration cycle (already scheduled for taxonomy frequency analysis + heuristic severity tuning) also reviews the corpus for high-frequency uncatalogued logsources and adds catalog files for any with ≥50 vetted rules. Each addition is a data-only change per CLAUDE.md I-5 — no Python edits.
+Approach: every quarterly recalibration cycle (already scheduled for taxonomy frequency analysis + heuristic severity tuning) also reviews the corpus for high-frequency uncatalogued logsources and adds catalog files for any bucket at or above the **≥5 vetted rules** threshold defined in `docs/taxonomy.md`. Each addition is a data-only change per CLAUDE.md I-5 — no Python edits.
 
 **Pattern IV — vertical-slice review per observable** *(0.3.1+ methodology change).* Frequency analysis as the primary signal undercounts low-frequency-high-value telemetry. B3 (filed during 0.3.0 testing) is the canonical instance: auditd's SOCKADDR-record fields (`saddr`, `lport`, `laddr`, `fam`) are rare in the corpus precisely because the catalog doesn't expose them — users can't easily author rules using fields they can't pick from the dropdown, so rare stays rare in a feedback loop. Network-syscall detection is a vertical slice of high security value that pure frequency systematically underweights. Same pattern likely affects Sysmon paired events, ETW manifest fields, and cloud audit's "low-frequency-but-critical" fields (e.g. AWS `errorCode`, GCP `protoPayload.status.code`).
 
@@ -202,12 +202,11 @@ B-2 made them visible; it did not break them. That distinction is
 why `MIN_CLEAN_COUNT` moved down to 3423 rather than being treated
 as a regression — see the history comment on that constant.
 
-**Threshold note:** the paragraph above says "≥50 vetted rules",
-while `docs/taxonomy.md` says a bucket becomes a candidate at **≥5**
-rules. The L2-P2 sweep followed the ≥5 rule in practice (it added
-`file_change`, `file_access` and others well under 50), so ≥5 is
-the operative threshold and the table uses it. The two documents
-should be reconciled — flagged, not silently resolved.
+**Threshold:** ≥5 rules, per `docs/taxonomy.md`. This paragraph
+previously said ≥50, contradicting that file; the L2-P2 sweep had
+followed ≥5 in practice (adding `file_change`, `file_access` and
+others well under 50), so the conflict was resolved in favour of ≥5
+during the 2026-Q3 cycle.
 
 ## 🪦 v1.x — Load-path corpus-wide hardening sweep *(SHIPPED in 0.3.0, 2026-04-29)*
 

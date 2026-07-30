@@ -60,7 +60,7 @@ from intel2sigma.web.load import (
     list_examples,
     load_example,
 )
-from intel2sigma.web.mitre import load_mitre_tree
+from intel2sigma.web.mitre import attack_tag_suggestions, load_mitre_tree
 
 router = APIRouter(prefix="/composer")
 
@@ -253,7 +253,7 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
             request=request,
             draft=draft,
             can_advance=draft.can_advance_to_stage(3),
-            attack_tag_suggestions=_ATTACK_TAG_SUGGESTIONS,
+            attack_tag_suggestions=attack_tag_suggestions(),
             mitre_tree=load_mitre_tree(),
             selected_attack_tags=set(draft.tags),
             **bc,
@@ -327,40 +327,6 @@ def _render_composer_panel(request: Request, draft: RuleDraft, taxonomy: Taxonom
         logsource_summary=_logsource_summary(draft),
         **bc,
     )
-
-
-# A small hand-picked set of ATT&CK tactic + technique tags the metadata
-# form uses as a datalist for autocomplete. Full technique picker is
-# deferred to v1.1 per the milestone plan; this covers the common cases
-# for Windows process-creation rules, which is what the MVP demos.
-_ATTACK_TAG_SUGGESTIONS: tuple[str, ...] = (
-    "attack.execution",
-    "attack.persistence",
-    "attack.privilege-escalation",
-    # ATT&CK v18 retired defense-evasion, splitting it into these two.
-    "attack.stealth",
-    "attack.defense-impairment",
-    "attack.credential-access",
-    "attack.discovery",
-    "attack.lateral-movement",
-    "attack.collection",
-    "attack.command-and-control",
-    "attack.exfiltration",
-    "attack.impact",
-    "attack.initial-access",
-    "attack.t1059",
-    "attack.t1059.001",
-    "attack.t1059.003",
-    "attack.t1190",
-    "attack.t1195.002",
-    "attack.t1203",
-    "attack.t1218",
-    "attack.t1547.001",
-    "attack.t1569.002",
-    "attack.t1055",
-    "attack.t1053.005",
-    "attack.t1003",
-)
 
 
 def _prose_summary(rule: SigmaRule | None, draft: RuleDraft) -> str:  # noqa: PLR0912 (branches correspond to distinct prose shapes)

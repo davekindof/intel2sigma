@@ -1,0 +1,34 @@
+# Technique shortlist for the Stage 2 ATT&CK tag autocomplete.
+#
+# ONLY techniques live here. The tactic half of the datalist is derived
+# from data/mitre_attack.json at runtime, so it cannot drift from the
+# pinned tree — that drift is not hypothetical: this list carried
+# `attack.defense-evasion` until the 2026-Q3 recalibration, months after
+# ATT&CK v18 retired it in favour of stealth + defense-impairment. A
+# hand-maintained tactic list will always go stale eventually; a derived
+# one cannot.
+#
+# Techniques are editorial rather than derivable — the full tree has 858
+# of them and a datalist that long helps nobody. This is the handful an
+# analyst reaches for most on the endpoint detections the composer is
+# built around, and it is a starting point for typing, not a menu: the
+# field accepts any value, and the hierarchical picker beside it browses
+# the complete tree.
+#
+# Adding one is a data-only change per CLAUDE.md I-5. Verify the id
+# against the pinned tree before adding — an id absent from the tree
+# still works as free text but will not resolve in the picker.
+
+techniques:
+    - attack.t1003        # OS Credential Dumping
+    - attack.t1053.005    # Scheduled Task
+    - attack.t1055        # Process Injection
+    - attack.t1059        # Command and Scripting Interpreter
+    - attack.t1059.001    # PowerShell
+    - attack.t1059.003    # Windows Command Shell
+    - attack.t1190        # Exploit Public-Facing Application
+    - attack.t1195.002    # Compromise Software Supply Chain
+    - attack.t1203        # Exploitation for Client Execution
+    - attack.t1218        # System Binary Proxy Execution
+    - attack.t1547.001    # Registry Run Keys / Startup Folder
+    - attack.t1569.002    # Service Execution

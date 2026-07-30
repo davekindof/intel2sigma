@@ -123,9 +123,10 @@ intel2sigma/
 └── data/                  # Data-driven config. Edit freely without touching code.
     ├── taxonomy/          # One YAML per observation type
     ├── examples/          # Curated SigmaHQ rules (v1.5 load modal)
-    ├── pipelines.yml      # Backend/pipeline selection matrix
+    ├── pipelines.yml      # Backend/pipeline matrix + per-backend coverage boundaries
     ├── mitre_attack.json  # ATT&CK tree (built by scripts/build_mitre_tree.py)
     ├── sigmahq_corpus.json # Browse-index (built by scripts/build_sigmahq_corpus.py)
+    ├── attack_tag_suggestions.yml # Technique shortlist for the Stage 2 datalist
     └── heuristics.yml     # Per-heuristic severity + enablement (v1.0 MVP)
 
 tests/
