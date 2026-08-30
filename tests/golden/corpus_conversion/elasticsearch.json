@@ -43,6 +43,10 @@
   "status": "ok",
   "output": "powershell.file.script_block_text:*New\\-ADServiceAccount* AND powershell.file.script_block_text:*\\-CreateDelegatedServiceAccount* AND powershell.file.script_block_text:*\\-path*"
  },
+ "021310d9-30a6-480a-84b7-eaa69aeb92bb": {
+  "status": "ok",
+  "output": "path:\\\\\\\\\\*\\\\IPC$ AND (NOT (*samr* OR *lsarpc* OR *winreg* OR *netlogon* OR *srvsvc* OR *protected_storage* OR *wkssvc* OR *browser* OR *netdfs* OR *svcctl* OR *spoolss* OR *ntsvcs* OR *LSM_API_service* OR *HydraLsPipe* OR *TermSrv_API_service* OR *MsFteWds*))"
+ },
  "0250638a-2b28-4541-86fc-ea4c558fa0c6": {
   "status": "ok",
   "output": "((ParentImage:(*com.apple.WebKit.WebContent* OR *firefox* OR *Google\\ Chrome\\ Helper* OR *Google\\ Chrome* OR *Microsoft\\ Edge* OR *Opera* OR *Safari* OR *Tor\\ Browser*)) AND (Image:(*\\/bash OR *\\/curl OR *\\/dash OR *\\/ksh OR *\\/osascript OR *\\/perl OR *\\/php OR *\\/pwsh OR *\\/python OR *\\/sh OR *\\/tcsh OR *\\/wget OR *\\/zsh))) AND (NOT (CommandLine:*\\-\\-defaults\\-torrc* OR CommandLine:*\\/Library\\/Application\\ Support\\/Microsoft\\/MAU*\\/Microsoft\\ AutoUpdate.app\\/Contents\\/MacOS\\/msupdate* OR ((ParentImage:(*Google\\ Chrome\\ Helper* OR *Google\\ Chrome*)) AND (CommandLine:(*\\/Volumes\\/Google\\ Chrome\\/Google\\ Chrome.app\\/Contents\\/Frameworks\\/*\\/Resources\\/install.sh* OR *\\/Applications\\/Google\\ Chrome.app\\/Contents\\/Frameworks\\/Google\\ Chrome\\ Framework.framework\\/*\\/Resources\\/keystone_promote_preflight.sh* OR *\\/Applications\\/Google\\ Chrome.app\\/Contents\\/Frameworks\\/Google\\ Chrome\\ Framework.framework\\/*\\/Resources\\/keystone_promote_postflight.sh*))) OR (ParentImage:*Microsoft\\ Edge* AND (CommandLine:(*IOPlatformExpertDevice* OR *hw.model*))) OR ((ParentImage:(*Google\\ Chrome\\ Helper* OR *Google\\ Chrome*)) AND (CommandLine:*\\/Users\\/* AND CommandLine:*\\/Library\\/Application\\ Support\\/Google\\/Chrome\\/recovery\\/* AND CommandLine:*\\/ChromeRecovery*)))) AND (NOT ((NOT _exists_:CommandLine) OR CommandLine:\"\"))"
@@ -95,6 +99,10 @@
   "status": "ok",
   "output": "(network.direction:true AND process.executable:*\\\\regasm.exe) AND (NOT (destination.ip:127.0.0.0\\/8 OR destination.ip:10.0.0.0\\/8 OR destination.ip:172.16.0.0\\/12 OR destination.ip:192.168.0.0\\/16 OR destination.ip:169.254.0.0\\/16 OR destination.ip:\\:\\:1\\/128 OR destination.ip:fe80\\:\\:\\/10 OR destination.ip:fc00\\:\\:\\/7))"
  },
+ "055fb148-60f8-462d-ad16-26926ce050f1": {
+  "status": "error",
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'elasticsearch' with pipelines [ecs_windows]: ES Lucene backend can't handle field references."
+ },
  "06125661-3814-4e03-bfa2-1e4411c60ac3": {
   "status": "ok",
   "output": "(process.executable:(*\\\\cmd.exe OR *\\\\powershell.exe OR *\\\\pwsh.exe OR *\\\\wt.exe OR *\\\\rundll32.exe OR *\\\\regsvr32.exe)) AND (file.path:(*.VHD OR *.bac OR *.bak OR *.wbcat OR *.bkf OR *.set OR *.win OR *.dsk))"
@@ -103,13 +111,13 @@
   "status": "ok",
   "output": "dns.question.name:*.anonfiles.com*"
  },
+ "06d71506-7beb-4f22-8888-e2e5e2ca7fd8": {
+  "status": "ok",
+  "output": "(*dpapi\\:\\:masterkey* OR *eo.oe.kiwi* OR *event\\:\\:clear* OR *event\\:\\:drop* OR *gentilkiwi.com* OR *kerberos\\:\\:golden* OR *kerberos\\:\\:ptc* OR *kerberos\\:\\:ptt* OR *kerberos\\:\\:tgt* OR *Kiwi\\ Legit\\ Printer* OR *lsadump\\:\\:* OR *mimidrv.sys* OR *\\\\mimilib.dll* OR *misc\\:\\:printnightmare* OR *misc\\:\\:shadowcopies* OR *misc\\:\\:skeleton* OR *privilege\\:\\:backup* OR *privilege\\:\\:debug* OR *privilege\\:\\:driver* OR *sekurlsa\\:\\:*) AND (NOT event.code:15)"
+ },
  "071d5e5a-9cef-47ec-bc4e-a42e34d8d0ed": {
   "status": "ok",
   "output": "a1:\\-\\-cpu\\-priority* OR a2:\\-\\-cpu\\-priority* OR a3:\\-\\-cpu\\-priority* OR a4:\\-\\-cpu\\-priority* OR a5:\\-\\-cpu\\-priority* OR a6:\\-\\-cpu\\-priority* OR a7:\\-\\-cpu\\-priority*"
- },
- "07330162-dba1-4746-8121-a9647d49d297": {
-  "status": "ok",
-  "output": "eventSource:config.amazonaws.com AND (eventName:(DeleteDeliveryChannel OR StopConfigurationRecorder))"
  },
  "07ad2ea8-6a55-4ac6-bf3e-91b8e59676eb": {
   "status": "ok",
@@ -143,6 +151,10 @@
   "status": "ok",
   "output": "(EventLog:RPCFW AND EventID:3 AND InterfaceUuid:378e52b0\\-c0a9\\-11cf\\-822d\\-00aa0051e40f) AND (NOT (OpNum:(0 OR 1)))"
  },
+ "0ac15ec3-d24f-4246-aa2a-3077bb1cf90e": {
+  "status": "ok",
+  "output": "*new\\ user* AND (*GID\\=0,* OR *UID\\=0,* OR *GID\\=10,* OR *GID\\=27,*)"
+ },
  "0adc67e0-a68f-4ffd-9c43-28905aad5d6a": {
   "status": "ok",
   "output": "file.name:(*\\\\imposecost* OR *\\\\imposingcost*)"
@@ -151,6 +163,10 @@
   "status": "ok",
   "output": "(winlog.channel:(Microsoft\\-Windows\\-Security\\-Mitigations\\/Kernel\\ Mode OR Microsoft\\-Windows\\-Security\\-Mitigations\\/User\\ Mode)) AND ((event.code:(11 OR 12)) AND (winlog.event_data.ProcessPath:(*\\\\MpCmdRun.exe OR *\\\\NisSrv.exe)))"
  },
+ "0b7889b4-5577-4521-a60a-3376ee7f9f7b": {
+  "status": "ok",
+  "output": "winlog.channel:Microsoft\\-Windows\\-WMI\\-Activity\\/Operational AND (((event.code:5861 AND (*ActiveScriptEventConsumer* OR *CommandLineEventConsumer* OR *CommandLineTemplate*)) OR event.code:5859) AND (NOT (winlog.event_data.Provider:SCM\\ Event\\ Provider AND winlog.event_data.Query:select\\ *\\ from\\ MSFT_SCMEventLogEvent AND user.name:S\\-1\\-5\\-32\\-544 AND winlog.event_data.PossibleCause:Permanent)))"
+ },
  "0c97c1d3-4057-45c9-b148-1de94b631931": {
   "status": "ok",
   "output": "eventType:(policy.rule.update OR policy.rule.delete)"
@@ -158,6 +174,10 @@
  "0c9b3bda-41a6-4442-9345-356ae86343dc": {
   "status": "ok",
   "output": "objectRef.apiGroup:batch AND (objectRef.resource:(cronjobs OR jobs)) AND (verb:(create OR delete OR patch OR replace OR update))"
+ },
+ "0d2c3d4c-4b48-4ac3-8f23-ea845746bb1a": {
+  "status": "ok",
+  "output": "*ActionController\\:\\:InvalidAuthenticityToken* OR *ActionController\\:\\:InvalidCrossOriginRequest* OR *ActionController\\:\\:MethodNotAllowed* OR *ActionController\\:\\:BadRequest* OR *ActionController\\:\\:ParameterMissing*"
  },
  "0d58814b-1660-4d31-8c93-d1086ed24cba": {
   "status": "ok",
@@ -203,6 +223,14 @@
   "status": "ok",
   "output": "auditType.category:Global\\ administration AND auditType.action:SSH\\ settings\\ changed"
  },
+ "16c86189-b556-4ee8-b4c7-7e350a195a4f": {
+  "status": "ok",
+  "output": "*ParseErrorException* OR *VelocityException* OR *TemplateInitException*"
+ },
+ "19aefed0-ffd4-47dc-a7fc-f8b1425e84f9": {
+  "status": "ok",
+  "output": "*DataError* OR *IntegrityError* OR *ProgrammingError* OR *OperationalError*"
+ },
  "19bf6fdb-7721-4f3d-867f-53467f6a5db6": {
   "status": "ok",
   "output": "DestinationHostname:(*tunnel.us.ngrok.com* OR *tunnel.eu.ngrok.com* OR *tunnel.ap.ngrok.com* OR *tunnel.au.ngrok.com* OR *tunnel.sa.ngrok.com* OR *tunnel.jp.ngrok.com* OR *tunnel.in.ngrok.com*)"
@@ -214,6 +242,22 @@
  "1d218616-71b0-4c40-855b-9dbe75510f7f": {
   "status": "ok",
   "output": "registry.path:*\\\\software\\\\NetWire*"
+ },
+ "1da8ce0b-855d-4004-8860-7d64d42063b1": {
+  "status": "ok",
+  "output": "*exit\\ signal\\ Segmentation\\ Fault*"
+ },
+ "1edd77db-0669-4fef-9598-165bda82826d": {
+  "status": "ok",
+  "output": "*\\(2\\ users\\ now\\ present\\)*"
+ },
+ "1f2b5353-573f-4880-8e33-7d04dcf97744": {
+  "status": "ok",
+  "output": "(winlog.event_data.State:Stopped OR *Sysmon\\ config\\ state\\ changed*) AND (NOT winlog.event_data.State:Started)"
+ },
+ "1f978c6a-4415-47fb-aca5-736a44d7ca3d": {
+  "status": "ok",
+  "output": "*crypto\\ pki\\ export* OR *crypto\\ pki\\ import* OR *crypto\\ pki\\ trustpoint*"
  },
  "1fc0809e-06bf-4de3-ad52-25e5263b7623": {
   "status": "ok",
@@ -239,9 +283,9 @@
   "status": "ok",
   "output": "properties.message:Device\\ Code"
  },
- "286b47ed-f6fe-40b3-b3a8-35129acd43bc": {
+ "293ccb8c-bed8-4868-8296-bef30e303b7e": {
   "status": "ok",
-  "output": "name:(*.pst OR *.ost OR *.msg OR *.nst OR *.oab OR *.edb OR *.nsf OR *.bak OR *.dmp OR *.kirbi OR *.rdp)"
+  "output": "*\\/data\\/etc\\/wxd.conf* OR *\\/data\\/lib\\/libgif.so* OR *\\/data\\/lib\\/libips.bak* OR *\\/data\\/lib\\/libiptcp.so* OR *\\/data\\/lib\\/libipudp.so* OR *\\/data\\/lib\\/libjepg.so* OR *\\/var\\/.sslvpnconfigbk*"
  },
  "2975af79-28c4-4d2f-a951-9095f229df29": {
   "status": "ok",
@@ -258,6 +302,10 @@
  "2bfc1373-0220-4fbd-8b10-33ddafd2a142": {
   "status": "ok",
   "output": "winlog.channel:Microsoft\\-Windows\\-TaskScheduler\\/Operational AND ((event.code:(129 OR 140 OR 141)) AND (winlog.event_data.TaskName:(\\\\defender OR \\\\Microsoft\\\\DefenderService OR \\\\Microsoft\\\\Windows\\\\Application\\ Experience\\\\StartupAppTaskCheck OR \\\\Microsoft\\\\Windows\\\\Application\\ Experience\\\\StartupAppTaskCkeck OR \\\\Microsoft\\\\Windows\\\\ATPUpd OR \\\\Microsoft\\\\Windows\\\\Data\\ Integrity\\ Scan\\\\Data\\ Integrity\\ Update OR \\\\Microsoft\\\\Windows\\\\DefenderUPDService OR \\\\Microsoft\\\\Windows\\\\IISUpdateService OR \\\\Microsoft\\\\Windows\\\\Speech\\\\SpeechModelInstallTask OR \\\\Microsoft\\\\Windows\\\\WiMSDFS OR \\\\Microsoft\\\\Windows\\\\Windows\\ Defender\\\\Defender\\ Update\\ Service OR \\\\Microsoft\\\\Windows\\\\Windows\\ Defender\\\\Service\\ Update OR \\\\Microsoft\\\\Windows\\\\Windows\\ Error\\ Reporting\\\\CheckReporting OR \\\\Microsoft\\\\Windows\\\\Windows\\ Error\\ Reporting\\\\SubmitReporting OR \\\\Microsoft\\\\Windows\\\\Windows\\ Filtering\\ Platform\\\\BfeOnServiceStart OR \\\\Microsoft\\\\Windows\\\\WindowsDefenderService OR \\\\Microsoft\\\\Windows\\\\WindowsDefenderService2 OR \\\\Microsoft\\\\Windows\\\\WindowsUpdate\\\\Scheduled\\ AutoCheck OR \\\\Microsoft\\\\Windows\\\\WindowsUpdate\\\\Scheduled\\ Check OR \\\\WindowUpdate)))"
+ },
+ "2ece8816-b7a0-4d9b-b0e8-ae7ad18bc02b": {
+  "status": "ok",
+  "output": "(*%WEBUI\\-6\\-INSTALL_OPERATION_INFO\\:* OR *%SYS\\-5\\-CONFIG_P\\:* OR *%SEC_LOGIN\\-5\\-WEBLOGIN_SUCCESS\\:*) AND (*cisco_tac_admin* OR *cisco_support* OR *cisco_sys_manager*)"
  },
  "2f8cd7a0-9d5a-4f62-9f8b-2c951aa0dd1f": {
   "status": "ok",
@@ -279,6 +327,14 @@
   "status": "ok",
   "output": "(file.path:(*.hive OR *.reg)) AND (NOT (process.executable:(C\\:\\\\Program\\ Files\\ \\(x86\\)\\\\* OR C\\:\\\\Program\\ Files\\\\* OR C\\:\\\\Windows\\\\System32\\\\* OR C\\:\\\\Windows\\\\SysWOW64\\\\*)))"
  },
+ "36aa86ca-fd9d-4456-814e-d3b1b8e1e0bb": {
+  "status": "ok",
+  "output": "*Trojan*FOUND* OR *VirTool*FOUND* OR *Webshell*FOUND* OR *Rootkit*FOUND* OR *Htran*FOUND*"
+ },
+ "377f33a1-4b36-4ee1-acee-1dbe4b43cfbe": {
+  "status": "ok",
+  "output": "*Connection\\ refused\\:\\ too\\ many\\ sessions\\ for\\ this\\ address.* OR *Connection\\ refused\\:\\ tcp_wrappers\\ denial.* OR *Bad\\ HTTP\\ verb.* OR *port\\ and\\ pasv\\ both\\ active* OR *pasv\\ and\\ port\\ both\\ active* OR *Transfer\\ done\\ \\(but\\ failed\\ to\\ open\\ directory\\).* OR *Could\\ not\\ set\\ file\\ modification\\ time.* OR *bug\\:\\ pid\\ active\\ in\\ ptrace_sandbox_free* OR *PTRACE_SETOPTIONS\\ failure* OR *weird\\ status\\:* OR *couldn't\\ handle\\ sandbox\\ event* OR *syscall\\ *\\ out\\ of\\ bounds* OR *syscall\\ not\\ permitted\\:* OR *syscall\\ validate\\ failed\\:* OR *Input\\ line\\ too\\ long.* OR *poor\\ buffer\\ accounting\\ in\\ str_netfd_alloc* OR *vsf_sysutil_read_loop*"
+ },
  "3ce8e9a4-bc61-4c9b-8e69-d7e2492a8781": {
   "status": "ok",
   "output": "winlog.channel:OpenSSH\\/Operational AND (event.code:4 AND winlog.event_data.process:sshd AND winlog.event_data.payload:Server\\ listening\\ on\\ *)"
@@ -299,6 +355,22 @@
   "status": "ok",
   "output": "eventSource:Exchange AND eventName:Add\\-FederatedDomain AND status:success"
  },
+ "49f5dfc1-f92e-4d34-96fa-feba3f6acf36": {
+  "status": "ok",
+  "output": "*stopping\\ iptables* OR *stopping\\ ip6tables* OR *stopping\\ firewalld* OR *stopping\\ cbdaemon* OR *stopping\\ falcon\\-sensor*"
+ },
+ "4c9d903d-4939-4094-ade0-3cb748f4d7da": {
+  "status": "ok",
+  "output": "*error\\:\\ buffer_get_ret\\:\\ trying\\ to\\ get\\ more\\ bytes\\ 1907\\ than\\ in\\ buffer\\ 308\\ \\[preauth\\]*"
+ },
+ "4d0af518-828e-4a04-a751-a7d03f3046ad": {
+  "status": "ok",
+  "output": "*org.apache.commons.ognl.OgnlException* OR *ExpressionSyntaxException*"
+ },
+ "4e64668a-4da1-49f5-a8df-9e2d5b866718": {
+  "status": "ok",
+  "output": "winlog.channel:Microsoft\\-Windows\\-PrintService\\/Admin AND (((event.code:808 AND (winlog.event_data.ErrorCode:(0x45A OR 0x7e))) OR (*The\\ print\\ spooler\\ failed\\ to\\ load\\ a\\ plug\\-in\\ module* OR *MyExploit.dll* OR *evil.dll* OR *\\\\addCube.dll* OR *\\\\rev.dll* OR *\\\\rev2.dll* OR *\\\\main64.dll* OR *\\\\mimilib.dll* OR *\\\\mimispool.dll*)) AND (NOT *\\ registration\\ timed\\ out*))"
+ },
  "503fe26e-b5f2-4944-a126-eab405cc06e5": {
   "status": "ok",
   "output": "(request_type:TGS AND cipher:rc4\\-hmac) AND (NOT service:$*)"
@@ -306,6 +378,10 @@
  "50cb47b8-2c33-4b23-a2e9-4600657d9746": {
   "status": "ok",
   "output": "winlog.channel:Microsoft\\-Windows\\-Diagnosis\\-Scripted\\/Operational AND (event.code:101 AND winlog.event_data.PackagePath:*\\\\\\\\*)"
+ },
+ "50e606bf-04ce-4ca7-9d54-3449494bbd4b": {
+  "status": "ok",
+  "output": "*LDP* AND (*SOCKET_TCP_PACKET_MD5_AUTHEN_FAIL* OR *TCPMD5AuthenFail*)"
  },
  "5588576c-5898-4fac-bcdd-7475a60e8f43": {
   "status": "ok",
@@ -326,6 +402,10 @@
  "58c0bff0-40a0-46e8-b5e8-b734b84d2017": {
   "status": "ok",
   "output": "winlog.channel:Microsoft\\-Windows\\-CertificateServicesClient\\-Lifecycle\\-System\\/Operational AND event.code:1007"
+ },
+ "59ec40bb-322e-40ab-808d-84fa690d7e56": {
+  "status": "ok",
+  "output": "*exited\\ on\\ signal\\ 6\\ \\(core\\ dumped\\)*"
  },
  "62fff148-278d-497e-8ecd-ad6083231a35": {
   "status": "ok",
@@ -363,10 +443,6 @@
   "status": "ok",
   "output": "winlog.channel:Microsoft\\-Windows\\-LSA\\/Operational AND ((event.code:300 AND winlog.event_data.TargetUserSid:S\\-1\\-5\\-21\\-* AND (winlog.event_data.SidList:(*S\\-1\\-5\\-32\\-544* OR *\\-500\\}* OR *\\-518\\}* OR *\\-519\\}*))) AND (NOT (winlog.event_data.TargetUserSid:(*\\-500 OR *\\-518 OR *\\-519))))"
  },
- "7ba05b43-adad-4c02-b5e9-c8c35cdf9fa8": {
-  "status": "ok",
-  "output": "*networkd\\-dispatcher* AND *Error\\ handling\\ notification\\ for\\ interface* AND *..\\/..\\/*"
- },
  "7fcc54cb-f27d-4684-84b7-436af096f858": {
   "status": "ok",
   "output": "USER:(#\\-* OR #*4294967295)"
@@ -383,9 +459,17 @@
   "status": "ok",
   "output": "(dst_ip:(69.42.98.86 OR 89.185.234.145)) OR (src_ip:(69.42.98.86 OR 89.185.234.145))"
  },
+ "8a670c6d-7189-4b1c-8017-a417ca84a086": {
+  "status": "ok",
+  "output": "*quoted\\ string\\ not\\ properly\\ terminated* OR *You\\ have\\ an\\ error\\ in\\ your\\ SQL\\ syntax* OR *Unclosed\\ quotation\\ mark* OR *near\\ \\\"*\\\"\\:\\ syntax\\ error* OR *SELECTs\\ to\\ the\\ left\\ and\\ right\\ of\\ UNION\\ do\\ not\\ have\\ the\\ same\\ number\\ of\\ result\\ columns*"
+ },
  "8d91f6e4-9f3b-4c21-ae41-2c5b7d9f7a12": {
   "status": "ok",
   "output": "((event.code:4000 AND (winlog.event_data.ShareName:(*IPC$* OR *ADMIN$* OR *C$*))) AND (winlog.event_data.SigningUsed:false OR winlog.event_data.EncyptionUsed:false)) AND (NOT ((source.ip:127.0.0.0\\/8 OR source.ip:169.254.0.0\\/16 OR source.ip:\\:\\:1\\/128 OR source.ip:fe80\\:\\:\\/10 OR source.ip:fc00\\:\\:\\/7) OR (source.ip:(*00000000000000000000000000000001* OR *FE80000000000000* OR *FC00000000000000* OR *0200????7F* OR *0200????A9FE*))))"
+ },
+ "97661d9d-2beb-4630-b423-68985291a8af": {
+  "status": "ok",
+  "output": "*node\\:child_process*"
  },
  "98c3bcf1-56f2-49dc-9d8d-c66cf190238b": {
   "status": "ok",
@@ -411,6 +495,18 @@
   "status": "ok",
   "output": "file.path:*.sed"
  },
+ "ae48ab93-45f7-4051-9dfe-5d30a3f78e33": {
+  "status": "ok",
+  "output": "*AccessDeniedException* OR *CsrfException* OR *InvalidCsrfTokenException* OR *MissingCsrfTokenException* OR *CookieTheftException* OR *InvalidCookieException* OR *RequestRejectedException*"
+ },
+ "af202fd3-7bff-4212-a25a-fb34606cfcbe": {
+  "status": "ok",
+  "output": "*REPLACE*"
+ },
+ "b55d23e5-6821-44ff-8a6e-67218891e49f": {
+  "status": "ok",
+  "output": "winlog.channel:Microsoft\\-ServiceBus\\-Client AND ((event.code:(40300 OR 40301 OR 40302)) AND (*HybridConnection* OR *sb\\:\\/\\/* OR *servicebus.windows.net* OR *HybridConnectionManage*))"
+ },
  "b5aa7d60-c17e-4538-97de-09029d6cd76b": {
   "status": "ok",
   "output": "winlog.channel:Microsoft\\-Windows\\-AppxPackaging\\/Operational AND (event.code:157 AND winlog.event_data.subjectName:CN\\=Foresee\\ Consulting\\ Inc.,\\ O\\=Foresee\\ Consulting\\ Inc.,\\ L\\=North\\ York,\\ S\\=Ontario,\\ C\\=CA,\\ SERIALNUMBER\\=1004913\\-1,\\ OID.1.3.6.1.4.1.311.60.2.1.3\\=CA,\\ OID.2.5.4.15\\=Private\\ Organization)"
@@ -431,9 +527,9 @@
   "status": "ok",
   "output": "winlog.channel:Microsoft\\-Windows\\-AppModel\\-Runtime\\/Admin AND (event.code:201 AND (winlog.event_data.ImageName:(procdump.exe OR psloglist.exe OR psexec.exe OR livekd.exe OR ADExplorer.exe)))"
  },
- "d4f1a2b3-7c8e-4d5f-b6a9-1e0c2d3f4e5b": {
+ "d84c0ded-edd7-4123-80ed-348bb3ccc4d5": {
   "status": "ok",
-  "output": "winlog.channel:Microsoft\\-Windows\\-WMI\\-Activity\\/Operational AND (event.code:5858 AND (winlog.event_data.Operation:*Win32_NTEventlogFile* AND winlog.event_data.Operation:*cleareventlog*))"
+  "output": "*drop* OR *truncate* OR *dump* OR *select\\ \\**"
  },
  "db809f10-56ce-4420-8c86-d6a7d793c79c": {
   "status": "ok",
@@ -443,10 +539,6 @@
   "status": "ok",
   "output": "(event.code:(30803 OR 30804 OR 30806)) AND (NOT ((winlog.event_data.ServerAddress:10.0.0.0\\/8 OR winlog.event_data.ServerAddress:127.0.0.0\\/8 OR winlog.event_data.ServerAddress:169.254.0.0\\/16 OR winlog.event_data.ServerAddress:172.16.0.0\\/12 OR winlog.event_data.ServerAddress:192.168.0.0\\/16 OR winlog.event_data.ServerAddress:\\:\\:1\\/128 OR winlog.event_data.ServerAddress:fe80\\:\\:\\/10 OR winlog.event_data.ServerAddress:fc00\\:\\:\\/7) OR (winlog.event_data.Address:(10.* OR 127.* OR 169.254.* OR 172.* OR 192.168.* OR \\:\\:1* OR fe80\\:\\:* OR fc00\\:\\:*)) OR (winlog.event_data.Address:(*00000000000000000000000000000001* OR *FE80000000000000* OR *FC00000000000000* OR *0200????C0A8* OR *0200????AC* OR *0200????0A* OR *0200????7F* OR *0200????A9FE*)) OR (winlog.event_data.ServerAddress:(*00000000000000000000000000000001* OR *FE80000000000000* OR *FC00000000000000* OR *0200????C0A8* OR *0200????AC* OR *0200????0A* OR *0200????7F* OR *0200????A9FE*)) OR (winlog.event_data.RemoteAddress:(*00000000000000000000000000000001* OR *FE80000000000000* OR *FC00000000000000* OR *0200????C0A8* OR *0200????AC* OR *0200????0A* OR *0200????7F* OR *0200????A9FE*))))"
  },
- "e032f5bc-4563-4096-ae3b-064bab588685": {
-  "status": "ok",
-  "output": "*FileNotFoundException* AND *\\/..\\/..\\/..*"
- },
  "e2b5163d-7deb-4566-9af3-40afea6858c3": {
   "status": "ok",
   "output": "winlog.channel:Microsoft\\-Windows\\-CAPI2\\/Operational AND event.code:70"
@@ -454,5 +546,17 @@
  "ec19ebab-72dc-40e1-9728-4c0b805d722c": {
   "status": "ok",
   "output": "winlog.event_data.Data:*Set\\-MpPreference* AND ((winlog.event_data.Data:(*\\-dbaf\\ $true* OR *\\-dbaf\\ 1* OR *\\-dbm\\ $true* OR *\\-dbm\\ 1* OR *\\-dips\\ $true* OR *\\-dips\\ 1* OR *\\-DisableArchiveScanning\\ $true* OR *\\-DisableArchiveScanning\\ 1* OR *\\-DisableBehaviorMonitoring\\ $true* OR *\\-DisableBehaviorMonitoring\\ 1* OR *\\-DisableBlockAtFirstSeen\\ $true* OR *\\-DisableBlockAtFirstSeen\\ 1* OR *\\-DisableCatchupFullScan\\ $true* OR *\\-DisableCatchupFullScan\\ 1* OR *\\-DisableCatchupQuickScan\\ $true* OR *\\-DisableCatchupQuickScan\\ 1* OR *\\-DisableIntrusionPreventionSystem\\ $true* OR *\\-DisableIntrusionPreventionSystem\\ 1* OR *\\-DisableIOAVProtection\\ $true* OR *\\-DisableIOAVProtection\\ 1* OR *\\-DisableRealtimeMonitoring\\ $true* OR *\\-DisableRealtimeMonitoring\\ 1* OR *\\-DisableRemovableDriveScanning\\ $true* OR *\\-DisableRemovableDriveScanning\\ 1* OR *\\-DisableScanningMappedNetworkDrivesForFullScan\\ $true* OR *\\-DisableScanningMappedNetworkDrivesForFullScan\\ 1* OR *\\-DisableScanningNetworkFiles\\ $true* OR *\\-DisableScanningNetworkFiles\\ 1* OR *\\-DisableScriptScanning\\ $true* OR *\\-DisableScriptScanning\\ 1* OR *\\-MAPSReporting\\ $false* OR *\\-MAPSReporting\\ 0* OR *\\-drdsc\\ $true* OR *\\-drdsc\\ 1* OR *\\-drtm\\ $true* OR *\\-drtm\\ 1* OR *\\-dscrptsc\\ $true* OR *\\-dscrptsc\\ 1* OR *\\-dsmndf\\ $true* OR *\\-dsmndf\\ 1* OR *\\-dsnf\\ $true* OR *\\-dsnf\\ 1* OR *\\-dss\\ $true* OR *\\-dss\\ 1*)) OR (winlog.event_data.Data:(*HighThreatDefaultAction\\ Allow* OR *htdefac\\ Allow* OR *LowThreatDefaultAction\\ Allow* OR *ltdefac\\ Allow* OR *ModerateThreatDefaultAction\\ Allow* OR *mtdefac\\ Allow* OR *SevereThreatDefaultAction\\ Allow* OR *stdefac\\ Allow*)))"
+ },
+ "f130a5f1-73ba-42f0-bf1e-b66a8361cb8f": {
+  "status": "ok",
+  "output": "(*failed\\ to\\ unmarshal\\ session\\(..\\/* OR *failed\\ to\\ unmarshal\\ session\\(.\\/..\\/* OR *failed\\ to\\ unmarshal\\ session\\(\\/..* OR *failed\\ to\\ unmarshal\\ session\\(%2E%2E%2F* OR *failed\\ to\\ unmarshal\\ session\\(%2F%2E%2E* OR *failed\\ to\\ unmarshal\\ session\\(%2E%2F%2E%2E%2F* OR *failed\\ to\\ unmarshal\\ session\\(%252E%252E%252F* OR *failed\\ to\\ unmarshal\\ session\\(%252F%252E%252E* OR *failed\\ to\\ unmarshal\\ session\\(%252E%252F%252E%252E%252F*) OR ((*\\{IFS\\}* OR *base64* OR *bash* OR *curl* OR *http*) AND *\\/opt\\/panlogs\\/tmp\\/device_telemetry\\/*)"
+ },
+ "f34d942d-c8c4-4f1f-b196-22471aecf10a": {
+  "status": "ok",
+  "output": "winlog.channel:Microsoft\\-Windows\\-PrintService\\/Operational AND (event.code:316 AND (*UNIDRV.DLL,\\ kernelbase.dll,\\ * OR *\\ 123\\ * OR *\\ 1234\\ * OR *mimispool*))"
+ },
+ "fd435618-981e-4a7c-81f8-f78ce480d616": {
+  "status": "ok",
+  "output": "*SuspiciousOperation* OR *DisallowedHost* OR *DisallowedModelAdminLookup* OR *DisallowedModelAdminToField* OR *DisallowedRedirect* OR *InvalidSessionKey* OR *RequestDataTooBig* OR *SuspiciousFileOperation* OR *SuspiciousMultipartForm* OR *SuspiciousSession* OR *TooManyFieldsSent* OR *PermissionDenied*"
  }
 }

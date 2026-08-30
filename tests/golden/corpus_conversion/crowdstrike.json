@@ -43,6 +43,10 @@
   "status": "ok",
   "output": "event_platform=/^Win$/i event_simpleName=/^CommandHistory$/i or event_simpleName=/^ScriptControlScanTelemetry$/i (CommandHistory=/New-ADServiceAccount/i CommandHistory=/-CreateDelegatedServiceAccount/i CommandHistory=/-path/i) or (ScriptContent=/New-ADServiceAccount/i ScriptContent=/-CreateDelegatedServiceAccount/i ScriptContent=/-path/i)"
  },
+ "021310d9-30a6-480a-84b7-eaa69aeb92bb": {
+  "status": "ok",
+  "output": "path=/^\\\\\\\\\\*\\\\IPC\\$$/i not (/\"samr\"/i or /\"lsarpc\"/i or /\"winreg\"/i or /\"netlogon\"/i or /\"srvsvc\"/i or /\"protected_storage\"/i or /\"wkssvc\"/i or /\"browser\"/i or /\"netdfs\"/i or /\"svcctl\"/i or /\"spoolss\"/i or /\"ntsvcs\"/i or /\"LSM_API_service\"/i or /\"HydraLsPipe\"/i or /\"TermSrv_API_service\"/i or /\"MsFteWds\"/i)"
+ },
  "0250638a-2b28-4541-86fc-ea4c558fa0c6": {
   "status": "ok",
   "output": "ParentImage=/com\\.apple\\.WebKit\\.WebContent/i or ParentImage=/firefox/i or ParentImage=/Google Chrome Helper/i or ParentImage=/Google Chrome/i or ParentImage=/Microsoft Edge/i or ParentImage=/Opera/i or ParentImage=/Safari/i or ParentImage=/Tor Browser/i Image=/\\/bash$/i or Image=/\\/curl$/i or Image=/\\/dash$/i or Image=/\\/ksh$/i or Image=/\\/osascript$/i or Image=/\\/perl$/i or Image=/\\/php$/i or Image=/\\/pwsh$/i or Image=/\\/python$/i or Image=/\\/sh$/i or Image=/\\/tcsh$/i or Image=/\\/wget$/i or Image=/\\/zsh$/i not (CommandLine=/--defaults-torrc/i or CommandLine=/\\/Library\\/Application Support\\/Microsoft\\/MAU.*\\/Microsoft AutoUpdate\\.app\\/Contents\\/MacOS\\/msupdate/i or (ParentImage=/Google Chrome Helper/i or ParentImage=/Google Chrome/i CommandLine=/\\/Volumes\\/Google Chrome\\/Google Chrome\\.app\\/Contents\\/Frameworks\\/.*\\/Resources\\/install\\.sh/i or CommandLine=/\\/Applications\\/Google Chrome\\.app\\/Contents\\/Frameworks\\/Google Chrome Framework\\.framework\\/.*\\/Resources\\/keystone_promote_preflight\\.sh/i or CommandLine=/\\/Applications\\/Google Chrome\\.app\\/Contents\\/Frameworks\\/Google Chrome Framework\\.framework\\/.*\\/Resources\\/keystone_promote_postflight\\.sh/i) or (ParentImage=/Microsoft Edge/i CommandLine=/IOPlatformExpertDevice/i or CommandLine=/hw\\.model/i) or (ParentImage=/Google Chrome Helper/i or ParentImage=/Google Chrome/i CommandLine=/\\/Users\\//i CommandLine=/\\/Library\\/Application Support\\/Google\\/Chrome\\/recovery\\//i CommandLine=/\\/ChromeRecovery/i)) not (CommandLine!=* or CommandLine=/^$/i)"
@@ -95,6 +99,10 @@
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'crowdstrike' with pipelines [crowdstrike_fdr]: ORing CIDR matching is not yet supported by LogScale backend"
  },
+ "055fb148-60f8-462d-ad16-26926ce050f1": {
+  "status": "error",
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'crowdstrike' with pipelines [crowdstrike_fdr]: 'NoneType' object has no attribute 'format' (while converting rule None)"
+ },
  "06125661-3814-4e03-bfa2-1e4411c60ac3": {
   "status": "ok",
   "output": "Image=/\\\\cmd\\.exe$/i or Image=/\\\\powershell\\.exe$/i or Image=/\\\\pwsh\\.exe$/i or Image=/\\\\wt\\.exe$/i or Image=/\\\\rundll32\\.exe$/i or Image=/\\\\regsvr32\\.exe$/i TargetFilename=/\\.VHD$/i or TargetFilename=/\\.bac$/i or TargetFilename=/\\.bak$/i or TargetFilename=/\\.wbcat$/i or TargetFilename=/\\.bkf$/i or TargetFilename=/\\.set$/i or TargetFilename=/\\.win$/i or TargetFilename=/\\.dsk$/i"
@@ -103,13 +111,13 @@
   "status": "ok",
   "output": "event_platform=/^Win$/i event_simpleName=/^DnsRequest$/i DomainName=/\\.anonfiles\\.com/i"
  },
+ "06d71506-7beb-4f22-8888-e2e5e2ca7fd8": {
+  "status": "ok",
+  "output": "/\"dpapi::masterkey\"/i or /\"eo\\.oe\\.kiwi\"/i or /\"event::clear\"/i or /\"event::drop\"/i or /\"gentilkiwi\\.com\"/i or /\"kerberos::golden\"/i or /\"kerberos::ptc\"/i or /\"kerberos::ptt\"/i or /\"kerberos::tgt\"/i or /\"Kiwi Legit Printer\"/i or /\"lsadump::\"/i or /\"mimidrv\\.sys\"/i or /\"\\\\mimilib\\.dll\"/i or /\"misc::printnightmare\"/i or /\"misc::shadowcopies\"/i or /\"misc::skeleton\"/i or /\"privilege::backup\"/i or /\"privilege::debug\"/i or /\"privilege::driver\"/i or /\"sekurlsa::\"/i not EventID=15"
+ },
  "071d5e5a-9cef-47ec-bc4e-a42e34d8d0ed": {
   "status": "ok",
   "output": "a1=/^--cpu-priority/i or a2=/^--cpu-priority/i or a3=/^--cpu-priority/i or a4=/^--cpu-priority/i or a5=/^--cpu-priority/i or a6=/^--cpu-priority/i or a7=/^--cpu-priority/i"
- },
- "07330162-dba1-4746-8121-a9647d49d297": {
-  "status": "ok",
-  "output": "eventSource=/^config\\.amazonaws\\.com$/i eventName=/^DeleteDeliveryChannel$/i or eventName=/^StopConfigurationRecorder$/i"
  },
  "07ad2ea8-6a55-4ac6-bf3e-91b8e59676eb": {
   "status": "ok",
@@ -143,6 +151,10 @@
   "status": "ok",
   "output": "EventLog=/^RPCFW$/i EventID=3 InterfaceUuid=/^378e52b0-c0a9-11cf-822d-00aa0051e40f$/i not (OpNum=0 or OpNum=1)"
  },
+ "0ac15ec3-d24f-4246-aa2a-3077bb1cf90e": {
+  "status": "ok",
+  "output": "/\"new user\"/i /\"GID=0,\"/i or /\"UID=0,\"/i or /\"GID=10,\"/i or /\"GID=27,\"/i"
+ },
  "0adc67e0-a68f-4ffd-9c43-28905aad5d6a": {
   "status": "ok",
   "output": "PipeName=/\\\\imposecost/i or PipeName=/\\\\imposingcost/i"
@@ -151,6 +163,10 @@
   "status": "ok",
   "output": "EventID=11 or EventID=12 ProcessPath=/\\\\MpCmdRun\\.exe$/i or ProcessPath=/\\\\NisSrv\\.exe$/i"
  },
+ "0b7889b4-5577-4521-a60a-3376ee7f9f7b": {
+  "status": "ok",
+  "output": "(EventID=5861 /\"ActiveScriptEventConsumer\"/i or /\"CommandLineEventConsumer\"/i or /\"CommandLineTemplate\"/i) or EventID=5859 not (Provider=/^SCM Event Provider$/i Query=/^select .* from MSFT_SCMEventLogEvent$/i User=/^S-1-5-32-544$/i PossibleCause=/^Permanent$/i)"
+ },
  "0c97c1d3-4057-45c9-b148-1de94b631931": {
   "status": "ok",
   "output": "eventType=/^policy\\.rule\\.update$/i or eventType=/^policy\\.rule\\.delete$/i"
@@ -158,6 +174,10 @@
  "0c9b3bda-41a6-4442-9345-356ae86343dc": {
   "status": "ok",
   "output": "objectRef.apiGroup=/^batch$/i objectRef.resource=/^cronjobs$/i or objectRef.resource=/^jobs$/i verb=/^create$/i or verb=/^delete$/i or verb=/^patch$/i or verb=/^replace$/i or verb=/^update$/i"
+ },
+ "0d2c3d4c-4b48-4ac3-8f23-ea845746bb1a": {
+  "status": "ok",
+  "output": "/\"ActionController::InvalidAuthenticityToken\"/i or /\"ActionController::InvalidCrossOriginRequest\"/i or /\"ActionController::MethodNotAllowed\"/i or /\"ActionController::BadRequest\"/i or /\"ActionController::ParameterMissing\"/i"
  },
  "0d58814b-1660-4d31-8c93-d1086ed24cba": {
   "status": "ok",
@@ -203,6 +223,14 @@
   "status": "ok",
   "output": "auditType.category=/^Global administration$/i auditType.action=/^SSH settings changed$/i"
  },
+ "16c86189-b556-4ee8-b4c7-7e350a195a4f": {
+  "status": "ok",
+  "output": "/\"ParseErrorException\"/i or /\"VelocityException\"/i or /\"TemplateInitException\"/i"
+ },
+ "19aefed0-ffd4-47dc-a7fc-f8b1425e84f9": {
+  "status": "ok",
+  "output": "/\"DataError\"/i or /\"IntegrityError\"/i or /\"ProgrammingError\"/i or /\"OperationalError\"/i"
+ },
  "19bf6fdb-7721-4f3d-867f-53467f6a5db6": {
   "status": "ok",
   "output": "DestinationHostname=/tunnel\\.us\\.ngrok\\.com/i or DestinationHostname=/tunnel\\.eu\\.ngrok\\.com/i or DestinationHostname=/tunnel\\.ap\\.ngrok\\.com/i or DestinationHostname=/tunnel\\.au\\.ngrok\\.com/i or DestinationHostname=/tunnel\\.sa\\.ngrok\\.com/i or DestinationHostname=/tunnel\\.jp\\.ngrok\\.com/i or DestinationHostname=/tunnel\\.in\\.ngrok\\.com/i"
@@ -214,6 +242,22 @@
  "1d218616-71b0-4c40-855b-9dbe75510f7f": {
   "status": "ok",
   "output": "TargetObject=/\\\\software\\\\NetWire/i"
+ },
+ "1da8ce0b-855d-4004-8860-7d64d42063b1": {
+  "status": "ok",
+  "output": "/\"exit signal Segmentation Fault\"/i"
+ },
+ "1edd77db-0669-4fef-9598-165bda82826d": {
+  "status": "ok",
+  "output": "/\"(2 users now present)\"/i"
+ },
+ "1f2b5353-573f-4880-8e33-7d04dcf97744": {
+  "status": "ok",
+  "output": "State=/^Stopped$/i or /\"Sysmon config state changed\"/i not State=/^Started$/i"
+ },
+ "1f978c6a-4415-47fb-aca5-736a44d7ca3d": {
+  "status": "ok",
+  "output": "/\"crypto pki export\"/i or /\"crypto pki import\"/i or /\"crypto pki trustpoint\"/i"
  },
  "1fc0809e-06bf-4de3-ad52-25e5263b7623": {
   "status": "error",
@@ -239,9 +283,9 @@
   "status": "ok",
   "output": "properties.message=/^Device Code$/i"
  },
- "286b47ed-f6fe-40b3-b3a8-35129acd43bc": {
+ "293ccb8c-bed8-4868-8296-bef30e303b7e": {
   "status": "ok",
-  "output": "name=/\\.pst$/i or name=/\\.ost$/i or name=/\\.msg$/i or name=/\\.nst$/i or name=/\\.oab$/i or name=/\\.edb$/i or name=/\\.nsf$/i or name=/\\.bak$/i or name=/\\.dmp$/i or name=/\\.kirbi$/i or name=/\\.rdp$/i"
+  "output": "/\"/data/etc/wxd\\.conf\"/i or /\"/data/lib/libgif\\.so\"/i or /\"/data/lib/libips\\.bak\"/i or /\"/data/lib/libiptcp\\.so\"/i or /\"/data/lib/libipudp\\.so\"/i or /\"/data/lib/libjepg\\.so\"/i or /\"/var/\\.sslvpnconfigbk\"/i"
  },
  "2975af79-28c4-4d2f-a951-9095f229df29": {
   "status": "ok",
@@ -258,6 +302,10 @@
  "2bfc1373-0220-4fbd-8b10-33ddafd2a142": {
   "status": "ok",
   "output": "EventID=129 or EventID=140 or EventID=141 TaskName=/^\\\\defender$/i or TaskName=/^\\\\Microsoft\\\\DefenderService$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Application Experience\\\\StartupAppTaskCheck$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Application Experience\\\\StartupAppTaskCkeck$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\ATPUpd$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Data Integrity Scan\\\\Data Integrity Update$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\DefenderUPDService$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\IISUpdateService$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Speech\\\\SpeechModelInstallTask$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\WiMSDFS$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Windows Defender\\\\Defender Update Service$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Windows Defender\\\\Service Update$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Windows Error Reporting\\\\CheckReporting$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Windows Error Reporting\\\\SubmitReporting$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\Windows Filtering Platform\\\\BfeOnServiceStart$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\WindowsDefenderService$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\WindowsDefenderService2$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\WindowsUpdate\\\\Scheduled AutoCheck$/i or TaskName=/^\\\\Microsoft\\\\Windows\\\\WindowsUpdate\\\\Scheduled Check$/i or TaskName=/^\\\\WindowUpdate$/i"
+ },
+ "2ece8816-b7a0-4d9b-b0e8-ae7ad18bc02b": {
+  "status": "ok",
+  "output": "/\"%WEBUI-6-INSTALL_OPERATION_INFO:\"/i or /\"%SYS-5-CONFIG_P:\"/i or /\"%SEC_LOGIN-5-WEBLOGIN_SUCCESS:\"/i /\"cisco_tac_admin\"/i or /\"cisco_support\"/i or /\"cisco_sys_manager\"/i"
  },
  "2f8cd7a0-9d5a-4f62-9f8b-2c951aa0dd1f": {
   "status": "ok",
@@ -279,6 +327,14 @@
   "status": "ok",
   "output": "FileName=/\\.hive$/i or FileName=/\\.reg$/i not (Image=/^C:\\\\Program Files \\(x86\\)\\\\/i or Image=/^C:\\\\Program Files\\\\/i or Image=/^C:\\\\Windows\\\\System32\\\\/i or Image=/^C:\\\\Windows\\\\SysWOW64\\\\/i)"
  },
+ "36aa86ca-fd9d-4456-814e-d3b1b8e1e0bb": {
+  "status": "ok",
+  "output": "/\"Trojan.*FOUND\"/i or /\"VirTool.*FOUND\"/i or /\"Webshell.*FOUND\"/i or /\"Rootkit.*FOUND\"/i or /\"Htran.*FOUND\"/i"
+ },
+ "377f33a1-4b36-4ee1-acee-1dbe4b43cfbe": {
+  "status": "ok",
+  "output": "/\"Connection refused: too many sessions for this address\\.\"/i or /\"Connection refused: tcp_wrappers denial\\.\"/i or /\"Bad HTTP verb\\.\"/i or /\"port and pasv both active\"/i or /\"pasv and port both active\"/i or /\"Transfer done (but failed to open directory)\\.\"/i or /\"Could not set file modification time\\.\"/i or /\"bug: pid active in ptrace_sandbox_free\"/i or /\"PTRACE_SETOPTIONS failure\"/i or /\"weird status:\"/i or /\"couldn't handle sandbox event\"/i or /\"syscall .* out of bounds\"/i or /\"syscall not permitted:\"/i or /\"syscall validate failed:\"/i or /\"Input line too long\\.\"/i or /\"poor buffer accounting in str_netfd_alloc\"/i or /\"vsf_sysutil_read_loop\"/i"
+ },
  "3ce8e9a4-bc61-4c9b-8e69-d7e2492a8781": {
   "status": "ok",
   "output": "EventID=4 process=/^sshd$/i payload=/^Server listening on /i"
@@ -299,6 +355,22 @@
   "status": "ok",
   "output": "eventSource=/^Exchange$/i eventName=/^Add-FederatedDomain$/i status=/^success$/i"
  },
+ "49f5dfc1-f92e-4d34-96fa-feba3f6acf36": {
+  "status": "ok",
+  "output": "/\"stopping iptables\"/i or /\"stopping ip6tables\"/i or /\"stopping firewalld\"/i or /\"stopping cbdaemon\"/i or /\"stopping falcon-sensor\"/i"
+ },
+ "4c9d903d-4939-4094-ade0-3cb748f4d7da": {
+  "status": "ok",
+  "output": "/\"error: buffer_get_ret: trying to get more bytes 1907 than in buffer 308 [preauth]\"/i"
+ },
+ "4d0af518-828e-4a04-a751-a7d03f3046ad": {
+  "status": "ok",
+  "output": "/\"org\\.apache\\.commons\\.ognl\\.OgnlException\"/i or /\"ExpressionSyntaxException\"/i"
+ },
+ "4e64668a-4da1-49f5-a8df-9e2d5b866718": {
+  "status": "ok",
+  "output": "(EventID=808 ErrorCode=/^0x45A$/i or ErrorCode=/^0x7e$/i) or /\"The print spooler failed to load a plug-in module\"/i or /\"MyExploit\\.dll\"/i or /\"evil\\.dll\"/i or /\"\\\\addCube\\.dll\"/i or /\"\\\\rev\\.dll\"/i or /\"\\\\rev2\\.dll\"/i or /\"\\\\main64\\.dll\"/i or /\"\\\\mimilib\\.dll\"/i or /\"\\\\mimispool\\.dll\"/i not /\" registration timed out\"/i"
+ },
  "503fe26e-b5f2-4944-a126-eab405cc06e5": {
   "status": "ok",
   "output": "request_type=/^TGS$/i cipher=/^rc4-hmac$/i not service=/^\\$/i"
@@ -306,6 +378,10 @@
  "50cb47b8-2c33-4b23-a2e9-4600657d9746": {
   "status": "ok",
   "output": "EventID=101 PackagePath=/\\\\\\\\/i"
+ },
+ "50e606bf-04ce-4ca7-9d54-3449494bbd4b": {
+  "status": "ok",
+  "output": "/\"LDP\"/i /\"SOCKET_TCP_PACKET_MD5_AUTHEN_FAIL\"/i or /\"TCPMD5AuthenFail\"/i"
  },
  "5588576c-5898-4fac-bcdd-7475a60e8f43": {
   "status": "ok",
@@ -326,6 +402,10 @@
  "58c0bff0-40a0-46e8-b5e8-b734b84d2017": {
   "status": "ok",
   "output": "EventID=1007"
+ },
+ "59ec40bb-322e-40ab-808d-84fa690d7e56": {
+  "status": "ok",
+  "output": "/\"exited on signal 6 (core dumped)\"/i"
  },
  "62fff148-278d-497e-8ecd-ad6083231a35": {
   "status": "ok",
@@ -363,10 +443,6 @@
   "status": "ok",
   "output": "EventID=300 TargetUserSid=/^S-1-5-21-/i SidList=/S-1-5-32-544/i or SidList=/-500\\}/i or SidList=/-518\\}/i or SidList=/-519\\}/i not (TargetUserSid=/-500$/i or TargetUserSid=/-518$/i or TargetUserSid=/-519$/i)"
  },
- "7ba05b43-adad-4c02-b5e9-c8c35cdf9fa8": {
-  "status": "ok",
-  "output": "/\"networkd-dispatcher\"/i /\"Error handling notification for interface\"/i /\"\\.\\./\\.\\./\"/i"
- },
  "7fcc54cb-f27d-4684-84b7-436af096f858": {
   "status": "ok",
   "output": "USER=/^#-/i or USER=/^#.*4294967295$/i"
@@ -383,9 +459,17 @@
   "status": "ok",
   "output": "dst_ip=/^69\\.42\\.98\\.86$/i or dst_ip=/^89\\.185\\.234\\.145$/i or src_ip=/^69\\.42\\.98\\.86$/i or src_ip=/^89\\.185\\.234\\.145$/i"
  },
+ "8a670c6d-7189-4b1c-8017-a417ca84a086": {
+  "status": "ok",
+  "output": "/\"quoted string not properly terminated\"/i or /\"You have an error in your SQL syntax\"/i or /\"Unclosed quotation mark\"/i or /\"near \\\".*\\\": syntax error\"/i or /\"SELECTs to the left and right of UNION do not have the same number of result columns\"/i"
+ },
  "8d91f6e4-9f3b-4c21-ae41-2c5b7d9f7a12": {
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'crowdstrike' with pipelines [crowdstrike_fdr]: ORing CIDR matching is not yet supported by LogScale backend"
+ },
+ "97661d9d-2beb-4630-b423-68985291a8af": {
+  "status": "ok",
+  "output": "/\"node:child_process\"/i"
  },
  "98c3bcf1-56f2-49dc-9d8d-c66cf190238b": {
   "status": "ok",
@@ -411,6 +495,18 @@
   "status": "ok",
   "output": "TargetFilename=/\\.sed$/i"
  },
+ "ae48ab93-45f7-4051-9dfe-5d30a3f78e33": {
+  "status": "ok",
+  "output": "/\"AccessDeniedException\"/i or /\"CsrfException\"/i or /\"InvalidCsrfTokenException\"/i or /\"MissingCsrfTokenException\"/i or /\"CookieTheftException\"/i or /\"InvalidCookieException\"/i or /\"RequestRejectedException\"/i"
+ },
+ "af202fd3-7bff-4212-a25a-fb34606cfcbe": {
+  "status": "ok",
+  "output": "/\"REPLACE\"/i"
+ },
+ "b55d23e5-6821-44ff-8a6e-67218891e49f": {
+  "status": "ok",
+  "output": "EventID=40300 or EventID=40301 or EventID=40302 /\"HybridConnection\"/i or /\"sb://\"/i or /\"servicebus\\.windows\\.net\"/i or /\"HybridConnectionManage\"/i"
+ },
  "b5aa7d60-c17e-4538-97de-09029d6cd76b": {
   "status": "ok",
   "output": "EventID=157 subjectName=/^CN=Foresee Consulting Inc\\., O=Foresee Consulting Inc\\., L=North York, S=Ontario, C=CA, SERIALNUMBER=1004913-1, OID\\.1\\.3\\.6\\.1\\.4\\.1\\.311\\.60\\.2\\.1\\.3=CA, OID\\.2\\.5\\.4\\.15=Private Organization$/i"
@@ -431,9 +527,9 @@
   "status": "ok",
   "output": "EventID=201 ImageName=/^procdump\\.exe$/i or ImageName=/^psloglist\\.exe$/i or ImageName=/^psexec\\.exe$/i or ImageName=/^livekd\\.exe$/i or ImageName=/^ADExplorer\\.exe$/i"
  },
- "d4f1a2b3-7c8e-4d5f-b6a9-1e0c2d3f4e5b": {
+ "d84c0ded-edd7-4123-80ed-348bb3ccc4d5": {
   "status": "ok",
-  "output": "EventID=5858 Operation=/Win32_NTEventlogFile/i Operation=/cleareventlog/i"
+  "output": "/\"drop\"/i or /\"truncate\"/i or /\"dump\"/i or /\"select \\*\"/i"
  },
  "db809f10-56ce-4420-8c86-d6a7d793c79c": {
   "status": "ok",
@@ -443,10 +539,6 @@
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'crowdstrike' with pipelines [crowdstrike_fdr]: ORing CIDR matching is not yet supported by LogScale backend"
  },
- "e032f5bc-4563-4096-ae3b-064bab588685": {
-  "status": "ok",
-  "output": "/\"FileNotFoundException\"/i /\"/\\.\\./\\.\\./\\.\\.\"/i"
- },
  "e2b5163d-7deb-4566-9af3-40afea6858c3": {
   "status": "ok",
   "output": "EventID=70"
@@ -454,5 +546,17 @@
  "ec19ebab-72dc-40e1-9728-4c0b805d722c": {
   "status": "ok",
   "output": "Data=/Set-MpPreference/i Data=/-dbaf \\$true/i or Data=/-dbaf 1/i or Data=/-dbm \\$true/i or Data=/-dbm 1/i or Data=/-dips \\$true/i or Data=/-dips 1/i or Data=/-DisableArchiveScanning \\$true/i or Data=/-DisableArchiveScanning 1/i or Data=/-DisableBehaviorMonitoring \\$true/i or Data=/-DisableBehaviorMonitoring 1/i or Data=/-DisableBlockAtFirstSeen \\$true/i or Data=/-DisableBlockAtFirstSeen 1/i or Data=/-DisableCatchupFullScan \\$true/i or Data=/-DisableCatchupFullScan 1/i or Data=/-DisableCatchupQuickScan \\$true/i or Data=/-DisableCatchupQuickScan 1/i or Data=/-DisableIntrusionPreventionSystem \\$true/i or Data=/-DisableIntrusionPreventionSystem 1/i or Data=/-DisableIOAVProtection \\$true/i or Data=/-DisableIOAVProtection 1/i or Data=/-DisableRealtimeMonitoring \\$true/i or Data=/-DisableRealtimeMonitoring 1/i or Data=/-DisableRemovableDriveScanning \\$true/i or Data=/-DisableRemovableDriveScanning 1/i or Data=/-DisableScanningMappedNetworkDrivesForFullScan \\$true/i or Data=/-DisableScanningMappedNetworkDrivesForFullScan 1/i or Data=/-DisableScanningNetworkFiles \\$true/i or Data=/-DisableScanningNetworkFiles 1/i or Data=/-DisableScriptScanning \\$true/i or Data=/-DisableScriptScanning 1/i or Data=/-MAPSReporting \\$false/i or Data=/-MAPSReporting 0/i or Data=/-drdsc \\$true/i or Data=/-drdsc 1/i or Data=/-drtm \\$true/i or Data=/-drtm 1/i or Data=/-dscrptsc \\$true/i or Data=/-dscrptsc 1/i or Data=/-dsmndf \\$true/i or Data=/-dsmndf 1/i or Data=/-dsnf \\$true/i or Data=/-dsnf 1/i or Data=/-dss \\$true/i or Data=/-dss 1/i or Data=/HighThreatDefaultAction Allow/i or Data=/htdefac Allow/i or Data=/LowThreatDefaultAction Allow/i or Data=/ltdefac Allow/i or Data=/ModerateThreatDefaultAction Allow/i or Data=/mtdefac Allow/i or Data=/SevereThreatDefaultAction Allow/i or Data=/stdefac Allow/i"
+ },
+ "f130a5f1-73ba-42f0-bf1e-b66a8361cb8f": {
+  "status": "ok",
+  "output": "/\"failed to unmarshal session(\\.\\./\"/i or /\"failed to unmarshal session(\\./\\.\\./\"/i or /\"failed to unmarshal session(/\\.\\.\"/i or /\"failed to unmarshal session(%2E%2E%2F\"/i or /\"failed to unmarshal session(%2F%2E%2E\"/i or /\"failed to unmarshal session(%2E%2F%2E%2E%2F\"/i or /\"failed to unmarshal session(%252E%252E%252F\"/i or /\"failed to unmarshal session(%252F%252E%252E\"/i or /\"failed to unmarshal session(%252E%252F%252E%252E%252F\"/i or (/\"{IFS}\"/i or /\"base64\"/i or /\"bash\"/i or /\"curl\"/i or /\"http\"/i /\"/opt/panlogs/tmp/device_telemetry/\"/i)"
+ },
+ "f34d942d-c8c4-4f1f-b196-22471aecf10a": {
+  "status": "ok",
+  "output": "EventID=316 /\"UNIDRV\\.DLL, kernelbase\\.dll, \"/i or /\" 123 \"/i or /\" 1234 \"/i or /\"mimispool\"/i"
+ },
+ "fd435618-981e-4a7c-81f8-f78ce480d616": {
+  "status": "ok",
+  "output": "/\"SuspiciousOperation\"/i or /\"DisallowedHost\"/i or /\"DisallowedModelAdminLookup\"/i or /\"DisallowedModelAdminToField\"/i or /\"DisallowedRedirect\"/i or /\"InvalidSessionKey\"/i or /\"RequestDataTooBig\"/i or /\"SuspiciousFileOperation\"/i or /\"SuspiciousMultipartForm\"/i or /\"SuspiciousSession\"/i or /\"TooManyFieldsSent\"/i or /\"PermissionDenied\"/i"
  }
 }

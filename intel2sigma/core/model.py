@@ -61,6 +61,19 @@ ValueModifier = Literal[
     "gte",
     "lt",
     "lte",
+    # Field-to-field comparison: the value names another FIELD rather
+    # than a literal, e.g. ``Image|fieldref: ParentImage`` for "the
+    # process image equals its own parent's". Semantically unlike every
+    # modifier above, which qualify how a literal is matched.
+    "fieldref",
+    # Regex flags, only meaningful chained after ``re`` — ``|re|i`` for
+    # case-insensitive, ``|re|m`` multiline, ``|re|s`` dot-matches-all.
+    # Only ``i`` appears in the r2026-07-01 corpus; ``m`` and ``s`` are
+    # the documented siblings and cost nothing to accept, which spares
+    # the next cycle re-diagnosing the same shape.
+    "i",
+    "m",
+    "s",
 ]
 
 

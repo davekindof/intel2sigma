@@ -43,6 +43,10 @@
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: invalid field(s) for table DeviceEvents"
  },
+ "021310d9-30a6-480a-84b7-eaa69aeb92bb": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Zeek network-sensor telemetry. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+ },
  "0250638a-2b28-4541-86fc-ea4c558fa0c6": {
   "status": "ok",
   "output": "DeviceProcessEvents\n| where ((InitiatingProcessFolderPath contains \"com.apple.WebKit.WebContent\" or InitiatingProcessFolderPath contains \"firefox\" or InitiatingProcessFolderPath contains \"Google Chrome Helper\" or InitiatingProcessFolderPath contains \"Google Chrome\" or InitiatingProcessFolderPath contains \"Microsoft Edge\" or InitiatingProcessFolderPath contains \"Opera\" or InitiatingProcessFolderPath contains \"Safari\" or InitiatingProcessFolderPath contains \"Tor Browser\") and (FolderPath endswith \"/bash\" or FolderPath endswith \"/curl\" or FolderPath endswith \"/dash\" or FolderPath endswith \"/ksh\" or FolderPath endswith \"/osascript\" or FolderPath endswith \"/perl\" or FolderPath endswith \"/php\" or FolderPath endswith \"/pwsh\" or FolderPath endswith \"/python\" or FolderPath endswith \"/sh\" or FolderPath endswith \"/tcsh\" or FolderPath endswith \"/wget\" or FolderPath endswith \"/zsh\")) and (not((ProcessCommandLine contains \"--defaults-torrc\" or ProcessCommandLine =~ \"*/Library/Application Support/Microsoft/MAU*/Microsoft AutoUpdate.app/Contents/MacOS/msupdate*\" or ((InitiatingProcessFolderPath contains \"Google Chrome Helper\" or InitiatingProcessFolderPath contains \"Google Chrome\") and ((ProcessCommandLine contains \"/Volumes/Google Chrome/Google Chrome.app/Contents/Frameworks/\" and ProcessCommandLine contains \"/Resources/install.sh\") or (ProcessCommandLine contains \"/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/\" and ProcessCommandLine contains \"/Resources/keystone_promote_preflight.sh\") or (ProcessCommandLine contains \"/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/\" and ProcessCommandLine contains \"/Resources/keystone_promote_postflight.sh\"))) or (InitiatingProcessFolderPath contains \"Microsoft Edge\" and (ProcessCommandLine contains \"IOPlatformExpertDevice\" or ProcessCommandLine contains \"hw.model\")) or ((InitiatingProcessFolderPath contains \"Google Chrome Helper\" or InitiatingProcessFolderPath contains \"Google Chrome\") and (ProcessCommandLine contains \"/Users/\" and ProcessCommandLine contains \"/Library/Application Support/Google/Chrome/recovery/\" and ProcessCommandLine contains \"/ChromeRecovery\"))))) and (not((isnull(ProcessCommandLine) or ProcessCommandLine =~ \"\")))"
@@ -95,6 +99,10 @@
   "status": "ok",
   "output": "DeviceNetworkEvents\n| where InitiatingProcessFolderPath endswith \"\\\\regasm.exe\" and (not((ipv4_is_in_range(RemoteIP, \"127.0.0.0/8\") or ipv4_is_in_range(RemoteIP, \"10.0.0.0/8\") or ipv4_is_in_range(RemoteIP, \"172.16.0.0/12\") or ipv4_is_in_range(RemoteIP, \"192.168.0.0/16\") or ipv4_is_in_range(RemoteIP, \"169.254.0.0/16\") or ipv4_is_in_range(RemoteIP, \"::1/128\") or ipv4_is_in_range(RemoteIP, \"fe80::/10\") or ipv4_is_in_range(RemoteIP, \"fc00::/7\"))))"
  },
+ "055fb148-60f8-462d-ad16-26926ce050f1": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
  "06125661-3814-4e03-bfa2-1e4411c60ac3": {
   "status": "ok",
   "output": "DeviceFileEvents\n| where (InitiatingProcessFolderPath endswith \"\\\\cmd.exe\" or InitiatingProcessFolderPath endswith \"\\\\powershell.exe\" or InitiatingProcessFolderPath endswith \"\\\\pwsh.exe\" or InitiatingProcessFolderPath endswith \"\\\\wt.exe\" or InitiatingProcessFolderPath endswith \"\\\\rundll32.exe\" or InitiatingProcessFolderPath endswith \"\\\\regsvr32.exe\") and (FolderPath endswith \".VHD\" or FolderPath endswith \".bac\" or FolderPath endswith \".bak\" or FolderPath endswith \".wbcat\" or FolderPath endswith \".bkf\" or FolderPath endswith \".set\" or FolderPath endswith \".win\" or FolderPath endswith \".dsk\")"
@@ -103,11 +111,11 @@
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: invalid field(s) for table DeviceNetworkEvents"
  },
- "071d5e5a-9cef-47ec-bc4e-a42e34d8d0ed": {
+ "06d71506-7beb-4f22-8888-e2e5e2ca7fd8": {
   "status": "error",
   "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
- "07330162-dba1-4746-8121-a9647d49d297": {
+ "071d5e5a-9cef-47ec-bc4e-a42e34d8d0ed": {
   "status": "error",
   "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
@@ -143,6 +151,10 @@
   "status": "error",
   "error": "ConversionFailedError: Microsoft Sentinel (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for RPC Firewall events. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
+ "0ac15ec3-d24f-4246-aa2a-3077bb1cf90e": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
  "0adc67e0-a68f-4ffd-9c43-28905aad5d6a": {
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: invalid field(s) for table DeviceEvents"
@@ -151,11 +163,19 @@
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
+ "0b7889b4-5577-4521-a60a-3376ee7f9f7b": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
  "0c97c1d3-4057-45c9-b148-1de94b631931": {
   "status": "error",
   "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "0c9b3bda-41a6-4442-9345-356ae86343dc": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
+ "0d2c3d4c-4b48-4ac3-8f23-ea845746bb1a": {
   "status": "error",
   "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
@@ -203,6 +223,14 @@
   "status": "error",
   "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
+ "16c86189-b556-4ee8-b4c7-7e350a195a4f": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
+ "19aefed0-ffd4-47dc-a7fc-f8b1425e84f9": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
  "19bf6fdb-7721-4f3d-867f-53467f6a5db6": {
   "status": "ok",
   "output": "DeviceNetworkEvents\n| where RemoteUrl contains \"tunnel.us.ngrok.com\" or RemoteUrl contains \"tunnel.eu.ngrok.com\" or RemoteUrl contains \"tunnel.ap.ngrok.com\" or RemoteUrl contains \"tunnel.au.ngrok.com\" or RemoteUrl contains \"tunnel.sa.ngrok.com\" or RemoteUrl contains \"tunnel.jp.ngrok.com\" or RemoteUrl contains \"tunnel.in.ngrok.com\""
@@ -214,6 +242,22 @@
  "1d218616-71b0-4c40-855b-9dbe75510f7f": {
   "status": "ok",
   "output": "DeviceRegistryEvents\n| where RegistryKey contains \"\\\\software\\\\NetWire\""
+ },
+ "1da8ce0b-855d-4004-8860-7d64d42063b1": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
+ "1edd77db-0669-4fef-9598-165bda82826d": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
+ "1f2b5353-573f-4880-8e33-7d04dcf97744": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
+ "1f978c6a-4415-47fb-aca5-736a44d7ca3d": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Cisco appliance syslog. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "1fc0809e-06bf-4de3-ad52-25e5263b7623": {
   "status": "error",
@@ -239,9 +283,9 @@
   "status": "error",
   "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
- "286b47ed-f6fe-40b3-b3a8-35129acd43bc": {
+ "293ccb8c-bed8-4868-8296-bef30e303b7e": {
   "status": "error",
-  "error": "ConversionFailedError: Microsoft Sentinel (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Zeek network-sensor telemetry. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "2975af79-28c4-4d2f-a951-9095f229df29": {
   "status": "error",
@@ -258,6 +302,10 @@
  "2bfc1373-0220-4fbd-8b10-33ddafd2a142": {
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+ },
+ "2ece8816-b7a0-4d9b-b0e8-ae7ad18bc02b": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Cisco appliance syslog. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "2f8cd7a0-9d5a-4f62-9f8b-2c951aa0dd1f": {
   "status": "error",
@@ -279,6 +327,14 @@
   "status": "ok",
   "output": "DeviceFileEvents\n| where (FileName endswith \".hive\" or FileName endswith \".reg\") and (not((InitiatingProcessFolderPath startswith \"C:\\\\Program Files (x86)\\\\\" or InitiatingProcessFolderPath startswith \"C:\\\\Program Files\\\\\" or InitiatingProcessFolderPath startswith \"C:\\\\Windows\\\\System32\\\\\" or InitiatingProcessFolderPath startswith \"C:\\\\Windows\\\\SysWOW64\\\\\")))"
  },
+ "36aa86ca-fd9d-4456-814e-d3b1b8e1e0bb": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
+ "377f33a1-4b36-4ee1-acee-1dbe4b43cfbe": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
  "3ce8e9a4-bc61-4c9b-8e69-d7e2492a8781": {
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
@@ -299,6 +355,22 @@
   "status": "error",
   "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
+ "49f5dfc1-f92e-4d34-96fa-feba3f6acf36": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
+ "4c9d903d-4939-4094-ade0-3cb748f4d7da": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
+ "4d0af518-828e-4a04-a751-a7d03f3046ad": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for JVM application logs. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
+ },
+ "4e64668a-4da1-49f5-a8df-9e2d5b866718": {
+  "status": "error",
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+ },
  "503fe26e-b5f2-4944-a126-eab405cc06e5": {
   "status": "error",
   "error": "ConversionFailedError: Microsoft Sentinel (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Zeek network-sensor telemetry. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
@@ -306,6 +378,10 @@
  "50cb47b8-2c33-4b23-a2e9-4600657d9746": {
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+ },
+ "50e606bf-04ce-4ca7-9d54-3449494bbd4b": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for Cisco appliance syslog. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
  },
  "5588576c-5898-4fac-bcdd-7475a60e8f43": {
   "status": "error",
@@ -326,6 +402,10 @@
  "58c0bff0-40a0-46e8-b5e8-b734b84d2017": {
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+ },
+ "59ec40bb-322e-40ab-808d-84fa690d7e56": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "62fff148-278d-497e-8ecd-ad6083231a35": {
   "status": "error",
@@ -363,10 +443,6 @@
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
- "7ba05b43-adad-4c02-b5e9-c8c35cdf9fa8": {
-  "status": "error",
-  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
- },
  "7fcc54cb-f27d-4684-84b7-436af096f858": {
   "status": "error",
   "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
@@ -383,9 +459,17 @@
   "status": "error",
   "error": "ConversionFailedError: This rule uses the vendor-agnostic \"firewall\" category — it does not name a product, so Microsoft Sentinel (KQL) has no single table to target. Adding a product to the logsource (or using the Splunk, Elastic and CrowdStrike tabs, which match on field names rather than tables) will convert it."
  },
+ "8a670c6d-7189-4b1c-8017-a417ca84a086": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
  "8d91f6e4-9f3b-4c21-ae41-2c5b7d9f7a12": {
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+ },
+ "97661d9d-2beb-4630-b423-68985291a8af": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
  "98c3bcf1-56f2-49dc-9d8d-c66cf190238b": {
   "status": "error",
@@ -411,6 +495,18 @@
   "status": "error",
   "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  },
+ "ae48ab93-45f7-4051-9dfe-5d30a3f78e33": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
+ "af202fd3-7bff-4212-a25a-fb34606cfcbe": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
+ "b55d23e5-6821-44ff-8a6e-67218891e49f": {
+  "status": "error",
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+ },
  "b5aa7d60-c17e-4538-97de-09029d6cd76b": {
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
@@ -431,9 +527,9 @@
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
- "d4f1a2b3-7c8e-4d5f-b6a9-1e0c2d3f4e5b": {
+ "d84c0ded-edd7-4123-80ed-348bb3ccc4d5": {
   "status": "error",
-  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+  "error": "ConversionFailedError: This rule uses the vendor-agnostic \"database\" category — it does not name a product, so Microsoft Sentinel (KQL) has no single table to target. Adding a product to the logsource (or using the Splunk, Elastic and CrowdStrike tabs, which match on field names rather than tables) will convert it."
  },
  "db809f10-56ce-4420-8c86-d6a7d793c79c": {
   "status": "error",
@@ -443,15 +539,23 @@
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
- "e032f5bc-4563-4096-ae3b-064bab588685": {
-  "status": "error",
-  "error": "ConversionFailedError: Microsoft Sentinel (KQL) queries the Microsoft Defender XDR advanced-hunting schema, which has no tables for JVM application logs. This detection cannot be expressed against that schema. The Splunk, Elastic and CrowdStrike tabs pass these field names through and will usually convert it."
- },
  "e2b5163d-7deb-4566-9af3-40afea6858c3": {
   "status": "error",
   "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
  },
  "ec19ebab-72dc-40e1-9728-4c0b805d722c": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
+ "f130a5f1-73ba-42f0-bf1e-b66a8361cb8f": {
+  "status": "error",
+  "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
+ },
+ "f34d942d-c8c4-4f1f-b196-22471aecf10a": {
+  "status": "error",
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'kusto_sentinel' with pipelines [microsoft_xdr]: 'SigmaNumber' object has no attribute '__annotations__' (while applying processing pipeline on rule None)"
+ },
+ "fd435618-981e-4a7c-81f8-f78ce480d616": {
   "status": "error",
   "error": "ConversionFailedError: Microsoft Sentinel (KQL) has no table mapping for this rule's logsource. The telemetry may well exist in this platform, in which case this is a gap that can be closed with a pipeline mapping rather than a limitation of the rule. The Splunk, Elastic and CrowdStrike tabs will usually convert it in the meantime."
  }

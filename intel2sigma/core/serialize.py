@@ -486,23 +486,45 @@ def _detection_item_from_yaml(key: Any, raw_value: Any) -> DetectionItem:
 
 
 def _parse_detection_block(name: str, body: Any) -> DetectionBlock:
-    """Parse either the mapping or list-of-mappings form.
+    """Parse the mapping, list-of-mappings, or keyword-list form.
 
-    Mapping form → ``combinator="all_of"``. List-of-mappings form →
+    Mapping form → ``combinator="all_of"``. List forms →
     ``combinator="any_of"``. Multi-field entries in the list form (which
     would represent an AND-subgroup inside an OR) flatten into individual
     items — see the class docstring on :class:`DetectionBlock` for why
     this is an accepted fidelity loss in v1.
+
+    **Keyword list.** A list whose entries are scalars rather than
+    mappings is Sigma's keyword form — ``filter_keywords: [samr,
+    lsarpc]``, "fire if any event field contains any of these". This
+    raised ``TypeError`` until 2026-07 and took 94 corpus rules (2.6%)
+    with it, even though the rest of the round trip already supported
+    the shape: a :class:`DetectionItem` with an empty ``field`` *is* the
+    keyword item, documented as such on the model, and
+    :func:`_emit_keyword_block` has rendered it in three variants since
+    L5-E. Only the parse side was missing.
+
+    All scalars in a block collapse into **one** item rather than one
+    each, because a DetectionItem's values are already OR-ed and that is
+    exactly the emit shape ``_emit_keyword_block`` produces for the
+    no-modifier case — so the round trip is byte-identical. Mixed lists
+    (scalars alongside mappings) are legal Sigma and parse, with the
+    keyword item appended last; the corpus contains no such block today,
+    so the ordering has no round-trip cost in practice.
     """
     is_filter = name.startswith("filter")
     items: list[DetectionItem] = []
 
     if isinstance(body, list):
+        keyword_values: list[str | int | bool | None] = []
         for entry in body:
-            if not isinstance(entry, dict):
-                raise TypeError(f"Detection block '{name}': list entries must be mappings")
-            for key, raw_value in entry.items():
-                items.append(_detection_item_from_yaml(key, raw_value))
+            if isinstance(entry, dict):
+                for key, raw_value in entry.items():
+                    items.append(_detection_item_from_yaml(key, raw_value))
+            else:
+                keyword_values.append(entry)
+        if keyword_values:
+            items.append(DetectionItem(field="", modifiers=[], values=keyword_values))
         return DetectionBlock(name=name, is_filter=is_filter, combinator="any_of", items=items)
 
     if not isinstance(body, dict):

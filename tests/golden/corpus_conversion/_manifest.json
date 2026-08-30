@@ -55,6 +55,11 @@
   "logsource": "windows/ps_script/-"
  },
  {
+  "id": "021310d9-30a6-480a-84b7-eaa69aeb92bb",
+  "title": "First Time Seen Remote Named Pipe - Zeek",
+  "logsource": "zeek/-/smb_files"
+ },
+ {
   "id": "0250638a-2b28-4541-86fc-ea4c558fa0c6",
   "title": "Suspicious Browser Child Process - MacOS",
   "logsource": "macos/process_creation/-"
@@ -120,6 +125,11 @@
   "logsource": "windows/network_connection/-"
  },
  {
+  "id": "055fb148-60f8-462d-ad16-26926ce050f1",
+  "title": "AWS User Login Profile Was Modified",
+  "logsource": "aws/-/cloudtrail"
+ },
+ {
   "id": "06125661-3814-4e03-bfa2-1e4411c60ac3",
   "title": "Backup Files Deleted",
   "logsource": "windows/file_delete/-"
@@ -130,14 +140,14 @@
   "logsource": "windows/dns_query/-"
  },
  {
+  "id": "06d71506-7beb-4f22-8888-e2e5e2ca7fd8",
+  "title": "Mimikatz Use",
+  "logsource": "windows/-/-"
+ },
+ {
   "id": "071d5e5a-9cef-47ec-bc4e-a42e34d8d0ed",
   "title": "Possible Coin Miner CPU Priority Param",
   "logsource": "linux/-/auditd"
- },
- {
-  "id": "07330162-dba1-4746-8121-a9647d49d297",
-  "title": "AWS Config Disabling Channel/Recorder",
-  "logsource": "aws/-/cloudtrail"
  },
  {
   "id": "07ad2ea8-6a55-4ac6-bf3e-91b8e59676eb",
@@ -180,6 +190,11 @@
   "logsource": "rpc_firewall/application/-"
  },
  {
+  "id": "0ac15ec3-d24f-4246-aa2a-3077bb1cf90e",
+  "title": "Privileged User Has Been Created",
+  "logsource": "linux/-/-"
+ },
+ {
   "id": "0adc67e0-a68f-4ffd-9c43-28905aad5d6a",
   "title": "HackTool - Koh Default Named Pipe",
   "logsource": "windows/pipe_created/-"
@@ -190,6 +205,11 @@
   "logsource": "windows/-/security-mitigations"
  },
  {
+  "id": "0b7889b4-5577-4521-a60a-3376ee7f9f7b",
+  "title": "WMI Persistence",
+  "logsource": "windows/-/wmi"
+ },
+ {
   "id": "0c97c1d3-4057-45c9-b148-1de94b631931",
   "title": "Okta Policy Rule Modified or Deleted",
   "logsource": "okta/-/okta"
@@ -198,6 +218,11 @@
   "id": "0c9b3bda-41a6-4442-9345-356ae86343dc",
   "title": "Kubernetes CronJob/Job Modification",
   "logsource": "kubernetes/-/audit"
+ },
+ {
+  "id": "0d2c3d4c-4b48-4ac3-8f23-ea845746bb1a",
+  "title": "Ruby on Rails Framework Exceptions",
+  "logsource": "ruby_on_rails/application/-"
  },
  {
   "id": "0d58814b-1660-4d31-8c93-d1086ed24cba",
@@ -255,6 +280,16 @@
   "logsource": "bitbucket/-/audit"
  },
  {
+  "id": "16c86189-b556-4ee8-b4c7-7e350a195a4f",
+  "title": "Potential Server Side Template Injection In Velocity",
+  "logsource": "velocity/application/-"
+ },
+ {
+  "id": "19aefed0-ffd4-47dc-a7fc-f8b1425e84f9",
+  "title": "Python SQL Exceptions",
+  "logsource": "python/application/-"
+ },
+ {
   "id": "19bf6fdb-7721-4f3d-867f-53467f6a5db6",
   "title": "Communication To Ngrok Tunneling Service - Linux",
   "logsource": "linux/network_connection/-"
@@ -268,6 +303,26 @@
   "id": "1d218616-71b0-4c40-855b-9dbe75510f7f",
   "title": "Potential NetWire RAT Activity - Registry",
   "logsource": "windows/registry_add/-"
+ },
+ {
+  "id": "1da8ce0b-855d-4004-8860-7d64d42063b1",
+  "title": "Apache Segmentation Fault",
+  "logsource": "-/-/apache"
+ },
+ {
+  "id": "1edd77db-0669-4fef-9598-165bda82826d",
+  "title": "Guacamole Two Users Sharing Session Anomaly",
+  "logsource": "linux/-/guacamole"
+ },
+ {
+  "id": "1f2b5353-573f-4880-8e33-7d04dcf97744",
+  "title": "Sysmon Configuration Modification",
+  "logsource": "windows/sysmon_status/-"
+ },
+ {
+  "id": "1f978c6a-4415-47fb-aca5-736a44d7ca3d",
+  "title": "Cisco Crypto Commands",
+  "logsource": "cisco/-/aaa"
  },
  {
   "id": "1fc0809e-06bf-4de3-ad52-25e5263b7623",
@@ -300,9 +355,9 @@
   "logsource": "azure/-/signinlogs"
  },
  {
-  "id": "286b47ed-f6fe-40b3-b3a8-35129acd43bc",
-  "title": "Suspicious Access to Sensitive File Extensions - Zeek",
-  "logsource": "zeek/-/smb_files"
+  "id": "293ccb8c-bed8-4868-8296-bef30e303b7e",
+  "title": "Exploitation Indicator Of CVE-2022-42475",
+  "logsource": "fortios/-/sslvpnd"
  },
  {
   "id": "2975af79-28c4-4d2f-a951-9095f229df29",
@@ -323,6 +378,11 @@
   "id": "2bfc1373-0220-4fbd-8b10-33ddafd2a142",
   "title": "Scheduled Tasks Names Used By SVR For GraphicalProton Backdoor - Task Scheduler",
   "logsource": "windows/-/taskscheduler"
+ },
+ {
+  "id": "2ece8816-b7a0-4d9b-b0e8-ae7ad18bc02b",
+  "title": "Exploitation Indicators Of CVE-2023-20198",
+  "logsource": "cisco/-/syslog"
  },
  {
   "id": "2f8cd7a0-9d5a-4f62-9f8b-2c951aa0dd1f",
@@ -350,6 +410,16 @@
   "logsource": "windows/file_access/-"
  },
  {
+  "id": "36aa86ca-fd9d-4456-814e-d3b1b8e1e0bb",
+  "title": "Relevant ClamAV Message",
+  "logsource": "linux/-/clamav"
+ },
+ {
+  "id": "377f33a1-4b36-4ee1-acee-1dbe4b43cfbe",
+  "title": "Suspicious VSFTPD Error Messages",
+  "logsource": "linux/-/vsftpd"
+ },
+ {
   "id": "3ce8e9a4-bc61-4c9b-8e69-d7e2492a8781",
   "title": "OpenSSH Server Listening On Socket",
   "logsource": "windows/-/openssh"
@@ -375,6 +445,26 @@
   "logsource": "m365/-/exchange"
  },
  {
+  "id": "49f5dfc1-f92e-4d34-96fa-feba3f6acf36",
+  "title": "Disabling Security Tools - Builtin",
+  "logsource": "linux/-/syslog"
+ },
+ {
+  "id": "4c9d903d-4939-4094-ade0-3cb748f4d7da",
+  "title": "SSHD Error Message CVE-2018-15473",
+  "logsource": "linux/-/sshd"
+ },
+ {
+  "id": "4d0af518-828e-4a04-a751-a7d03f3046ad",
+  "title": "Potential OGNL Injection Exploitation In JVM Based Application",
+  "logsource": "jvm/application/-"
+ },
+ {
+  "id": "4e64668a-4da1-49f5-a8df-9e2d5b866718",
+  "title": "Possible CVE-2021-1675 Print Spooler Exploitation",
+  "logsource": "windows/-/printservice-admin"
+ },
+ {
   "id": "503fe26e-b5f2-4944-a126-eab405cc06e5",
   "title": "Kerberos Network Traffic RC4 Ticket Encryption",
   "logsource": "zeek/-/kerberos"
@@ -383,6 +473,11 @@
   "id": "50cb47b8-2c33-4b23-a2e9-4600657d9746",
   "title": "Loading Diagcab Package From Remote Path",
   "logsource": "windows/-/diagnosis-scripted"
+ },
+ {
+  "id": "50e606bf-04ce-4ca7-9d54-3449494bbd4b",
+  "title": "Cisco LDP Authentication Failures",
+  "logsource": "cisco/-/ldp"
  },
  {
   "id": "5588576c-5898-4fac-bcdd-7475a60e8f43",
@@ -408,6 +503,11 @@
   "id": "58c0bff0-40a0-46e8-b5e8-b734b84d2017",
   "title": "Certificate Exported From Local Certificate Store",
   "logsource": "windows/-/certificateservicesclient-lifecycle-system"
+ },
+ {
+  "id": "59ec40bb-322e-40ab-808d-84fa690d7e56",
+  "title": "Nginx Core Dump",
+  "logsource": "-/-/nginx"
  },
  {
   "id": "62fff148-278d-497e-8ecd-ad6083231a35",
@@ -455,11 +555,6 @@
   "logsource": "windows/-/lsa-server"
  },
  {
-  "id": "7ba05b43-adad-4c02-b5e9-c8c35cdf9fa8",
-  "title": "Potential Nimbuspwn Exploit CVE-2022-29799 and CVE-2022-27800",
-  "logsource": "linux/-/-"
- },
- {
   "id": "7fcc54cb-f27d-4684-84b7-436af096f858",
   "title": "Sudo Privilege Escalation CVE-2019-14287 - Builtin",
   "logsource": "linux/-/sudo"
@@ -480,9 +575,19 @@
   "logsource": "-/firewall/-"
  },
  {
+  "id": "8a670c6d-7189-4b1c-8017-a417ca84a086",
+  "title": "Suspicious SQL Error Messages",
+  "logsource": "sql/application/-"
+ },
+ {
   "id": "8d91f6e4-9f3b-4c21-ae41-2c5b7d9f7a12",
   "title": "Unsigned or Unencrypted SMB Connection to Share Established",
   "logsource": "windows/-/smbserver-connectivity"
+ },
+ {
+  "id": "97661d9d-2beb-4630-b423-68985291a8af",
+  "title": "Potential RCE Exploitation Attempt In NodeJS",
+  "logsource": "nodejs/application/-"
  },
  {
   "id": "98c3bcf1-56f2-49dc-9d8d-c66cf190238b",
@@ -515,6 +620,21 @@
   "logsource": "windows/file_executable_detected/-"
  },
  {
+  "id": "ae48ab93-45f7-4051-9dfe-5d30a3f78e33",
+  "title": "Spring Framework Exceptions",
+  "logsource": "spring/application/-"
+ },
+ {
+  "id": "af202fd3-7bff-4212-a25a-fb34606cfcbe",
+  "title": "Modifying Crontab",
+  "logsource": "linux/-/cron"
+ },
+ {
+  "id": "b55d23e5-6821-44ff-8a6e-67218891e49f",
+  "title": "HybridConnectionManager Service Running",
+  "logsource": "windows/-/microsoft-servicebus-client"
+ },
+ {
   "id": "b5aa7d60-c17e-4538-97de-09029d6cd76b",
   "title": "Suspicious Digital Signature Of AppX Package",
   "logsource": "windows/-/appxpackaging-om"
@@ -540,9 +660,9 @@
   "logsource": "windows/-/appmodel-runtime"
  },
  {
-  "id": "d4f1a2b3-7c8e-4d5f-b6a9-1e0c2d3f4e5b",
-  "title": "Failed Event Log Clear Via WMI NTEventLogFile ClearEventLog",
-  "logsource": "windows/-/wmi"
+  "id": "d84c0ded-edd7-4123-80ed-348bb3ccc4d5",
+  "title": "Suspicious SQL Query",
+  "logsource": "-/database/-"
  },
  {
   "id": "db809f10-56ce-4420-8c86-d6a7d793c79c",
@@ -555,11 +675,6 @@
   "logsource": "windows/-/smbclient-connectivity"
  },
  {
-  "id": "e032f5bc-4563-4096-ae3b-064bab588685",
-  "title": "Potential Local File Read Vulnerability In JVM Based Application",
-  "logsource": "jvm/application/-"
- },
- {
   "id": "e2b5163d-7deb-4566-9af3-40afea6858c3",
   "title": "Certificate Private Key Acquired",
   "logsource": "windows/-/capi2"
@@ -568,5 +683,20 @@
   "id": "ec19ebab-72dc-40e1-9728-4c0b805d722c",
   "title": "Tamper Windows Defender - PSClassic",
   "logsource": "windows/ps_classic_provider_start/-"
+ },
+ {
+  "id": "f130a5f1-73ba-42f0-bf1e-b66a8361cb8f",
+  "title": "Potential CVE-2024-3400 Exploitation - Palo Alto GlobalProtect OS Command Injection",
+  "logsource": "paloalto/appliance/globalprotect"
+ },
+ {
+  "id": "f34d942d-c8c4-4f1f-b196-22471aecf10a",
+  "title": "CVE-2021-1675 Print Spooler Exploitation",
+  "logsource": "windows/-/printservice-operational"
+ },
+ {
+  "id": "fd435618-981e-4a7c-81f8-f78ce480d616",
+  "title": "Django Framework Exceptions",
+  "logsource": "django/application/-"
  }
 ]

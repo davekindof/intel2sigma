@@ -12,12 +12,18 @@ any regression in:
   produce YAML pySigma can't parse back)
 * the **clean** count (must not drop below ``MIN_EMIT_CLEAN_COUNT``)
 
-The ``structural_drift`` count is NOT held at zero because a
-non-zero residual is expected — some Sigma idioms our model can't
-losslessly represent (multi-field AND-in-OR sub-groups, exotic
-condition shapes captured by L2-P3) will register as drift. The
-ratchet floors that count instead, same way L3 floors the
-load-clean count.
+* the **structural_drift** count (must stay at
+  ``MAX_STRUCTURAL_DRIFT``, currently 0)
+
+This file long described drift as floored rather than zeroed, on the
+assumption that a residual was inevitable — some Sigma idioms our
+model can't losslessly represent (multi-field AND-in-OR sub-groups,
+exotic condition shapes captured by L2-P3) would register as drift.
+No floor was ever actually implemented, and the four rules sitting in
+that bucket turned out not to be unrepresentable idioms at all: they
+were a silent-data-loss bug in the loader's modifier handling, found
+2026-08-02. Drift is now zero and gated. See ``MAX_STRUCTURAL_DRIFT``
+for what to do if a genuinely unrepresentable idiom ever appears.
 
 The ratchet is one-way. When a fix improves the clean count, the
 test stays green — but the dev should bump ``MIN_EMIT_CLEAN_COUNT``
@@ -77,7 +83,28 @@ from intel2sigma._data import data_path
 #     empty observation_id). See that constant's history entry for
 #     the full reasoning — a measurement correction, not lost
 #     functionality.
-MIN_EMIT_CLEAN_COUNT = 3419
+#   2026-08-02 (keyword-list parser + modifier fixes) — 3423
+#     +4: the four rules that were losing `fieldref` / `re|i` on load
+#     now round-trip, so they move from structural_drift into clean.
+MIN_EMIT_CLEAN_COUNT = 3423
+
+# Structural drift must now stay at zero.
+#
+# This module's docstring has always said drift "is floored instead" of
+# held at zero — but no floor existed, which is exactly how four rules
+# sat in that bucket unnoticed. They were not an unrepresentable Sigma
+# idiom; they were a real silent-data-loss bug. web/load.py kept a
+# hardcoded copy of ValueModifier that had drifted from the model, so
+# `Image|fieldref: ParentImage` loaded with the modifier stripped and
+# quietly became a literal match on the string "ParentImage".
+#
+# Zero is the honest floor today. If a future corpus refresh introduces
+# a genuinely unrepresentable idiom (multi-field AND-in-OR sub-groups
+# are the documented example), raise this with a history line saying
+# which rule and why — but check first that it is not another modifier
+# or value silently going missing, because that is what it was last
+# time.
+MAX_STRUCTURAL_DRIFT = 0
 
 # Categories that MUST stay at zero. ``emit_exception`` means the
 # composer produced YAML pySigma rejects on re-parse — a hard
@@ -185,4 +212,40 @@ def test_emit_floor_not_too_stale(
         f"Bump MIN_EMIT_CLEAN_COUNT in "
         f"tests/test_corpus_emit_audit_ratchet.py to {actual} in your "
         f"next commit."
+    )
+
+
+@pytest.mark.slow
+def test_structural_drift_holds_at_zero(
+    corpus_emit_audit: AuditResult,
+) -> None:
+    """No rule may lose structure on the composer → YAML round trip.
+
+    ``structural_drift`` means the re-emitted rule differs structurally
+    from what was loaded: a block, item, value or modifier went missing
+    without anything telling the user. It is the most dangerous category
+    the emit audit has, because the rule still looks fine — it just
+    means something else now.
+
+    The module docstring described a floor for this from the beginning,
+    but none was ever implemented, and four rules lived here as a
+    result. They were not the "unrepresentable Sigma idiom" the
+    docstring anticipated; they were a bug. ``web/load.py`` carried a
+    hardcoded duplicate of ``ValueModifier`` that had fallen behind it,
+    so ``Image|fieldref: ParentImage`` — "this process's image equals
+    its own parent's" — loaded with the modifier stripped and became a
+    literal string match on ``"ParentImage"``.
+
+    If this fails, check for a dropped modifier or value before
+    concluding it is an idiom we cannot represent.
+    """
+    counts = corpus_emit_audit["summary"]["category_counts"]
+    actual = counts.get("structural_drift", 0)
+    symptoms = corpus_emit_audit["summary"]["top_symptoms_per_category"].get("structural_drift", [])
+    top = "\n".join(f"    [{c:>4d}] {s}" for s, c in symptoms[:5])
+    assert actual <= MAX_STRUCTURAL_DRIFT, (
+        f"Emit-audit ratchet: structural drift regressed.\n"
+        f"  allowed = {MAX_STRUCTURAL_DRIFT}\n"
+        f"  actual  = {actual}\n"
+        f"{top}"
     )

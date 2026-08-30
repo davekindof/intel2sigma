@@ -48,6 +48,10 @@ MODIFIER_LABELS: dict[str, str] = {
     "gte": "greater than or equal to",
     "lt": "less than",
     "lte": "less than or equal to",
+    "fieldref": "equals another field's value",
+    "i": "regex: ignore case",
+    "m": "regex: ^ and $ match each line",
+    "s": "regex: . also matches newline",
 }
 
 # Longer, hover-revealing explanations. Used as ``title=`` on the
@@ -103,6 +107,17 @@ MODIFIER_TOOLTIPS: dict[str, str] = {
     "gte": "Numeric: greater than or equal to the given value.",
     "lt": "Numeric: less than the given value.",
     "lte": "Numeric: less than or equal to the given value.",
+    "fieldref": (
+        "The value names another FIELD, not a literal — the rule fires when "
+        "the two fields hold the same value. Used for self-referential "
+        "detections like a process whose image equals its parent's."
+    ),
+    "i": "Regex flag: match case-insensitively. Chain after 're'.",
+    "m": (
+        "Regex flag: multiline, so ^ and $ match at every line break rather "
+        "than only at the start and end of the value. Chain after 're'."
+    ),
+    "s": ("Regex flag: dot-all, so '.' also matches newline characters. Chain after 're'."),
 }
 
 

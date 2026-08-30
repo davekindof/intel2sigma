@@ -18,7 +18,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import cache
 from pathlib import Path
-from typing import Any
+from typing import Any, get_args
 
 from ruamel.yaml import YAML
 from sigma.exceptions import SigmaError
@@ -26,7 +26,7 @@ from sigma.rule import SigmaDetection, SigmaDetectionItem
 from sigma.rule import SigmaRule as PySigmaRule
 
 from intel2sigma._data import data_path
-from intel2sigma.core.model import LogSource
+from intel2sigma.core.model import LogSource, ValueModifier
 from intel2sigma.core.taxonomy.schema import ObservationTypeSpec
 from intel2sigma.core.validate.issues import ValidationIssue
 from intel2sigma.web.draft import (
@@ -44,6 +44,12 @@ _EXAMPLES_DIR = data_path("examples")
 # Code prefix for all translator-surfaced issues so the UI can group them
 # separately from tier-1/tier-2/composer issues.
 _ISSUE_CODE_PREFIX = "LOAD_"
+
+# Modifier tokens the draft model accepts, derived from the model's own
+# Literal so the two cannot disagree. pySigma's token names match ours
+# exactly for every member ("fieldref", "re", "i", "m", …), so this is a
+# direct membership test against what _modifier_name returns.
+_KNOWN_MODIFIERS: frozenset[str] = frozenset(get_args(ValueModifier))
 
 # Sentinel observation id used when the loaded rule's logsource isn't in
 # our taxonomy. Mirrors ``_FREEFORM_OBSERVATION_ID`` in
@@ -519,29 +525,17 @@ def _translate_item(di: SigmaDetectionItem) -> DetectionItemDraft:
     """One ``SigmaDetectionItem`` → one ``DetectionItemDraft``."""
     field = di.field or ""
     modifiers = [_modifier_name(mod) for mod in (di.modifiers or [])]
-    # Filter out modifiers we don't recognize rather than emit an invalid draft.
-    known = {
-        "contains",
-        "startswith",
-        "endswith",
-        "all",
-        "exact",
-        "re",
-        "cased",
-        "base64",
-        "base64offset",
-        "utf16",
-        "utf16le",
-        "utf16be",
-        "wide",
-        "windash",
-        "cidr",
-        "gt",
-        "gte",
-        "lt",
-        "lte",
-    }
-    modifiers = [m for m in modifiers if m in known]
+    # Filter out modifiers we don't recognize rather than emit an invalid
+    # draft. Derived from ValueModifier rather than restated: this was a
+    # hardcoded copy of that Literal and had silently drifted from it,
+    # which is precisely how the silent-drop it exists to prevent got
+    # reintroduced. When ``fieldref`` and the regex flags were added to
+    # the model, this set still filtered them out, so four corpus rules
+    # loaded with the modifier stripped — a self-referential
+    # ``Image|fieldref: ParentImage`` quietly became a literal match on
+    # the string "ParentImage". They showed up in the emit audit as
+    # structural_drift. Deriving removes the ability to drift again.
+    modifiers = [m for m in modifiers if m in _KNOWN_MODIFIERS]
     # ``original_value`` is typed as a union; iterate defensively.
     raw_value = di.original_value
     value_iter: list[Any] = (
@@ -601,10 +595,27 @@ def _build_modifier_class_to_token() -> dict[type, str]:
     Built lazily-but-once on first import of this module. pySigma's
     mapping is stable across the runtime; we don't need to handle
     runtime changes.
+
+    The inversion is many-to-one: the three regex flags each have two
+    spellings — ``i``/``ignorecase``, ``m``/``multiline``,
+    ``s``/``dotall``. A plain dict comprehension keeps whichever came
+    last, which was ``ignorecase``, a token our model does not know, so
+    the known-modifier filter dropped it and ``|re|i`` silently became
+    ``|re`` — the fourth of the four structural_drift rules.
+
+    Preferring a spelling we model resolves it in the right direction:
+    the Sigma spec and the SigmaHQ corpus both write the short flag.
+    Doing it by membership rather than by "shortest wins" also keeps
+    working if pySigma adds an alias pair that isn't short/long.
     """
     from sigma.modifiers import modifier_mapping  # noqa: PLC0415
 
-    return {cls: token for token, cls in modifier_mapping.items()}
+    inverted: dict[type, str] = {}
+    for token, cls in modifier_mapping.items():
+        current = inverted.get(cls)
+        if current is None or (current not in _KNOWN_MODIFIERS and token in _KNOWN_MODIFIERS):
+            inverted[cls] = token
+    return inverted
 
 
 _MOD_CLS_TO_TOKEN: dict[type, str] = _build_modifier_class_to_token()

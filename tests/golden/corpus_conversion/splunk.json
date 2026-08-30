@@ -43,6 +43,10 @@
   "status": "ok",
   "output": "ScriptBlockText=\"*New-ADServiceAccount*\" ScriptBlockText=\"*-CreateDelegatedServiceAccount*\" ScriptBlockText=\"*-path*\""
  },
+ "021310d9-30a6-480a-84b7-eaa69aeb92bb": {
+  "status": "ok",
+  "output": "path=\"\\\\\\\\\\*\\\\IPC$\" NOT (\"samr\" OR \"lsarpc\" OR \"winreg\" OR \"netlogon\" OR \"srvsvc\" OR \"protected_storage\" OR \"wkssvc\" OR \"browser\" OR \"netdfs\" OR \"svcctl\" OR \"spoolss\" OR \"ntsvcs\" OR \"LSM_API_service\" OR \"HydraLsPipe\" OR \"TermSrv_API_service\" OR \"MsFteWds\")"
+ },
  "0250638a-2b28-4541-86fc-ea4c558fa0c6": {
   "status": "ok",
   "output": "ParentImage IN (\"*com.apple.WebKit.WebContent*\", \"*firefox*\", \"*Google Chrome Helper*\", \"*Google Chrome*\", \"*Microsoft Edge*\", \"*Opera*\", \"*Safari*\", \"*Tor Browser*\") Image IN (\"*/bash\", \"*/curl\", \"*/dash\", \"*/ksh\", \"*/osascript\", \"*/perl\", \"*/php\", \"*/pwsh\", \"*/python\", \"*/sh\", \"*/tcsh\", \"*/wget\", \"*/zsh\") NOT (CommandLine=\"*--defaults-torrc*\" OR CommandLine=\"*/Library/Application Support/Microsoft/MAU*/Microsoft AutoUpdate.app/Contents/MacOS/msupdate*\" OR (ParentImage IN (\"*Google Chrome Helper*\", \"*Google Chrome*\") CommandLine IN (\"*/Volumes/Google Chrome/Google Chrome.app/Contents/Frameworks/*/Resources/install.sh*\", \"*/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/*/Resources/keystone_promote_preflight.sh*\", \"*/Applications/Google Chrome.app/Contents/Frameworks/Google Chrome Framework.framework/*/Resources/keystone_promote_postflight.sh*\")) OR (ParentImage=\"*Microsoft Edge*\" CommandLine IN (\"*IOPlatformExpertDevice*\", \"*hw.model*\")) OR (ParentImage IN (\"*Google Chrome Helper*\", \"*Google Chrome*\") CommandLine=\"*/Users/*\" CommandLine=\"*/Library/Application Support/Google/Chrome/recovery/*\" CommandLine=\"*/ChromeRecovery*\")) NOT (NOT CommandLine=* OR CommandLine=\"\")"
@@ -95,6 +99,10 @@
   "status": "ok",
   "output": "source=\"WinEventLog:Microsoft-Windows-Sysmon/Operational\" EventCode=3 Initiated=\"true\" Image=\"*\\\\regasm.exe\" NOT (DestinationIp=\"127.0.0.0/8\" OR DestinationIp=\"10.0.0.0/8\" OR DestinationIp=\"172.16.0.0/12\" OR DestinationIp=\"192.168.0.0/16\" OR DestinationIp=\"169.254.0.0/16\" OR DestinationIp=\"::1/128\" OR DestinationIp=\"fe80::/10\" OR DestinationIp=\"fc00::/7\")"
  },
+ "055fb148-60f8-462d-ad16-26926ce050f1": {
+  "status": "error",
+  "error": "ConversionFailedError: pySigma failed to convert rule for backend 'splunk' with pipelines [(baseline only)]: ORing FieldRef matching is not yet supported by Splunk backend"
+ },
  "06125661-3814-4e03-bfa2-1e4411c60ac3": {
   "status": "ok",
   "output": "Image IN (\"*\\\\cmd.exe\", \"*\\\\powershell.exe\", \"*\\\\pwsh.exe\", \"*\\\\wt.exe\", \"*\\\\rundll32.exe\", \"*\\\\regsvr32.exe\") TargetFilename IN (\"*.VHD\", \"*.bac\", \"*.bak\", \"*.wbcat\", \"*.bkf\", \"*.set\", \"*.win\", \"*.dsk\")"
@@ -103,13 +111,13 @@
   "status": "ok",
   "output": "source=\"WinEventLog:Microsoft-Windows-Sysmon/Operational\" EventCode=22 QueryName=\"*.anonfiles.com*\""
  },
+ "06d71506-7beb-4f22-8888-e2e5e2ca7fd8": {
+  "status": "ok",
+  "output": "\"dpapi::masterkey\" OR \"eo.oe.kiwi\" OR \"event::clear\" OR \"event::drop\" OR \"gentilkiwi.com\" OR \"kerberos::golden\" OR \"kerberos::ptc\" OR \"kerberos::ptt\" OR \"kerberos::tgt\" OR \"Kiwi Legit Printer\" OR \"lsadump::\" OR \"mimidrv.sys\" OR \"\\\\mimilib.dll\" OR \"misc::printnightmare\" OR \"misc::shadowcopies\" OR \"misc::skeleton\" OR \"privilege::backup\" OR \"privilege::debug\" OR \"privilege::driver\" OR \"sekurlsa::\" NOT EventID=15"
+ },
  "071d5e5a-9cef-47ec-bc4e-a42e34d8d0ed": {
   "status": "ok",
   "output": "a1=\"--cpu-priority*\" OR a2=\"--cpu-priority*\" OR a3=\"--cpu-priority*\" OR a4=\"--cpu-priority*\" OR a5=\"--cpu-priority*\" OR a6=\"--cpu-priority*\" OR a7=\"--cpu-priority*\""
- },
- "07330162-dba1-4746-8121-a9647d49d297": {
-  "status": "ok",
-  "output": "eventSource=\"config.amazonaws.com\" eventName IN (\"DeleteDeliveryChannel\", \"StopConfigurationRecorder\")"
  },
  "07ad2ea8-6a55-4ac6-bf3e-91b8e59676eb": {
   "status": "ok",
@@ -143,6 +151,10 @@
   "status": "ok",
   "output": "EventLog=\"RPCFW\" EventID=3 InterfaceUuid=\"378e52b0-c0a9-11cf-822d-00aa0051e40f\" NOT (OpNum IN (0, 1))"
  },
+ "0ac15ec3-d24f-4246-aa2a-3077bb1cf90e": {
+  "status": "ok",
+  "output": "\"new user\" \"GID=0,\" OR \"UID=0,\" OR \"GID=10,\" OR \"GID=27,\""
+ },
  "0adc67e0-a68f-4ffd-9c43-28905aad5d6a": {
   "status": "ok",
   "output": "source=\"WinEventLog:Microsoft-Windows-Sysmon/Operational\" EventCode IN (17, 18) PipeName IN (\"*\\\\imposecost*\", \"*\\\\imposingcost*\")"
@@ -151,6 +163,10 @@
   "status": "ok",
   "output": "EventID IN (11, 12) ProcessPath IN (\"*\\\\MpCmdRun.exe\", \"*\\\\NisSrv.exe\")"
  },
+ "0b7889b4-5577-4521-a60a-3376ee7f9f7b": {
+  "status": "ok",
+  "output": "(EventID=5861 \"ActiveScriptEventConsumer\" OR \"CommandLineEventConsumer\" OR \"CommandLineTemplate\") OR EventID=5859 NOT (Provider=\"SCM Event Provider\" Query=\"select * from MSFT_SCMEventLogEvent\" User=\"S-1-5-32-544\" PossibleCause=\"Permanent\")"
+ },
  "0c97c1d3-4057-45c9-b148-1de94b631931": {
   "status": "ok",
   "output": "eventType IN (\"policy.rule.update\", \"policy.rule.delete\")"
@@ -158,6 +174,10 @@
  "0c9b3bda-41a6-4442-9345-356ae86343dc": {
   "status": "ok",
   "output": "objectRef.apiGroup=\"batch\" objectRef.resource IN (\"cronjobs\", \"jobs\") verb IN (\"create\", \"delete\", \"patch\", \"replace\", \"update\")"
+ },
+ "0d2c3d4c-4b48-4ac3-8f23-ea845746bb1a": {
+  "status": "ok",
+  "output": "\"ActionController::InvalidAuthenticityToken\" OR \"ActionController::InvalidCrossOriginRequest\" OR \"ActionController::MethodNotAllowed\" OR \"ActionController::BadRequest\" OR \"ActionController::ParameterMissing\""
  },
  "0d58814b-1660-4d31-8c93-d1086ed24cba": {
   "status": "ok",
@@ -203,6 +223,14 @@
   "status": "ok",
   "output": "auditType.category=\"Global administration\" auditType.action=\"SSH settings changed\""
  },
+ "16c86189-b556-4ee8-b4c7-7e350a195a4f": {
+  "status": "ok",
+  "output": "\"ParseErrorException\" OR \"VelocityException\" OR \"TemplateInitException\""
+ },
+ "19aefed0-ffd4-47dc-a7fc-f8b1425e84f9": {
+  "status": "ok",
+  "output": "\"DataError\" OR \"IntegrityError\" OR \"ProgrammingError\" OR \"OperationalError\""
+ },
  "19bf6fdb-7721-4f3d-867f-53467f6a5db6": {
   "status": "ok",
   "output": "DestinationHostname IN (\"*tunnel.us.ngrok.com*\", \"*tunnel.eu.ngrok.com*\", \"*tunnel.ap.ngrok.com*\", \"*tunnel.au.ngrok.com*\", \"*tunnel.sa.ngrok.com*\", \"*tunnel.jp.ngrok.com*\", \"*tunnel.in.ngrok.com*\")"
@@ -214,6 +242,22 @@
  "1d218616-71b0-4c40-855b-9dbe75510f7f": {
   "status": "ok",
   "output": "TargetObject=\"*\\\\software\\\\NetWire*\""
+ },
+ "1da8ce0b-855d-4004-8860-7d64d42063b1": {
+  "status": "ok",
+  "output": "\"exit signal Segmentation Fault\""
+ },
+ "1edd77db-0669-4fef-9598-165bda82826d": {
+  "status": "ok",
+  "output": "\"(2 users now present)\""
+ },
+ "1f2b5353-573f-4880-8e33-7d04dcf97744": {
+  "status": "ok",
+  "output": "State=\"Stopped\" OR \"Sysmon config state changed\" NOT State=\"Started\""
+ },
+ "1f978c6a-4415-47fb-aca5-736a44d7ca3d": {
+  "status": "ok",
+  "output": "\"crypto pki export\" OR \"crypto pki import\" OR \"crypto pki trustpoint\""
  },
  "1fc0809e-06bf-4de3-ad52-25e5263b7623": {
   "status": "ok",
@@ -239,9 +283,9 @@
   "status": "ok",
   "output": "properties.message=\"Device Code\""
  },
- "286b47ed-f6fe-40b3-b3a8-35129acd43bc": {
+ "293ccb8c-bed8-4868-8296-bef30e303b7e": {
   "status": "ok",
-  "output": "name IN (\"*.pst\", \"*.ost\", \"*.msg\", \"*.nst\", \"*.oab\", \"*.edb\", \"*.nsf\", \"*.bak\", \"*.dmp\", \"*.kirbi\", \"*.rdp\")"
+  "output": "\"/data/etc/wxd.conf\" OR \"/data/lib/libgif.so\" OR \"/data/lib/libips.bak\" OR \"/data/lib/libiptcp.so\" OR \"/data/lib/libipudp.so\" OR \"/data/lib/libjepg.so\" OR \"/var/.sslvpnconfigbk\""
  },
  "2975af79-28c4-4d2f-a951-9095f229df29": {
   "status": "ok",
@@ -258,6 +302,10 @@
  "2bfc1373-0220-4fbd-8b10-33ddafd2a142": {
   "status": "ok",
   "output": "EventID IN (129, 140, 141) TaskName IN (\"\\\\defender\", \"\\\\Microsoft\\\\DefenderService\", \"\\\\Microsoft\\\\Windows\\\\Application Experience\\\\StartupAppTaskCheck\", \"\\\\Microsoft\\\\Windows\\\\Application Experience\\\\StartupAppTaskCkeck\", \"\\\\Microsoft\\\\Windows\\\\ATPUpd\", \"\\\\Microsoft\\\\Windows\\\\Data Integrity Scan\\\\Data Integrity Update\", \"\\\\Microsoft\\\\Windows\\\\DefenderUPDService\", \"\\\\Microsoft\\\\Windows\\\\IISUpdateService\", \"\\\\Microsoft\\\\Windows\\\\Speech\\\\SpeechModelInstallTask\", \"\\\\Microsoft\\\\Windows\\\\WiMSDFS\", \"\\\\Microsoft\\\\Windows\\\\Windows Defender\\\\Defender Update Service\", \"\\\\Microsoft\\\\Windows\\\\Windows Defender\\\\Service Update\", \"\\\\Microsoft\\\\Windows\\\\Windows Error Reporting\\\\CheckReporting\", \"\\\\Microsoft\\\\Windows\\\\Windows Error Reporting\\\\SubmitReporting\", \"\\\\Microsoft\\\\Windows\\\\Windows Filtering Platform\\\\BfeOnServiceStart\", \"\\\\Microsoft\\\\Windows\\\\WindowsDefenderService\", \"\\\\Microsoft\\\\Windows\\\\WindowsDefenderService2\", \"\\\\Microsoft\\\\Windows\\\\WindowsUpdate\\\\Scheduled AutoCheck\", \"\\\\Microsoft\\\\Windows\\\\WindowsUpdate\\\\Scheduled Check\", \"\\\\WindowUpdate\")"
+ },
+ "2ece8816-b7a0-4d9b-b0e8-ae7ad18bc02b": {
+  "status": "ok",
+  "output": "\"%WEBUI-6-INSTALL_OPERATION_INFO:\" OR \"%SYS-5-CONFIG_P:\" OR \"%SEC_LOGIN-5-WEBLOGIN_SUCCESS:\" \"cisco_tac_admin\" OR \"cisco_support\" OR \"cisco_sys_manager\""
  },
  "2f8cd7a0-9d5a-4f62-9f8b-2c951aa0dd1f": {
   "status": "ok",
@@ -279,6 +327,14 @@
   "status": "ok",
   "output": "FileName IN (\"*.hive\", \"*.reg\") NOT (Image IN (\"C:\\\\Program Files (x86)\\\\*\", \"C:\\\\Program Files\\\\*\", \"C:\\\\Windows\\\\System32\\\\*\", \"C:\\\\Windows\\\\SysWOW64\\\\*\"))"
  },
+ "36aa86ca-fd9d-4456-814e-d3b1b8e1e0bb": {
+  "status": "ok",
+  "output": "\"Trojan*FOUND\" OR \"VirTool*FOUND\" OR \"Webshell*FOUND\" OR \"Rootkit*FOUND\" OR \"Htran*FOUND\""
+ },
+ "377f33a1-4b36-4ee1-acee-1dbe4b43cfbe": {
+  "status": "ok",
+  "output": "\"Connection refused: too many sessions for this address.\" OR \"Connection refused: tcp_wrappers denial.\" OR \"Bad HTTP verb.\" OR \"port and pasv both active\" OR \"pasv and port both active\" OR \"Transfer done (but failed to open directory).\" OR \"Could not set file modification time.\" OR \"bug: pid active in ptrace_sandbox_free\" OR \"PTRACE_SETOPTIONS failure\" OR \"weird status:\" OR \"couldn't handle sandbox event\" OR \"syscall * out of bounds\" OR \"syscall not permitted:\" OR \"syscall validate failed:\" OR \"Input line too long.\" OR \"poor buffer accounting in str_netfd_alloc\" OR \"vsf_sysutil_read_loop\""
+ },
  "3ce8e9a4-bc61-4c9b-8e69-d7e2492a8781": {
   "status": "ok",
   "output": "EventID=4 process=\"sshd\" payload=\"Server listening on *\""
@@ -299,6 +355,22 @@
   "status": "ok",
   "output": "eventSource=\"Exchange\" eventName=\"Add-FederatedDomain\" status=\"success\""
  },
+ "49f5dfc1-f92e-4d34-96fa-feba3f6acf36": {
+  "status": "ok",
+  "output": "\"stopping iptables\" OR \"stopping ip6tables\" OR \"stopping firewalld\" OR \"stopping cbdaemon\" OR \"stopping falcon-sensor\""
+ },
+ "4c9d903d-4939-4094-ade0-3cb748f4d7da": {
+  "status": "ok",
+  "output": "\"error: buffer_get_ret: trying to get more bytes 1907 than in buffer 308 [preauth]\""
+ },
+ "4d0af518-828e-4a04-a751-a7d03f3046ad": {
+  "status": "ok",
+  "output": "\"org.apache.commons.ognl.OgnlException\" OR \"ExpressionSyntaxException\""
+ },
+ "4e64668a-4da1-49f5-a8df-9e2d5b866718": {
+  "status": "ok",
+  "output": "(EventID=808 ErrorCode IN (\"0x45A\", \"0x7e\")) OR \"The print spooler failed to load a plug-in module\" OR \"MyExploit.dll\" OR \"evil.dll\" OR \"\\\\addCube.dll\" OR \"\\\\rev.dll\" OR \"\\\\rev2.dll\" OR \"\\\\main64.dll\" OR \"\\\\mimilib.dll\" OR \"\\\\mimispool.dll\" NOT \" registration timed out\""
+ },
  "503fe26e-b5f2-4944-a126-eab405cc06e5": {
   "status": "ok",
   "output": "request_type=\"TGS\" cipher=\"rc4-hmac\" NOT service=\"$*\""
@@ -306,6 +378,10 @@
  "50cb47b8-2c33-4b23-a2e9-4600657d9746": {
   "status": "ok",
   "output": "EventID=101 PackagePath=\"*\\\\\\\\*\""
+ },
+ "50e606bf-04ce-4ca7-9d54-3449494bbd4b": {
+  "status": "ok",
+  "output": "\"LDP\" \"SOCKET_TCP_PACKET_MD5_AUTHEN_FAIL\" OR \"TCPMD5AuthenFail\""
  },
  "5588576c-5898-4fac-bcdd-7475a60e8f43": {
   "status": "ok",
@@ -326,6 +402,10 @@
  "58c0bff0-40a0-46e8-b5e8-b734b84d2017": {
   "status": "ok",
   "output": "EventID=1007"
+ },
+ "59ec40bb-322e-40ab-808d-84fa690d7e56": {
+  "status": "ok",
+  "output": "\"exited on signal 6 (core dumped)\""
  },
  "62fff148-278d-497e-8ecd-ad6083231a35": {
   "status": "ok",
@@ -363,10 +443,6 @@
   "status": "ok",
   "output": "EventID=300 TargetUserSid=\"S-1-5-21-*\" SidList IN (\"*S-1-5-32-544*\", \"*-500}*\", \"*-518}*\", \"*-519}*\") NOT (TargetUserSid IN (\"*-500\", \"*-518\", \"*-519\"))"
  },
- "7ba05b43-adad-4c02-b5e9-c8c35cdf9fa8": {
-  "status": "ok",
-  "output": "\"networkd-dispatcher\" \"Error handling notification for interface\" \"../../\""
- },
  "7fcc54cb-f27d-4684-84b7-436af096f858": {
   "status": "ok",
   "output": "USER IN (\"#-*\", \"#*4294967295\")"
@@ -383,9 +459,17 @@
   "status": "ok",
   "output": "dst_ip IN (\"69.42.98.86\", \"89.185.234.145\") OR src_ip IN (\"69.42.98.86\", \"89.185.234.145\")"
  },
+ "8a670c6d-7189-4b1c-8017-a417ca84a086": {
+  "status": "ok",
+  "output": "\"quoted string not properly terminated\" OR \"You have an error in your SQL syntax\" OR \"Unclosed quotation mark\" OR \"near \\\"*\\\": syntax error\" OR \"SELECTs to the left and right of UNION do not have the same number of result columns\""
+ },
  "8d91f6e4-9f3b-4c21-ae41-2c5b7d9f7a12": {
   "status": "ok",
   "output": "EventID=4000 ShareName IN (\"*IPC$*\", \"*ADMIN$*\", \"*C$*\") SigningUsed=\"false\" OR EncyptionUsed=\"false\" NOT (ClientAddress=\"127.0.0.0/8\" OR ClientAddress=\"169.254.0.0/16\" OR ClientAddress=\"::1/128\" OR ClientAddress=\"fe80::/10\" OR ClientAddress=\"fc00::/7\" OR ClientAddress IN (\"*00000000000000000000000000000001*\", \"*FE80000000000000*\", \"*FC00000000000000*\", \"*0200****7F*\", \"*0200****A9FE*\"))"
+ },
+ "97661d9d-2beb-4630-b423-68985291a8af": {
+  "status": "ok",
+  "output": "\"node:child_process\""
  },
  "98c3bcf1-56f2-49dc-9d8d-c66cf190238b": {
   "status": "ok",
@@ -411,6 +495,18 @@
   "status": "ok",
   "output": "TargetFilename=\"*.sed\""
  },
+ "ae48ab93-45f7-4051-9dfe-5d30a3f78e33": {
+  "status": "ok",
+  "output": "\"AccessDeniedException\" OR \"CsrfException\" OR \"InvalidCsrfTokenException\" OR \"MissingCsrfTokenException\" OR \"CookieTheftException\" OR \"InvalidCookieException\" OR \"RequestRejectedException\""
+ },
+ "af202fd3-7bff-4212-a25a-fb34606cfcbe": {
+  "status": "ok",
+  "output": "\"REPLACE\""
+ },
+ "b55d23e5-6821-44ff-8a6e-67218891e49f": {
+  "status": "ok",
+  "output": "EventID IN (40300, 40301, 40302) \"HybridConnection\" OR \"sb://\" OR \"servicebus.windows.net\" OR \"HybridConnectionManage\""
+ },
  "b5aa7d60-c17e-4538-97de-09029d6cd76b": {
   "status": "ok",
   "output": "EventID=157 subjectName=\"CN=Foresee Consulting Inc., O=Foresee Consulting Inc., L=North York, S=Ontario, C=CA, SERIALNUMBER=1004913-1, OID.1.3.6.1.4.1.311.60.2.1.3=CA, OID.2.5.4.15=Private Organization\""
@@ -431,9 +527,9 @@
   "status": "ok",
   "output": "EventID=201 ImageName IN (\"procdump.exe\", \"psloglist.exe\", \"psexec.exe\", \"livekd.exe\", \"ADExplorer.exe\")"
  },
- "d4f1a2b3-7c8e-4d5f-b6a9-1e0c2d3f4e5b": {
+ "d84c0ded-edd7-4123-80ed-348bb3ccc4d5": {
   "status": "ok",
-  "output": "EventID=5858 Operation=\"*Win32_NTEventlogFile*\" Operation=\"*cleareventlog*\""
+  "output": "\"drop\" OR \"truncate\" OR \"dump\" OR \"select \\*\""
  },
  "db809f10-56ce-4420-8c86-d6a7d793c79c": {
   "status": "ok",
@@ -443,10 +539,6 @@
   "status": "ok",
   "output": "EventID IN (30803, 30804, 30806) NOT (ServerAddress=\"10.0.0.0/8\" OR ServerAddress=\"127.0.0.0/8\" OR ServerAddress=\"169.254.0.0/16\" OR ServerAddress=\"172.16.0.0/12\" OR ServerAddress=\"192.168.0.0/16\" OR ServerAddress=\"::1/128\" OR ServerAddress=\"fe80::/10\" OR ServerAddress=\"fc00::/7\" OR Address IN (\"10.*\", \"127.*\", \"169.254.*\", \"172.*\", \"192.168.*\", \"::1*\", \"fe80::*\", \"fc00::*\") OR Address IN (\"*00000000000000000000000000000001*\", \"*FE80000000000000*\", \"*FC00000000000000*\", \"*0200****C0A8*\", \"*0200****AC*\", \"*0200****0A*\", \"*0200****7F*\", \"*0200****A9FE*\") OR ServerAddress IN (\"*00000000000000000000000000000001*\", \"*FE80000000000000*\", \"*FC00000000000000*\", \"*0200****C0A8*\", \"*0200****AC*\", \"*0200****0A*\", \"*0200****7F*\", \"*0200****A9FE*\") OR RemoteAddress IN (\"*00000000000000000000000000000001*\", \"*FE80000000000000*\", \"*FC00000000000000*\", \"*0200****C0A8*\", \"*0200****AC*\", \"*0200****0A*\", \"*0200****7F*\", \"*0200****A9FE*\"))"
  },
- "e032f5bc-4563-4096-ae3b-064bab588685": {
-  "status": "ok",
-  "output": "\"FileNotFoundException\" \"/../../..\""
- },
  "e2b5163d-7deb-4566-9af3-40afea6858c3": {
   "status": "ok",
   "output": "EventID=70"
@@ -454,5 +546,17 @@
  "ec19ebab-72dc-40e1-9728-4c0b805d722c": {
   "status": "ok",
   "output": "Data=\"*Set-MpPreference*\" Data IN (\"*-dbaf $true*\", \"*-dbaf 1*\", \"*-dbm $true*\", \"*-dbm 1*\", \"*-dips $true*\", \"*-dips 1*\", \"*-DisableArchiveScanning $true*\", \"*-DisableArchiveScanning 1*\", \"*-DisableBehaviorMonitoring $true*\", \"*-DisableBehaviorMonitoring 1*\", \"*-DisableBlockAtFirstSeen $true*\", \"*-DisableBlockAtFirstSeen 1*\", \"*-DisableCatchupFullScan $true*\", \"*-DisableCatchupFullScan 1*\", \"*-DisableCatchupQuickScan $true*\", \"*-DisableCatchupQuickScan 1*\", \"*-DisableIntrusionPreventionSystem $true*\", \"*-DisableIntrusionPreventionSystem 1*\", \"*-DisableIOAVProtection $true*\", \"*-DisableIOAVProtection 1*\", \"*-DisableRealtimeMonitoring $true*\", \"*-DisableRealtimeMonitoring 1*\", \"*-DisableRemovableDriveScanning $true*\", \"*-DisableRemovableDriveScanning 1*\", \"*-DisableScanningMappedNetworkDrivesForFullScan $true*\", \"*-DisableScanningMappedNetworkDrivesForFullScan 1*\", \"*-DisableScanningNetworkFiles $true*\", \"*-DisableScanningNetworkFiles 1*\", \"*-DisableScriptScanning $true*\", \"*-DisableScriptScanning 1*\", \"*-MAPSReporting $false*\", \"*-MAPSReporting 0*\", \"*-drdsc $true*\", \"*-drdsc 1*\", \"*-drtm $true*\", \"*-drtm 1*\", \"*-dscrptsc $true*\", \"*-dscrptsc 1*\", \"*-dsmndf $true*\", \"*-dsmndf 1*\", \"*-dsnf $true*\", \"*-dsnf 1*\", \"*-dss $true*\", \"*-dss 1*\") OR Data IN (\"*HighThreatDefaultAction Allow*\", \"*htdefac Allow*\", \"*LowThreatDefaultAction Allow*\", \"*ltdefac Allow*\", \"*ModerateThreatDefaultAction Allow*\", \"*mtdefac Allow*\", \"*SevereThreatDefaultAction Allow*\", \"*stdefac Allow*\")"
+ },
+ "f130a5f1-73ba-42f0-bf1e-b66a8361cb8f": {
+  "status": "ok",
+  "output": "\"failed to unmarshal session(../\" OR \"failed to unmarshal session(./../\" OR \"failed to unmarshal session(/..\" OR \"failed to unmarshal session(%2E%2E%2F\" OR \"failed to unmarshal session(%2F%2E%2E\" OR \"failed to unmarshal session(%2E%2F%2E%2E%2F\" OR \"failed to unmarshal session(%252E%252E%252F\" OR \"failed to unmarshal session(%252F%252E%252E\" OR \"failed to unmarshal session(%252E%252F%252E%252E%252F\" OR (\"{IFS}\" OR \"base64\" OR \"bash\" OR \"curl\" OR \"http\" \"/opt/panlogs/tmp/device_telemetry/\")"
+ },
+ "f34d942d-c8c4-4f1f-b196-22471aecf10a": {
+  "status": "ok",
+  "output": "EventID=316 \"UNIDRV.DLL, kernelbase.dll, \" OR \" 123 \" OR \" 1234 \" OR \"mimispool\""
+ },
+ "fd435618-981e-4a7c-81f8-f78ce480d616": {
+  "status": "ok",
+  "output": "\"SuspiciousOperation\" OR \"DisallowedHost\" OR \"DisallowedModelAdminLookup\" OR \"DisallowedModelAdminToField\" OR \"DisallowedRedirect\" OR \"InvalidSessionKey\" OR \"RequestDataTooBig\" OR \"SuspiciousFileOperation\" OR \"SuspiciousMultipartForm\" OR \"SuspiciousSession\" OR \"TooManyFieldsSent\" OR \"PermissionDenied\""
  }
 }

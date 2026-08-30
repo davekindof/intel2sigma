@@ -208,3 +208,91 @@ level: medium
     # The re-emitted YAML must use the canonical bare-key form.
     assert "type: SOCKADDR" in yaml_out
     assert "type|exact" not in yaml_out
+
+
+# ---------------------------------------------------------------------------
+# Keyword-list detection blocks (Sigma's scalar-list form)
+# ---------------------------------------------------------------------------
+
+
+KEYWORD_RULE = """\
+title: Keyword List Rule
+id: 12341234-5678-5678-1234-567812345678
+status: test
+description: Uses Sigma's keyword-list detection form.
+author: t
+date: 2026-08-02
+logsource:
+    product: linux
+    service: auditd
+detection:
+    keywords:
+        - samr
+        - lsarpc
+        - winreg
+    condition: keywords
+level: medium
+"""
+
+
+def test_keyword_list_block_loads() -> None:
+    """A detection block that is a list of scalars must parse.
+
+    Sigma's keyword form — "fire if any event field contains any of
+    these". ``_parse_detection_block`` raised TypeError on the first
+    scalar entry until 2026-08, taking 94 corpus rules (2.6%) with it,
+    even though the model and serializer already supported the shape:
+    a DetectionItem with an empty ``field`` *is* the keyword item, and
+    ``_emit_keyword_block`` already rendered it.
+    """
+    rule = from_yaml(KEYWORD_RULE)
+    block = rule.detections[0]
+    assert len(block.items) == 1, "all scalars collapse into one item, not one each"
+    item = block.items[0]
+    assert item.field == "", "empty field is the keyword-search marker"
+    assert item.values == ["samr", "lsarpc", "winreg"]
+
+
+def test_keyword_list_block_round_trips_byte_identically() -> None:
+    """Load → emit → load → emit must be stable, and preserve every value.
+
+    Collapsing the scalars into a single item is what makes this exact:
+    a DetectionItem's values are already OR-ed, and that is precisely
+    the shape ``_emit_keyword_block`` emits for the no-modifier case.
+    Verified across all 94 corpus rules using this form — 94/94 stable,
+    94/94 values preserved.
+    """
+    once = to_yaml(from_yaml(KEYWORD_RULE))
+    twice = to_yaml(from_yaml(once))
+    assert once == twice
+    for value in ("samr", "lsarpc", "winreg"):
+        assert value in once
+
+
+def test_fieldref_and_regex_flag_modifiers_are_accepted() -> None:
+    """``fieldref`` and the regex flags must survive a round trip.
+
+    Their absence from ``ValueModifier`` was a single root cause with two
+    symptoms: four corpus rules failed to load outright, and the same
+    four showed up in the emit audit as ``structural_drift`` — the
+    loader dropped the modifier, so the re-emitted rule quietly meant
+    something else. ``fieldref`` is the dangerous one: it compares two
+    FIELDS, so losing it turns a self-referential detection into a
+    literal string match.
+    """
+    yaml_text = KEYWORD_RULE.replace(
+        """    keywords:
+        - samr
+        - lsarpc
+        - winreg
+    condition: keywords""",
+        """    selection:
+        Image|fieldref: ParentImage
+        CommandLine|re|i: 'evil\\d+'
+    condition: selection""",
+    )
+    rule = from_yaml(yaml_text)
+    mods = {tuple(i.modifiers) for i in rule.detections[0].items}
+    assert ("fieldref",) in mods
+    assert ("re", "i") in mods
+    assert to_yaml(from_yaml(to_yaml(rule))) == to_yaml(rule)
