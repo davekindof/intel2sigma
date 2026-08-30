@@ -120,11 +120,11 @@ Single container, single process. Hosted runs on **Azure Container Apps fronted 
                         │  │       └─ pySigma  │  │
                         │  └───────────────────┘  │
                         │  port 8000              │
-                        │  scale-to-zero          │
+                        │  minReplicas: 1         │
                         └─────────────────────────┘
 ```
 
-Scale horizontally by raising the Container Apps replica ceiling. No shared state, no coordination. Scale-to-zero is supported by default because startup is fast (cold start <5s) and nothing needs to warm up. For local and CLI use the Cloudflare layer is absent and the container talks directly to the user (`docker run -p 8000:8000`); the application is identical in both topologies.
+Scale horizontally by raising the Container Apps replica ceiling. No shared state, no coordination. The app *could* scale to zero — it is stateless and starts fast — but production runs `minReplicas: 1` on purpose, so no visitor pays a cold start. Warm-up is negligible either way: taxonomy is primed at startup, and everything still lazy (pySigma plugin autodiscovery 58 ms, the 8.7 MB corpus index 56 ms, MITRE tree 1 ms) totals ~120 ms on first use. For local and CLI use the Cloudflare layer is absent and the container talks directly to the user (`docker run -p 8000:8000`); the application is identical in both topologies.
 
 ## Local and CLI modes
 

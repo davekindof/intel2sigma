@@ -35,7 +35,7 @@ Rationale: Portability is the whole point. Pipeline-transformed rules are not po
 
 No database. No sessions. No auth. No server-side per-user storage of any kind. Every request carries the complete state it needs. If you find yourself reaching for persistence, stop and ask.
 
-Rationale: Matches the deployment model (single Docker image, horizontally scalable, scale-to-zero). Adding state reverses all of those properties.
+Rationale: Matches the deployment model (single Docker image, horizontally scalable, scale-to-zero *capable*). Adding state reverses all of those properties. Production happens to run `minReplicas: 1` to avoid cold-start latency, but that is a latency choice — the statelessness is what makes any replica count safe, and it is the invariant.
 
 ### I-4: No user-editable YAML in the composer
 

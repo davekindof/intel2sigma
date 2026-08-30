@@ -220,7 +220,7 @@ Each observation maps to candidate `DetectionItem` entries the user can select a
 Single Docker image, multi-stage build: Python 3.14-slim base, deps installed via `uv`, uvicorn serving FastAPI on port 8000. Image is stateless; same image serves hosted and local.
 
 **Targets**:
-- Hosted: **Azure Container Apps**, fronted by **Cloudflare** for TLS termination, WAF, rate limiting, and DDoS protection. Container Apps' built-in scale-to-zero + per-request scaling matches the bursty, request-driven workload — there is no background work to keep a warm replica alive for.
+- Hosted: **Azure Container Apps**, fronted by **Cloudflare** for TLS termination, WAF, rate limiting, and DDoS protection. Per-request scaling matches the bursty, request-driven workload. Runs `minReplicas: 1` — deliberately **not** scale-to-zero, despite the app being stateless enough for it: a cold replica makes the first visit slow, and for a tool people are shown rather than sold, that first impression is worth more than the idle cost of one replica. `maxReplicas: 3`.
 - Local: `docker run` / `docker compose up`
 - Native: `pip install intel2sigma && intel2sigma serve`
 
