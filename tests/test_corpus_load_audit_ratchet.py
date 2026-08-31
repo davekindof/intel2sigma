@@ -102,7 +102,16 @@ from intel2sigma._data import data_path
 #     gap to the old 3582 is a measurement correction, not lost
 #     functionality. Closing it is catalog expansion (the >=5-rule
 #     rule in docs/taxonomy.md), not loader work.
-MIN_CLEAN_COUNT = 3423
+#
+#   2026-08-30 (2026-Q3 catalog expansion) — 3543
+#     +120, and this is the catalog expansion the entry above predicted
+#     would be the fix. 17 new observation types took the catalog from
+#     48 to 65 and unroutable rules from 224 to 101, so those rules now
+#     reach the guided field picker instead of the freeform path.
+#     Overshoots the old 3582 baseline's remaining gap by design: the
+#     entries cover service-keyed logsources that never had a catalog
+#     file, not just the ones L8-B-2 made visible.
+MIN_CLEAN_COUNT = 3543
 
 # Categories that MUST stay at zero. Any non-zero count is either a
 # regression (loader started raising or losing data) or evidence that

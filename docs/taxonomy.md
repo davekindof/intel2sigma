@@ -174,6 +174,35 @@ Modifier availability per field is determined by `allowed_modifiers` in the taxo
 - Labels and examples must be reviewed by a human detection engineer — no auto-generation.
 - The L2 corpus load-audit (`scripts/audit_corpus_loads.py`, locked in by the `tests/test_corpus_load_audit_ratchet.py` slow ratchet) is the operational signal for catalog gaps. When `LOAD_OBSERVATION_UNKNOWN` accumulates ≥5 rules for a given (category, product) pairing, that bucket is a candidate for a catalog file. The L2-P2 sweep added 9 entries this way: `application_jvm`, `application_kubernetes`, `webserver`, `dns`, `antivirus`, `file_delete`, `file_access`, `ps_classic_start`, `registry_delete`, `registry_add`, `create_stream_hash`, `file_change` (plus `file_event` and `network_connection` gained secondary platforms). Long-tail single-rule logsources are intentionally not catalogued — the freeform-observation path (`_freeform`) handles those.
 
+### 2026-Q3 expansion (48 → 62 observation types)
+
+The r2026-07-01 recalibration ran the full pipeline — `analyze_taxonomy.py` against the new pin, then `generate_taxonomy_yaml.py --threshold 5 --write` — and added 14 entries, taking unroutable corpus rules from 224 to 101 and leaving only three buckets at or above five rules:
+
+| entry | logsource |
+|---|---|
+| `windows_appxdeployment_server` | `windows` / `appxdeployment-server` |
+| `windows_bits_client` | `windows` / `bits-client` |
+| `windows_codeintegrity_operational` | `windows` / `codeintegrity-operational` |
+| `windows_dns_client` | `windows` / `dns-client` |
+| `windows_firewall_as` | `windows` / `firewall-as` |
+| `windows_msexchange_management` | `windows` / `msexchange-management` |
+| `azure_pim` | `azure` / `pim` |
+| `bitbucket_audit` | `bitbucket` / `audit` |
+| `cisco_aaa` | `cisco` / `aaa` |
+| `fortigate_event` | `fortigate` / `event` |
+| `gcp_google_workspace_admin` | `gcp` / `google_workspace.admin` |
+| `m365_threat_management` | `m365` / `threat_management` |
+| `zeek_dns` | `zeek` / `dns` |
+| `zeek_smb_files` | `zeek` / `smb_files` |
+
+**The generator emitted three duplicates, and they had to be deleted by hand.** It proposed `unspecified_antivirus`, `unspecified_dns` and `unspecified_webserver` with `product: unspecified` — but `_wildcard_or()` normalises `"unspecified"` to `None` for matching, so each matched exactly what the existing `antivirus.yml`, `dns.yml` and `webserver.yml` already matched. Its already-covered check compares raw `(product, category, service)` tuples and does not apply that normalisation. Deleting all three left the unroutable count unchanged at 101, which is the proof they were redundant. Check any generated `unspecified_*` entry against existing coverage before shipping it.
+
+**The generator also assigns `category_group` mechanically** — all 17 proposals came out as `audit_and_identity`, including Windows event channels and Zeek network telemetry. That field drives the Stage 0 card grid, so it needs setting by hand: Windows channels follow `security_log`/`system_log` into `os_event_log`, network-subject telemetry follows `dns_query`/`proxy` into `network`, and only cloud/SaaS/identity audit belongs in `audit_and_identity` alongside `azure_signin`/`okta`/`github_audit`.
+
+**The generator writes structure, not English.** It picks fields, modifiers and category groups deterministically from the frequency report, then emits placeholder prose — `label: A bitbucket audit was logged`, `description: Auto-generated taxonomy for bitbucket/=audit.`, field labels that are just the raw Sigma field name, and no synonyms, notes or examples. All of that fails `tests/test_taxonomy_verbiage.py`, which is the gate doing its job: every one of the 47 fields on the 14 kept entries was written by hand afterwards. Treat a generator run as producing a draft that will not pass CI until reviewed.
+
+Three buckets remain uncatalogued at ≥5 rules by the whole-index count — `kubernetes/audit`, `m365/audit` and `zeek/http` — but sit *below* five in the vetted `rules/` stratum the generator threshold uses. That discrepancy is expected: the generator deliberately weights vetted rules, so whole-index counts run ahead of it. Revisit next cycle rather than forcing them in.
+
 ## Label writing guidelines
 
 The whole product thesis is "non-SIEM users build Sigma rules without

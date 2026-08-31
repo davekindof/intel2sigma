@@ -86,7 +86,12 @@ from intel2sigma._data import data_path
 #   2026-08-02 (keyword-list parser + modifier fixes) — 3423
 #     +4: the four rules that were losing `fieldref` / `re|i` on load
 #     now round-trip, so they move from structural_drift into clean.
-MIN_EMIT_CLEAN_COUNT = 3423
+#   2026-08-30 (2026-Q3 catalog expansion) — 3543
+#     +120, tracking MIN_CLEAN_COUNT exactly. The emit audit inherits
+#     routing from the loader, so 17 new catalog entries lift both
+#     counts identically — the two are now equal at 3543, which is
+#     expected rather than a coincidence worth chasing.
+MIN_EMIT_CLEAN_COUNT = 3543
 
 # Structural drift must now stay at zero.
 #

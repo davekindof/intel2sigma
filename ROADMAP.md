@@ -163,37 +163,36 @@ Implement as a periodic "junior analyst hits a wall" report alongside the freque
 
 Tracked here so the work doesn't get lost. No specific exit gate — it's recurring maintenance.
 
-#### Queued buckets as of the 2026-07-27 recalibration
+#### 🪦 Queued buckets from the 2026-07-27 recalibration — *SHIPPED 2026-08-30*
 
-Measured against the r2026-07-01 corpus (3,749 rules) after the
-L8-B-2 routing fix: **224 rules (6.0%) route to `_freeform`** because
-no catalog entry matches their logsource. 140 of them sit in **17
-buckets of ≥5 rules**; the remaining 84 are a long tail across 60
-keys where freeform genuinely is the right answer.
+14 of the 17 landed. The catalog went **48 → 62** observation types and
+unroutable corpus rules **224 → 101**, leaving three buckets at ≥5 by
+whole-index count (`kubernetes/audit`, `m365/audit`, `zeek/http`) that
+sit below the threshold in the vetted `rules/` stratum the generator
+weights. See `docs/taxonomy.md` § "2026-Q3 expansion" for the entry
+list and the reasoning.
 
-These 17 are the concrete backlog. Each is a data-only PR per
-CLAUDE.md I-5 — a new `intel2sigma/data/taxonomy/*.yml` plus the
-`docs/taxonomy.md` update CLAUDE.md requires in the same commit.
+Worth carrying forward, because the generator needs more review than its
+name suggests:
 
-| rules | logsource (product/category/service) |
-|---|---|
-| 14 | `bitbucket` / — / `audit` |
-| 13 | `m365` / — / `threat_management` |
-| 13 | `cisco` / — / `aaa` |
-| 10 | `windows` / — / `appxdeployment-server` |
-| 10 | `windows` / — / `codeintegrity-operational` |
-| 9 | `windows` / — / `firewall-as` |
-| 8 | `windows` / — / `msexchange-management` |
-| 7 | `zeek` / — / `smb_files` |
-| 7 | `gcp` / — / `google_workspace.admin` |
-| 7 | `windows` / — / `bits-client` |
-| 7 | `fortigate` / — / `event` |
-| 7 | `azure` / — / `pim` |
-| 6 | `windows` / — / `dns-client` |
-| 6 | `kubernetes` / — / `audit` |
-| 6 | `m365` / — / `audit` |
-| 5 | `zeek` / — / `dns` |
-| 5 | `zeek` / — / `http` |
+- It proposed three duplicates — `unspecified_antivirus`, `unspecified_dns`
+  and `unspecified_webserver`, each with `product: unspecified`, which
+  `_wildcard_or()` normalises to `None`, so they matched exactly what
+  `antivirus.yml`, `dns.yml` and `webserver.yml` already matched. Its
+  already-covered check compares raw tuples and misses that. Deleting them
+  left the unroutable count unchanged at 101, which is the proof.
+- It assigned `category_group: audit_and_identity` to all 17, including
+  Windows event channels and Zeek network telemetry. That field drives the
+  Stage 0 card grid; nine needed correcting.
+- It writes placeholder prose. All 47 fields on the kept entries needed a
+  hand-written label, note and example before `test_taxonomy_verbiage.py`
+  would pass.
+
+Budget the review, not the generator run — the generator is maybe a fifth
+of the work.
+
+The three that remain, all below the vetted-stratum threshold:
+`kubernetes/audit` (6), `m365/audit` (6), `zeek/http` (5).
 
 Every one is service-keyed with no category, which is why they were
 invisible before L8-B-2: the pre-B-2 matcher keyed on category only,
